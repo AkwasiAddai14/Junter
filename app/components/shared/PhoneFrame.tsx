@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import clsx from 'clsx'
 
-import frame from '/Users/georgeaddai/Desktop/thejunter/thejunter/app/assets/images/logos/phone-frame.svg'
+import frame from '@/app/assets/images/logos/phone-frame.svg'
 
 function PlaceholderFrame(props: React.ComponentPropsWithoutRef<'svg'>) {
   return (

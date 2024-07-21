@@ -4,7 +4,7 @@ import { useId, useRef, useState } from 'react'
 import clsx from 'clsx'
 import { motion, useInView, useMotionValue } from 'framer-motion'
 
-import { AppScreen } from '/Users/georgeaddai/Desktop/thejunter/thejunter/app/components/shared/AppScreen.tsx'
+import { AppScreen } from '@/app/components/shared/AppScreen.tsx'
 
 const prices = [
   997.56, 944.34, 972.25, 832.4, 888.76, 834.8, 805.56, 767.38, 861.21, 669.6,

@@ -1,7 +1,7 @@
 import { useId } from 'react'
 import clsx from 'clsx'
 import Image from 'next/image'
-import { AppDemo } from '/Users/georgeaddai/Desktop/thejunter/thejunter/app/components/shared/AppDemo.tsx'
+import { AppDemo } from '@/app/components/shared/AppDemo.tsx'
 import { AppStoreLink } from '/Users/georgeaddai/Desktop/thejunter/thejunter/app/components/shared/AppStoreLink.tsx'
 import { Container } from '/Users/georgeaddai/Desktop/thejunter/thejunter/app/components/shared/Container.tsx'
 import {PhoneFrame }from '@/app/components/shared/PhoneFrame'

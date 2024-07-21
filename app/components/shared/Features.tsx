@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import { Container } from '/Users/georgeaddai/Desktop/thejunter/thejunter/app/components/shared/Container.tsx'
+import { Container } from '@/app/components/shared/Container.tsx'
 
 
 const features = [
