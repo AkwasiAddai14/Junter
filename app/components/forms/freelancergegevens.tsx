@@ -114,7 +114,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
 
   const onSubmit = async (data: { postcode: string; huisnummer: string }, values: z.infer<typeof FreelancerValidation>) => {
     await fetchAddressData(data.postcode, data.huisnummer);
-    const blob = values.profielfoto;
+    /* const blob = values.profielfoto;
 
     const hasImageChanged = isBase64Image(blob);
     if (hasImageChanged){
@@ -123,7 +123,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       if(imgRes && imgRes[0].fileUrl){
         values.profielfoto = imgRes[0].fileUrl
       }
-    }
+    } */
   };
 
   const {
@@ -283,8 +283,8 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                     </label>
                     <div className="mt-2 sm:col-span-2 sm:mt-0">
                       <DatePickerForm
-                        selectedDate={watch(selectedDate)}
-                        onDateChange={(date: any) => reset({ ...watch(), geboortedatum: date })}
+                        /* selectedDate={watch(selectedDate)} */
+                        /* onDateChange={(date: any) => reset({ ...watch(), geboortedatum: date })} */
                        />
                       {errors.geboortedatum && <p className="mt-2 text-sm text-red-600">{/* {errors.geboortedatum.message} */}Error</p>}
                     </div>
@@ -418,7 +418,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                       type="file"
                       accept="image/*"
                       {...register('profielfoto')}
-                      onChange={(e) => handleImage(e, field.onChange)}
+                      /* onChange={(e) => handleImage(e, field.onChange)} */
                       id="profielfoto"
                       className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none" />
                     {errors.profielfoto && <p className="mt-2 text-sm text-red-600">{errors.profielfoto.message}</p>}

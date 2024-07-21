@@ -9,7 +9,7 @@ import { ScrollArea } from "@/app/components/ui/scroll-area"
 import { useUser } from "@clerk/nextjs"
 import { haalShifts } from "@/app/lib/actions/shiftArray.actions"
 import { useEffect, useState } from "react"
-import {  haalFactuur } from "@/app/lib/actions/factuur.actions"
+/* import {  haalFactuur } from "@/app/lib/actions/factuur.actions" */
 import { haalFlexpool } from "@/app/lib/actions/flexpool.actions"
 import { haalCheckouts } from "@/app/lib/actions/checkout.actions"
 import { Dialog, Menu, MenuButton, MenuItems, } from '@headlessui/react'
@@ -130,7 +130,7 @@ export default function Example() {
     fetchCheckout();
   }, []);
 
-  useEffect(() => {
+/*   useEffect(() => {
     const fetchFactuur = async () => {
         try {
             if (checkout && checkout.length > 0) {
@@ -144,7 +144,7 @@ export default function Example() {
     };
 
     fetchFactuur();
-}, [checkout]); // Voeg `checkout` toe aan de dependency array
+}, [checkout]); // Voeg `checkout` toe aan de dependency array */
 
 useEffect(() => {
   applyFilters();
@@ -383,11 +383,11 @@ const applyFilters = () => {
           {/* Secondary column (hidden on smaller screens) */}
           <div>
          <div>
-          <Calendar
+          {/* <Calendar
             className="pr-20"
             selected={dateRange}
-            onSelect={(range: React.SetStateAction<{ from: Date | undefined; to: Date | undefined }>) => setDateRange(range)}
-          />
+            onSelect={(range: React.SetStateAction<{ from: Date | undefined; to: Date | undefined }>) => setDateRange(range)} 
+          /> */}
          </div>
          <div>
           <p className="mt-20">
@@ -397,7 +397,7 @@ const applyFilters = () => {
             defaultValue={[0, 100]}
             step={5}
             className="mt-5"
-            onChange={(value) => setUurtarief(value)}
+            /* onChange={(value) => setUurtarief(value)} */
           />
          </div>
          <p className="mt-20">
@@ -407,7 +407,7 @@ const applyFilters = () => {
            defaultValue={[0, 100]}
            step={5}
            className="mt-5"
-           onChange={(value) => setAfstand(value)}
+           /* onChange={(value) => setAfstand(value)} */
          />
          <div>
           <div className="justify-between">

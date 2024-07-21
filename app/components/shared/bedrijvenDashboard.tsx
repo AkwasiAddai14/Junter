@@ -15,7 +15,7 @@ import { ScrollArea } from '@radix-ui/react-scroll-area';
 import { useUser } from "@clerk/nextjs";
 import { haalShifts } from "@/app/lib/actions/shiftArray.actions";
 import { useEffect, useState } from "react";
-import {  haalFactuur } from "@/app/lib/actions/factuur.actions";
+/* import {  haalFactuur } from "@/app/lib/actions/factuur.actions"; */
 import { haalFlexpool } from "@/app/lib/actions/flexpool.actions";
 import { haalCheckouts } from "@/app/lib/actions/checkout.actions";
 import React from 'react';
@@ -108,7 +108,7 @@ const Dashboard/* : React.FC<DashboardProps> */ = (/* { user } */) => {
     fetchCheckout();
   }, []);
 
-  useEffect(() => {
+/*   useEffect(() => {
     const fetchFactuur = async () => {
         try {
             if (checkout && checkout.length > 0) {
@@ -122,7 +122,7 @@ const Dashboard/* : React.FC<DashboardProps> */ = (/* { user } */) => {
     };
 
     fetchFactuur();
-}, [checkout]); // Voeg `checkout` toe aan de dependency array
+}, [checkout]); // Voeg `checkout` toe aan de dependency array */
 
 
   return (

@@ -1,4 +1,4 @@
-"use server"
+/* "use server"
 
 import  { Document, Types } from 'mongoose';
 import PDFDocument from 'pdfkit'
@@ -264,4 +264,4 @@ cron.schedule('0 12 * * 5', async () => {
     await verstuurFacturenAutomatisch();
 }, {
     timezone: 'Your/Timezone' // Set your timezone here
-});
+}); */
