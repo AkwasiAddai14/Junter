@@ -148,7 +148,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
     };
 
     return (
-        <section className="absolute inset-0 flex flex-col justify-between p-24">
+        <section className="flex flex-col justify-between p-24">
             <nav aria-label="Progress">
                 <ol role="list" className="divide-y divide-gray-300 rounded-md border border-gray-300 md:flex md:divide-y-0">
                     {steps.map((step, stepIdx) => (
@@ -385,7 +385,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                                 className="ml-4 rounded-md bg-white py-2 px-3 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
                                             />
                                             {errors.profielfoto && (
-                                                <p className="text-red-500 text-sm">{errors.profielfoto.message}</p>
+                                                <p className="text-red-500 text-sm">{"errors.profielfoto.message"}</p>
                                             )}
                                         </div>
                                     </div>
