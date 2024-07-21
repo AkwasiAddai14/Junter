@@ -12,6 +12,8 @@ import { maakFreelancer } from '@/app/lib/actions/freelancer.actions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useUploadThing } from "@/app/lib/uploadthing";
 import { isBase64Image } from '@/app/lib/utils';
+import { useRouter } from 'next/router';
+
 
 const steps = [
   { id: 1, name: 'Persoonlijke gegevens' },
@@ -46,6 +48,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
   const [city, setCity] = useState('');
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [files, setFiles] = useState<File[]>([]);
+  const router = useRouter();
 
 
   const fetchAddressData = async (postcode: string, huisnummer: string) => {
@@ -172,6 +175,8 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       opleidingen: ''
     })
   };
+
+
 
 
 
@@ -495,6 +500,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
             <button
               type="submit"
               className="inline-flex justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+              onClick={() => router.push('../dashboard')}
             >
               Voltooien
             </button>

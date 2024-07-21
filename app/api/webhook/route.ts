@@ -59,7 +59,7 @@ export async function POST(req: Request) {
 
   interface Bedrijf extends OrganizationJSON {
     id:string | "",
-    profielfoto: string | "",
+    profielfoto: any | "",
     naam: string | "",
     kvknr: string | "",
     btwnr: string | "",

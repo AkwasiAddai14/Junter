@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const BedrijfValidation = z.object({
     bedrijvenID: z.string(),
     naam: z.string().min(2, "Naam moet minstens twee characters lang zijn").max(100, " en mag maximaal 100 characters lang zijn."),
-    profielfoto: z.string().url(),
+    profielfoto: z.any(),
     displaynaam: z.string().min(2, "Voer een geldige displaynaam in"),
     bio: z.string().min(2, "Bio moet minimaal een zin lang zijn."),
     kvknr: z.string().min(8, "Onjuist KVK nummer."),
