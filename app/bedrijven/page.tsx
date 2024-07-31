@@ -17,7 +17,7 @@ const features = [
   {
     name: 'Flexpool',
     description:
-    'Freelancers in de flexpool worden automatisch geaccepteerd voor de klussen waar zij op reageren. Dit betekent dat freelancers waarmee u graag werkt vaker en sneller kunt oproepen.',
+    'Freelancers in de flexpool worden automatisch geaccepteerd voor de klussen waar zij op reageren. Dit betekent dat u freelancers waarmee u graag werkt vaker en sneller kunt oproepen.',
     href: '#',
     icon: UserGroupIcon,
   },

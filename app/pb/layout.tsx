@@ -28,9 +28,9 @@ export default function RootLayout({
         <body className={inter.className}>
           <NavBar />
 
-          <main className='flex flex-row'>
+          <main className="flex flex-row justify-center items-center min-h-screen">
 
-            <section className='main-container'>
+            <section className="main-container flex justify-center items-center">
               <div className='w-full max-w-4xl'>{children}</div>
             </section>
             {/* @ts-ignore */}

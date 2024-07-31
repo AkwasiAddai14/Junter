@@ -1,4 +1,4 @@
-/* "use server"
+"use server"
 
 import  { Document, Types } from 'mongoose';
 import PDFDocument from 'pdfkit'
@@ -9,6 +9,7 @@ import path from 'path';
 import Checkout from '../models/checkout.model';
 import Factuur from '../models/factuur.model';
 import cron from 'node-cron';
+import { connectToDB } from '../mongoose';
 
 
 
@@ -99,60 +100,53 @@ interface CheckoutDoc extends Document {
 
 export async function maakFacturen() {
     try {
-        // Get current date
+        await connectToDB();
+
         const currentDate = new Date();
-        // Calculate the start date of the current week (Monday)
         const startDate = new Date(currentDate);
-        startDate.setDate(startDate.getDate() - startDate.getDay() + (startDate.getDay() === 0 ? -6 : 1)); // Adjust to Monday
+        startDate.setDate(startDate.getDate() - startDate.getDay() + (startDate.getDay() === 0 ? -6 : 1));
+        const endDate = new Date(startDate);
+        endDate.setDate(startDate.getDate() + 6);
 
-        // Calculate the end date of the current week (Sunday)
-        const endDate = new Date(currentDate);
-        endDate.setDate(startDate.getDate() + 6); // Add 6 days to get Sunday
-
-        // Find checkouts with status 'false' within the current week
         const checkouts = await Checkout.find({
             status: false,
-            date: {
+            datum: {
                 $gte: startDate,
                 $lte: endDate
             }
-        }).populate('bedrijf');
+        }).populate('opdrachtgever opdrachtnemer shift');
 
-        // Group checkouts by business
-        const checkoutsByBusiness: Record<string, typeof Checkout[]> = {};
+        const checkoutsByBusiness: Record<string, CheckoutDoc[]> = {};
         checkouts.forEach(checkout => {
-            const bedrijfID = checkout.bedrijf._id.toString();
+            const bedrijfID = checkout.opdrachtgever.toString();
             if (!checkoutsByBusiness[bedrijfID]) {
                 checkoutsByBusiness[bedrijfID] = [];
             }
             checkoutsByBusiness[bedrijfID].push(checkout);
         });
 
-        // Iterate over businesses and create bundled invoices
         for (const bedrijfID in checkoutsByBusiness) {
             const checkoutsForBusiness = checkoutsByBusiness[bedrijfID];
-            // Create bundled invoice for this business
+
             const factuurData = {
-                shift: checkoutsForBusiness.map(checkout => checkout.shift), // Assuming this is how you want to store shift IDs
+                shift: checkoutsForBusiness.map(checkout => checkout.shift),
                 opdrachtgever: checkoutsForBusiness.map(checkout => checkout.opdrachtgever),
-                opdrachtnemer: bedrijfID, // Assuming bedrijfID is the ID of the business
-                datum: new Date(), // Current date
-                tijd: '...', // Replace '...' with actual time data
-                werktijden: '...', // Replace '...' with actual work hours data
-                werkdatum: '...', // Replace '...' with actual work date data
-                pauze: 0 // Replace 0 with actual pauze data or calculate it
+                opdrachtnemer: new Types.ObjectId(bedrijfID),
+                datum: new Date(),
+                tijd: '...', // Replace with actual time data
+                werktijden: '...', // Replace with actual work hours data
+                werkdatum: '...', // Replace with actual work date data
+                pauze: checkoutsForBusiness.reduce((acc, checkout) => acc + (checkout.pauze || 0), 0)
             };
             const factuur = new Factuur(factuurData);
-            // Save the invoice to the database
             await factuur.save();
 
-            // Update status of checkouts to 'true'
             await Checkout.updateMany(
                 { _id: { $in: checkoutsForBusiness.map(checkout => checkout._id) } },
                 { $set: { status: true } }
             );
         }
-    } catch (error:any) {
+    } catch (error: any) {
         console.error('Error creating bundled invoices:', error);
         throw new Error(`Failed to create bundled invoices: ${error.message}`);
     }
@@ -244,7 +238,7 @@ const mailOptions: Options = {
     }
 }
 
-export async function verstuurFacturenAutomatisch() {
+/* export async function verstuurFacturenAutomatisch() {
     // Get today's date
     const today = new Date();
     // Check if today is Friday
@@ -252,7 +246,7 @@ export async function verstuurFacturenAutomatisch() {
         try {
             // Call the function to send invoices
             // Add any necessary logic here to determine which invoices to send
-            await verstuurFactuur({}); // Call your function to send individual invoices
+            await verstuurFactuur({shiftId}); // Call your function to send individual invoices
             console.log('Invoices sent successfully.');
         } catch (error) {
             console.error('Failed to send invoices:', error);

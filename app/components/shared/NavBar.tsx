@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { Dialog } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import Image from 'next/image'; // Use next/image for optimized images
-import logo from '@/app/assets/images/178884748_padded_logo.png'; // Adjust the import path as needed
+import Image from 'next/image'; 
+import logo from '@/app/assets/images/178884748_padded_logo.png'; 
 
 const navigation = [
   { name: 'Freelancers', href: '../freelancers' },

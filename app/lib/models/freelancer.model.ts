@@ -10,6 +10,7 @@ const freelancerSchema = new mongoose.Schema({
     emailadres: {type: String, required: true},
     bsn: { type: String, required: true},
     korregeling: { type: Boolean, default: false},
+    kvknr: {type: String, required: false},
     btwid:{ type: String, required: false},
     iban: { type: String, required: true},
     postcode: { type: String, required: true},
@@ -22,6 +23,7 @@ const freelancerSchema = new mongoose.Schema({
     rating: { type: Number, default: 5},
     opkomst: {type: Number, default: 100},
     punctualiteit: {type: Number, default: 100},
+    bio:{type: String, reqiuired: false},
     werkervaring: [
         {
             bedrijf: {type: String, required: true},

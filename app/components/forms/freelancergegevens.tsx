@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ChangeEvent, useState } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { motion } from 'framer-motion';
 import { DatePickerForm } from '../shared/DatePicker';
@@ -12,7 +12,17 @@ import { maakFreelancer } from '@/app/lib/actions/freelancer.actions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useUploadThing } from "@/app/lib/uploadthing";
 import { isBase64Image } from '@/app/lib/utils';
-import { useRouter } from 'next/router';
+import { usePathname, useRouter } from 'next/navigation';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/app/components/ui/form";
+import { Input } from "@/app/components/ui/input";
+import Image from 'next/image';
 
 
 const steps = [
@@ -32,6 +42,8 @@ interface Props {
     achternaam: string;
     geboortedatum: string;
     emailadres: string;
+    straat: string;
+    stad: string;
     telefoonnummer: string;
     korregeling: boolean;
     btwid: string;
@@ -42,11 +54,11 @@ interface Props {
 
 const Page: React.FC<Props> = ({ freelancer }) => {
   const { startUpload } = useUploadThing("media");
+  const pathname = usePathname();
   const [currentStep, setCurrentStep] = useState(0);
   const [previousStep, setPreviousStep] = useState(0);
   const [street, setStreet] = useState('');
   const [city, setCity] = useState('');
-  const [selectedDate, setSelectedDate] = useState<string>("");
   const [files, setFiles] = useState<File[]>([]);
   const router = useRouter();
 
@@ -55,19 +67,23 @@ const Page: React.FC<Props> = ({ freelancer }) => {
     try {
       const apiKey = process.env.POSTCODE_API_KEY; // Replace 'YOUR_API_KEY' with your actual API key
       const url = `https://api.postcodeapi.nu/v3/lookup/${postcode}/${huisnummer}`;
-
-       const response = await axios.get(url, {
+  
+      const response = await axios.get(url, {
         headers: {
           'X-Api-Key': apiKey
         }
-      }); 
-
+      });
+  
       // Extract street and city from the response
-       const { street, city } = response.data; 
-
+      const { street, city } = response.data;
+  
       // Update state with the obtained street and city
       setStreet(street);
       setCity(city);
+  
+      // Set form values directly
+      setValue('straatnaam', street);
+      setValue('stad', city);
     } catch (error) {
       console.error('Error fetching address data:', error);
     }
@@ -89,7 +105,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
   // Delta berekening
   const delta = currentStep - previousStep;
 
-  const handleImage = (
+  /* const handleImage = (
     e: ChangeEvent<HTMLInputElement>,
     fieldChange: (value: string) => void
   ) => {
@@ -112,10 +128,10 @@ const Page: React.FC<Props> = ({ freelancer }) => {
 
     }
 
-  }
+  } */
 
 
-  const onSubmit = async (data: { postcode: string; huisnummer: string }, values: z.infer<typeof FreelancerValidation>) => {
+  const OnSubmit = async (data: { postcode: string; huisnummer: string }, values: z.infer<typeof FreelancerValidation>) => {
     await fetchAddressData(data.postcode, data.huisnummer);
     /* const blob = values.profielfoto;
 
@@ -135,6 +151,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
     watch,
     reset,
     trigger,
+    setValue,
     formState: { errors }
   } = useForm<Inputs>({
     resolver: zodResolver(FreelancerValidation),
@@ -152,6 +169,28 @@ const Page: React.FC<Props> = ({ freelancer }) => {
     }
   });
 
+  useEffect(() => {
+    const fetchDetails = async () => {
+      const postcode = watch('postcode');
+      const huisnummer = watch('huisnummer');
+      if (postcode && huisnummer) {
+        await fetchAddressData(postcode, huisnummer);
+      }
+    };
+  
+    fetchDetails();
+  }, [watch('postcode'), watch('huisnummer')]);
+  
+
+  const selectedDate = watch('geboortedatum');
+
+  /* const form = useForm<z.infer<typeof FreelancerValidation>>({
+    resolver: zodResolver(FreelancerValidation),
+    defaultValues: {
+      profielfoto: freelancer?.profielfoto || "",
+    },
+  }); */
+
   const processForm: SubmitHandler<Inputs> = data => {
     maakFreelancer({
       clerkId: data.freelancerID,
@@ -163,8 +202,8 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       telefoonnummer: data.telefoonnummer,
       postcode: data.postcode,
       huisnummer: data.huisnummer,
-      /* straat: street, */
-      /* stad: city, */
+      straat: street,
+      stad: city,
       korregeling: data.korregeling,
       btwid: data.btwid,
       iban: data.iban,
@@ -172,19 +211,23 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       profielfoto: data.profielfoto,
       werkervaring: '',
       vaardigheden: '',
-      opleidingen: ''
+      opleidingen: '',
+      bio: '',
+      kvk: ''
     })
+
+    if (pathname === 'profiel/wijzigen') {
+      router.back();
+  } else {
+      router.push('/dashboard');
+  }
+
   };
 
 
-
-
-
-  
-
   return (
     <main>
-      <section className="absolute inset-0 flex flex-col justify-between p-24">
+      <section className="flex flex-col justify-between p-24">
         <nav aria-label="Progress">
           <ol role="list" className="divide-y divide-gray-300 rounded-md border border-gray-300 md:flex md:divide-y-0">
             {steps.map((step, stepIdx) => (
@@ -229,7 +272,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
         </nav>
 
 
-        <form onSubmit={handleSubmit(processForm)}  className="relative my-8  items-center rounded-lg bg-white shadow-lg ring-1 ring-black/5">
+        <form onSubmit={handleSubmit(processForm)} className="relative my-8  items-center rounded-lg bg-white shadow-lg ring-1 ring-black/5">
         {currentStep === 0  && (
            <>
            <motion.div
@@ -253,8 +296,8 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                         type="text"
                         {...register('voornaam', { required: true })}
                         id="voornaam"
-                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
-                      {errors.voornaam && <p className="mt-2 text-sm text-red-600">{/* {errors.voornaam.message} */}Error</p>}
+                        className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                      {errors.voornaam && <p className="mt-2 text-sm text-red-600">{errors.voornaam.message}Error</p>}
                     </div>
                   </div>
                   <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
@@ -266,7 +309,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                         type="text"
                         {...register('tussenvoegsel')}
                         id="tussenvoegsel"
-                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                        className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                     </div>
                   </div>
                   <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
@@ -278,8 +321,8 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                         type="text"
                         {...register('achternaam', { required: true })}
                         id="achternaam"
-                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
-                      {errors.achternaam && <p className="mt-2 text-sm text-red-600">{/* {errors.achternaam.message} */}Error</p>}
+                        className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                      {errors.achternaam && <p className="mt-2 text-sm text-red-600">{errors.achternaam.message}Error</p>}
                     </div>
                   </div>
                   <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
@@ -287,11 +330,11 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                       Geboortedatum
                     </label>
                     <div className="mt-2 sm:col-span-2 sm:mt-0">
-                      <DatePickerForm
-                        /* selectedDate={watch(selectedDate)} */
-                        /* onDateChange={(date: any) => reset({ ...watch(), geboortedatum: date })} */
-                       />
-                      {errors.geboortedatum && <p className="mt-2 text-sm text-red-600">{/* {errors.geboortedatum.message} */}Error</p>}
+                        <DatePickerForm
+                          selectedDate={selectedDate}
+                          onDateChange={(date: any) => reset({ ...watch(), geboortedatum: date })}
+                        />
+                      {errors.geboortedatum && <p className="mt-2 text-sm text-red-600">{errors.geboortedatum.message}Error</p>}
                     </div>
                   </div>
                 </div>
@@ -323,7 +366,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                       type="text"
                       {...register('btwid', { required: true })}
                       id="btwid"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                      className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                     {errors.btwid && <p className="mt-2 text-sm text-red-600">{errors.btwid.message}</p>}
                   </div>
                 </div>
@@ -336,7 +379,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                       type="text"
                       {...register('iban', { required: true })}
                       id="iban"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                      className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                     {errors.iban && <p className="mt-2 text-sm text-red-600">{errors.iban.message}</p>}
                   </div>
                 </div>
@@ -349,7 +392,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                       type="text"
                       {...register('huisnummer', { required: true })}
                       id="huisnummer"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                      className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                     {errors.huisnummer && <p className="mt-2 text-sm text-red-600">{errors.huisnummer.message}</p>}
                   </div>
                 </div>
@@ -362,7 +405,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                       type="text"
                       {...register('postcode', { required: true })}
                       id="postcode"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                      className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                     {errors.postcode && <p className="mt-2 text-sm text-red-600">{errors.postcode.message}</p>}
                   </div>
                 </div>
@@ -375,7 +418,9 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                 type="text"
                 {...register('stad', { required: true })}
                 id="stad"
-                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
               />
               {errors.stad && <p className="mt-2 text-sm text-red-600">{errors.stad.message}</p>}
             </div> 
@@ -389,7 +434,10 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                       type="text"
                       {...register('straatnaam', { required: true })}
                       id="straatnaam"
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                      className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" 
+                      value={street}
+                      onChange={(e) => setStreet(e.target.value)}
+                      />
                     {errors.straatnaam && <p className="mt-2 text-sm text-red-600">{errors.straatnaam.message}</p>}
                   </div>
                 </div>
@@ -418,16 +466,16 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                   <label htmlFor="profielfoto" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
                     Profielfoto
                   </label>
-                  <div className="mt-2 sm:col-span-2 sm:mt-0">
+                 
+                 { <div className="mt-2 sm:col-span-2 sm:mt-0">
                     <input
                       type="file"
                       accept="image/*"
                       {...register('profielfoto')}
-                      /* onChange={(e) => handleImage(e, field.onChange)} */
                       id="profielfoto"
                       className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none" />
                     {errors.profielfoto && <p className="mt-2 text-sm text-red-600">{errors.profielfoto.message}</p>}
-                  </div>
+                  </div>}
                 </div>
                 <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
                   <label htmlFor="bio" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
@@ -438,7 +486,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                       {...register('bio')}
                       id="bio"
                       rows={4}
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                      className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
                     {errors.bio && <p className="mt-2 text-sm text-red-600">{errors.bio.message}</p>}
                   </div>
                 </div>

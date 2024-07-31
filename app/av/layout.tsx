@@ -27,10 +27,10 @@ export default function RootLayout({
         <body className={inter.className}>
           <NavBar />
 
-          <main className='mt-11 flex flex-row'>
+          <main className="mt-11 flex flex-row justify-center items-center min-h-screen">
 
-            <section className='main-container'>
-              <div className='w-full max-w-4xl'>{children}</div>
+            <section className="main-container flex justify-center items-center">
+              <div className="w-full max-w-4xl">{children}</div>
             </section>
             {/* @ts-ignore */}
           </main>

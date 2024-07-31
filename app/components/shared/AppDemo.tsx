@@ -3,7 +3,11 @@
 import { useId, useRef, useState } from 'react'
 import clsx from 'clsx'
 import { motion, useInView, useMotionValue } from 'framer-motion'
-
+import Image from 'next/image'
+import foodDelivery from '@/app/assets/images/DALL·E 2024-07-20 12.58.16 - A food delivery driver biking through the city. The scene shows a vibrant urban environment with modern buildings, shops, and busy streets. The delive.webp';
+import forkliftDriver from '@/app/assets/images/DALL·E 2024-07-20 12.56.34 - A forklift driver working in a big warehouse. The scene shows a spacious industrial warehouse with tall shelves filled with various goods and pallets.webp';
+import clothingStore from '@/app/assets/images/DALL·E 2024-07-20 13.00.25 - Enthusiastic people working in a clothing store from a distance. The scene shows a vibrant urban environment with modern buildings and a bustling stre.webp';
+import footballStadium from '@/app/assets/images/DALL·E 2024-07-20 13.15.39 - A food station in the hallway of a football stadium during a sports event, with a view from the hallway to the pitch. The food station is positioned o.webp';
 import { AppScreen } from '@/app/components/shared/AppScreen.tsx'
 
 const prices = [
@@ -171,8 +175,25 @@ export function AppDemo() {
       ? null
       : ((activeValue - previousValue) / previousValue) * 100
 
-  return (
-    <AppScreen>
+  return (<>
+  <Image
+  src={forkliftDriver}
+  alt="Junter logo"
+  />
+  <Image
+  src={footballStadium}
+  alt="Junter logo"
+  />
+  <Image
+  src={foodDelivery}
+  alt="Junter logo"
+  />
+  <Image
+  src={clothingStore}
+  alt="Junter logo"
+  />
+  </>
+/*     <AppScreen>
       <AppScreen.Body>
         <div className="p-4">
           <div className="flex gap-2">
@@ -247,6 +268,6 @@ export function AppDemo() {
           </div>
         </div>
       </AppScreen.Body>
-    </AppScreen>
+    </AppScreen> */
   )
 }

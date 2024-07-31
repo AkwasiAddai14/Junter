@@ -15,10 +15,14 @@ type freelancer = {
     telefoonnummer: string,
     postcode: string,
     huisnummer: string,
+    straat: string,
+    stad: string,
     korregeling: boolean,
     btwid: string,
     iban: string,
     path: string,
+    bio: string,
+    kvk:string,
     profielfoto: string,
     werkervaring: string,
     vaardigheden: string,
@@ -65,6 +69,8 @@ export const updateFreelancer = async  (user: freelancer ) => {
                 werkervaring: user.werkervaring,
                 vaardigheden: user.vaardigheden,
                 opleidingen: user.opleidingen,
+                kvk: user.kvk,
+                bio: user.bio,
                 onboarded: true
             },
             { new: true } // Return the updated document

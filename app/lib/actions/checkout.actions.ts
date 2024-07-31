@@ -101,11 +101,17 @@ export const vulCheckout = async ({ shiftId, rating, begintijd, eindtijd, pauze,
 };
 
 
-export const accepteerCheckout = async ({ shiftId, rating }: { shiftId: string; rating: number }) => {
+export const accepteerCheckout = async ({ shiftId, rating, feedback }: { shiftId: string; rating: number; feedback: string }) => {
     try {
         // Find the checkout document by shiftId
         const checkout = await Checkout.findOne({ shift: shiftId });
-
+        
+        
+        await Shift.updateOne(
+                { _id: shiftId },
+            { $set: { feedback: feedback } }
+        );
+            
         if (!checkout) {
             throw new Error(`Checkout not found for shift ID: ${shiftId}`);
         }

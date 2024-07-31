@@ -125,7 +125,7 @@ export function Hero() {
             <Image
                 src={playlink} 
                 alt={''} 
-                width={128} 
+                width={120} 
                 height={12} 
                 />
                 </a>

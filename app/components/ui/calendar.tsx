@@ -54,9 +54,9 @@ function Calendar({
   }
 
   return (
-    {/* <DayPicker
+     <DayPicker
       selected={selectedRange ? { from: selectedRange.from, to: selectedRange.to } : undefined}
-      onDayClick={handleDayClick} 
+      onDayClick={() => {handleDayClick}}  
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
@@ -98,7 +98,7 @@ function Calendar({
         IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
       }}
       {...props}
-    /> */}
+    /> 
   )
 }
 

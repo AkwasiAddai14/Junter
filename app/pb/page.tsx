@@ -17,7 +17,7 @@ const page = () => {
             <h2 className="text-2xl font-bold tracking-tight text-gray-900">1. Gegevens die wij verzamelen</h2>
               <p className="mt-7">
               Wij verzamelen verschillende soorten gegevens om onze diensten te kunnen leveren en verbeteren.
-   \n
+   
     Persoonlijke Gegevens: {'\n'}Voornaam, achternaam, geboortedatum, e-mailadres, telefoonnummer, adres, BSN, BTW-id, en bankrekeningnummer (IBAN).
     Professionele Gegevens: Werkervaring, vaardigheden, opleidingen, profielafbeelding, en beoordelingen.
     Gebruik van het Platform: Informatie over uw interacties met ons platform, zoals de diensten die u aanbiedt of aanvraagt, communicatie met bedrijven, en uw deelname aan projecten.
@@ -76,13 +76,9 @@ const page = () => {
               Indien u vragen of opmerkingen heeft over dit privacybeleid, neem dan contact met ons op via:
               </p>
               <p className="mt-8">
-              Junter
-              </p>
-              <p className="mt-8">
-              support@junter.works
-              </p>
-              <p className="mt-8">
-              billing@junter.works
+              <a className="font-semibold text-sky-600" href="mailto:support@junter.works">
+                          support@junter.works
+              </a>
               </p>
             </div>
           </div>

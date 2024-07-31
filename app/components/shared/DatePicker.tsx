@@ -31,7 +31,12 @@ const FormSchema = z.object({
   }),
 })
 
-export function DatePickerForm() {
+type DatePickerFormProps = {
+  selectedDate: string; // or the appropriate type for your date
+  onDateChange: (date: any) => void;
+};
+
+export const DatePickerForm: React.FC<DatePickerFormProps> = ({ selectedDate, onDateChange }) => {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
   })
@@ -76,15 +81,15 @@ export function DatePickerForm() {
                   </FormControl>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                 {/*  <Calendar
+                   <Calendar
                      mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
+                    selectedDate={field.value}
+                    onDateChange={field.onChange}
                     disabled={(date) =>
                       date > new Date() || date < new Date("1900-01-01")
                     }
                     initialFocus 
-                  /> */}
+                  /> 
                 </PopoverContent>
               </Popover>
               <FormDescription className='flex flex-col'>

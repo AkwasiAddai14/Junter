@@ -11,7 +11,6 @@ export default function Contactkanalen() {
                 </p>
               </div>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:col-span-2 lg:gap-8">
-                <a href="https://wa.me/message/O7L3TX3O4MNGF1">
                 <div className="rounded-2xl bg-gray-50 p-10">
                   <h3 className="text-base font-semibold leading-7 text-gray-900">WhatsApp Support</h3>
                   <dl className="mt-3 space-y-1 text-sm leading-6 text-gray-600">
@@ -29,8 +28,8 @@ export default function Contactkanalen() {
                     </div>
                   </dl>
                 </div>
-                </a>
-                <a href="https://chat.whatsapp.com/LTmywVtJToOGmjS7zRf8Ay">
+
+
                 <div className="rounded-2xl bg-gray-50 p-10">
                   <h3 className="text-base font-semibold leading-7 text-gray-900">WhatsApp community</h3>
                   <dl className="mt-3 space-y-1 text-sm leading-6 text-gray-600">
@@ -48,8 +47,7 @@ export default function Contactkanalen() {
                     </div>
                   </dl>
                 </div>
-                </a>
-                <a href="mailto:support@junter.works">
+
                 <div className="rounded-2xl bg-gray-50 p-10">
                   <h3 className="text-base font-semibold leading-7 text-gray-900">Email naar</h3>
                   <dl className="mt-3 space-y-1 text-sm leading-6 text-gray-600">
@@ -67,8 +65,7 @@ export default function Contactkanalen() {
                     </div>
                   </dl>
                 </div>
-                </a>
-                <a href="mailto:billing@junter.works">
+
                 <div className="rounded-2xl bg-gray-50 p-10">
                   <h3 className="text-base font-semibold leading-7 text-gray-900">Email naar </h3>
                   <dl className="mt-3 space-y-1 text-sm leading-6 text-gray-600">
@@ -86,7 +83,6 @@ export default function Contactkanalen() {
                     </div>
                   </dl>
                 </div>
-                </a>
               </div>
             </div>
           </div>

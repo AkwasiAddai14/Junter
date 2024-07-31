@@ -1,6 +1,4 @@
-
-
-import mongoose from 'mongoose';
+import mongoose, { Document, Model } from 'mongoose';
 
 
 const shiftSchema = new mongoose.Schema({
@@ -14,11 +12,11 @@ const shiftSchema = new mongoose.Schema({
         ref:'Freelancer',
         required: false
     },
-    flexpools: {
+    flexpools: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Flexpools',
         required: false
-    }, vervangers: [{
+    }], vervangers: [{
         type: mongoose.Schema.Types.ObjectId,
         ref:'Freelancer'
     }],
@@ -29,18 +27,45 @@ const shiftSchema = new mongoose.Schema({
     uurtarief: {type: Number, required: true},
     plekken: {type: Number, required: true},
     adres: {type: String, required: true},
-    datum: {type: Date, required: true},
+    begindatum: {type: Date, required: true},
+    einddatum: {type: Date, required: true},
     begintijd: {type: String, required: true},
     eindtijd: {type: String, required: true},
-    pauze: {type: Number, required: false},
+    pauze: {type: String, required: false},
     beschrijving: {type: String, required: true},
-    vaardigheden: {type: String, required: false},
-    kledingsvoorschriften: {type: String, required: false},
+    vaardigheden: [{type: String, required: false}],
+    kledingsvoorschriften: [{type: String, required: false}],
     beschikbaar: {type: Boolean, required: true, default: true},
     inFlexpool: {type: Boolean, default: false},
     status: {type: String, required: true}
 })
 
+export type ShiftType = Document & {
+    opdrachtgever: mongoose.Types.ObjectId & { displaynaam: string; stad: string };
+    opdrachtnemer?: mongoose.Types.ObjectId;
+    flexpools?: (mongoose.Types.ObjectId & { titel: string })[];
+    vervangers?: mongoose.Types.ObjectId[];
+    _id: string;
+    shiftArrayId: string;
+    titel: string;
+    functie: string;
+    afbeelding: string;
+    uurtarief: number;
+    plekken: number;
+    adres: string;
+    begindatum: Date;
+    einddatum: Date;
+    begintijd: string;
+    eindtijd: string;
+    pauze?: string;
+    beschrijving: string;
+    vaardigheden?: string[];
+    kledingsvoorschriften?: string[];
+    beschikbaar: boolean;
+    inFlexpool?: boolean;
+    status: string;
+  };
 
-const Shift = mongoose.models.Shift || mongoose.model('Shifts', shiftSchema);
-export default Shift
+
+  const Shift = mongoose.models.Shift || mongoose.model('Shifts', shiftSchema);
+  export default Shift;

@@ -7,6 +7,24 @@ import Bedrijf from "../models/bedrijven.model";
 import Flexpool from "../models/flexpool.model";
 import Shift from "../models/shift.model";
 import ShiftArray from "../models/shiftArray.model";
+import Pauze from "@/app/lib/models/pauze.model";
+import Category from "../models/categorie.model";
+
+export type voegAangepastParams = {
+  Aangepast: string
+}
+
+export const voegAangepast = async ({ Aangepast }: voegAangepastParams) => {
+  try {
+    await connectToDB();
+
+    const Voegaangepast = await Pauze.create({ name: Aangepast });
+
+    return JSON.parse(JSON.stringify(Voegaangepast));
+  } catch (error: any) {
+    console.log(error)
+  }
+}
 
 
 interface Params {
@@ -17,13 +35,14 @@ interface Params {
     uurtarief: number;
     plekken: number;
     adres: string;
-    datum: Date;
+    begindatum: Date;
+    einddatum: Date;
     begintijd: string;
     eindtijd: string;
-    pauze?: number;
+    pauze?: string;
     beschrijving: string;
-    vaardigheden?: string;
-    kledingsvoorschriften?: string;
+    vaardigheden?: string[];
+    kledingsvoorschriften?: string[];
     opdrachtnemers?: string[];
     flexpoolId?: string;
     path: string;
@@ -37,7 +56,8 @@ interface Params {
     uurtarief,
     plekken,
     adres,
-    datum,
+    begindatum,
+    einddatum,
     begintijd,
     eindtijd,
     pauze,
@@ -59,7 +79,8 @@ interface Params {
         uurtarief,
         plekken,
         adres,
-        datum,
+        begindatum,
+        einddatum,
         begintijd,
         eindtijd,
         pauze,
@@ -79,7 +100,8 @@ interface Params {
       }
   
       const shiftArray = await ShiftArray.create(shiftArrayData);
-  
+      let createdShift = null;
+
       for (let i = 0; i < plekken; i++) {
         const shiftData: any = {
           opdrachtgever,
@@ -88,7 +110,8 @@ interface Params {
           uurtarief,
           plekken: 1, // Each individual shift has only one place
           adres,
-          datum,
+          begindatum,
+          einddatum,
           begintijd,
           eindtijd,
           pauze,
@@ -108,7 +131,8 @@ interface Params {
   
         const gemaakteShift = await Shift.create(shiftData);
         shiftArray.shifts.push(gemaakteShift._id);
-  
+        createdShift = gemaakteShift;
+
         await Bedrijf.findByIdAndUpdate(opdrachtgever, {
           $push: { shifts: gemaakteShift._id }
         });
@@ -121,8 +145,9 @@ interface Params {
       }
   
       await shiftArray.save();
-  
       revalidatePath(path);
+      return createdShift;
+     
     } catch (error: any) {
       throw new Error(`Failed to create shift: ${error.message}`);
     }
@@ -136,7 +161,8 @@ export async function updateShift({
     uurtarief,
     plekken,
     adres,
-    datum,
+    begindatum,
+    einddatum,
     begintijd,
     eindtijd,
     pauze,
@@ -157,7 +183,8 @@ export async function updateShift({
             uurtarief,
             plekken,
             adres,
-            datum,
+            begindatum,
+            einddatum,
             begintijd,
             eindtijd,
             pauze,
@@ -185,7 +212,7 @@ export async function updateShift({
             shiftData.opdrachtnemer = freelancers.map(freelancer => freelancer._id);
         }
 
-        const filter = { opdrachtgever, titel, datum, begintijd, eindtijd }; // Define the criteria to find the existing shift
+        const filter = { opdrachtgever, titel, begindatum, begintijd, eindtijd }; // Define the criteria to find the existing shift
         const options = { upsert: true, new: true }; // Create a new document if none is found, and return the new document
 
         const updatedShift = await Shift.findOneAndUpdate(filter, shiftData, options);
@@ -594,10 +621,75 @@ async function getCoordinatesFromAddress(address: string) {
     return { lat: 52.3676, lng: 4.9041 }; // Coordinates for Amsterdam, for example
 }
 
+const populateShift = (query: any) => {
+  return query
+    .populate({ path: 'opdrachtgever', model: Bedrijf, select: 'naam displaynaam' })
+    .populate({ path: 'flexpools', model: Flexpool, select: 'titel' })
+}
+
+export async function haalShiftMetId(shiftId: string) {
+  try {
+    await connectToDB();
+
+    const shift = await populateShift(Shift.findById(shiftId)).exec();
+
+    if (!shift) throw new Error('Shift not found');
+
+    return JSON.parse(JSON.stringify(shift));
+  } catch (error: any) {
+    console.error(error);
+    throw new Error('Failed to fetch shift');
+  }
+}
+
+const getCategoryByName = async (name: string) => {
+  return Category.findOne({ name: { $regex: name, $options: 'i' } })
+}
+
+export type GetRelatedEventsByCategoryParams = {
+  categoryId: string
+  shiftId: string
+  limit?: number
+  page: number | string
+}
+
+export async function haalGerelateerdShiftsMetCategorie({
+  categoryId,
+  shiftId,
+  limit = 3,
+  page = 1,
+}: GetRelatedEventsByCategoryParams) {
+  try {
+    await connectToDB()
+
+    const skipAmount = (Number(page) - 1) * limit
+    const conditions = { $and: [{ category: categoryId }, { _id: { $ne: shiftId } }] }
+
+    const eventsQuery = Shift.find(conditions)
+      .sort({ createdAt: 'desc' })
+      .skip(skipAmount)
+      .limit(limit)
+
+    const events = await populateShift(eventsQuery)
+    const eventsCount = await Shift.countDocuments(conditions)
+
+    return { data: JSON.parse(JSON.stringify(events)), totalPages: Math.ceil(eventsCount / limit) }
+  } catch (error) {
+    console.log(error)
+  }
+}
 
 
 
-
-
-
-
+export const haalShiftMetIdCard = async (id: string) => {
+  try {
+    const shift = await Shift.findById(id)
+      .populate('opdrachtgever')
+      .populate('flexpools')
+      .exec();
+    return shift;
+  } catch (error) {
+    console.error('Error fetching shift:', error);
+    throw error;
+  }
+};

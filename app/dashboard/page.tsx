@@ -26,11 +26,11 @@ const DashboardPage = () => {
     <FreelanceDashboard/>
   }
 
-  const userType = user?.publicMetadata?.type;
+  const userType = user?.organizationMemberships.length;
 
   return (
     <div>
-      {userType === 'organisation' ? <BedrijvenDashboard  /> : <FreelanceDashboard />}
+      {userType >= 1 ? <BedrijvenDashboard  /> : <FreelanceDashboard />}
     </div>
   );
 };

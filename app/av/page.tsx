@@ -7,21 +7,22 @@ import React from 'react'
 
 const page = () => {
   return (
-    <div className="justify-center items-center mt-12">
-      <Tabs defaultValue="Freelancer" className="items-center justify-center">
-    <TabsList className="justify-center items-center ml-80">
-      <TabsTrigger value="Freelancer">Freelancers</TabsTrigger>
-      <TabsTrigger value="Bedrijven">Bedrijven</TabsTrigger>
-    </TabsList>
-    <section >
-      <TabsContent value="Freelancer">
-        <AVfreelancers/>
-      </TabsContent>
-      <TabsContent value="Bedrijven">
-        <AVbedrijven/>
-      </TabsContent>
-    </section>
-  </Tabs></div>
+    <div className="flex flex-col justify-center items-center min-h-screen">
+      <Tabs defaultValue="Freelancer" className="w-full max-w-4xl ">
+        <TabsList className="flex justify-center px-24 bg-white items-center">
+          <TabsTrigger value="Freelancer">Freelancers</TabsTrigger>
+          <TabsTrigger value="Bedrijven">Bedrijven</TabsTrigger>
+        </TabsList>
+        <section className="mt-6">
+          <TabsContent value="Freelancer">
+            <AVfreelancers />
+          </TabsContent>
+          <TabsContent value="Bedrijven">
+            <AVbedrijven />
+          </TabsContent>
+        </section>
+      </Tabs>
+    </div>
   )
 }
 

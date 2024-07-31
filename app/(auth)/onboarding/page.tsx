@@ -5,9 +5,12 @@ import NavBar from "@/app/components/shared/NavBar";
 import FreelancerForm from "@/app/components/forms/freelancergegevens";
 import Footer from "@/app/components/shared/Footer4";
 import OnboardingDialog from "@/app/components/shared/Onboarding";
-import BedrijfsForm from "@/app/components/forms/bedrijfsgegevens";
+import { useRouter } from 'next/navigation';
+import { RedirectToCreateOrganization } from '@clerk/nextjs';
+import BedrijfsForm from '@/app/components/forms/bedrijfsgegevens';
 
 function Page() {
+  const router = useRouter()
   const [showDialog, setShowDialog] = useState(true);
   const [isFreelancer, setIsFreelancer] = useState(true);
 
@@ -42,6 +45,8 @@ function Page() {
                 achternaam: "",
                 geboortedatum: "",
                 emailadres: "",
+                straat: "",
+                stad: "",
                 telefoonnummer: "",
                 korregeling: false,
                 btwid: "",
@@ -50,28 +55,27 @@ function Page() {
               }}
             />
           ) : (
-            <BedrijfsForm
-              bedrijven={{
-                bedrijvenID: "",
-                profielfoto: "",
-                naam: "",
-                kvknr: "",
-                btwnr: "",
-                postcode: "",
-                huisnummer: "",
-                telefoonnummer: "",
-                emailadres: "",
-                iban: "",
-                path: ""
-              }}
-            />
+          
+            <BedrijfsForm bedrijven={{
+              bedrijvenID: '',
+              profielfoto: '',
+              naam: '',
+              kvknr: '',
+              btwnr: '',
+              postcode: '',
+              huisnummer: '',
+              telefoonnummer: '',
+              emailadres: '',
+              iban: '',
+              path: ''
+          }} />
           )
         )}
       </main>
-      {/*<Footer/>*/}
+      <Footer/>
     </>
   );
 }
-
+  {/* <RedirectToCreateOrganization/> */}
 export default Page;
 

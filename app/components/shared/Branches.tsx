@@ -23,7 +23,7 @@ export default function Example() {
                 </p>
               </div>
               <div className="flex flex-wrap items-start justify-end gap-6 sm:gap-8 lg:contents">
-                <div className="w-0 flex-auto lg:ml-auto lg:w-auto lg:flex-none lg:self-end">
+                <div className="w-0 flex-auto lg:ml-auto lg:w-auto lg:flex-none lg:self-end hidden sm:block sm:w-0 sm:flex-auto">
                   <Image
                     src={forkliftDriver}
                     alt=""

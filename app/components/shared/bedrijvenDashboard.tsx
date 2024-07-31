@@ -4,33 +4,33 @@ import { Dialog, Transition } from '@headlessui/react';
 import {
   Bars3Icon,
   CalendarIcon,
-  ChartPieIcon,
-  DocumentDuplicateIcon,
-  FolderIcon,
   HomeIcon,
-  UsersIcon,
+  UserGroupIcon,
   XMarkIcon,
+  DocumentCheckIcon,
+  BanknotesIcon
 } from '@heroicons/react/24/outline';
 import { ScrollArea } from '@radix-ui/react-scroll-area';
 import { useUser } from "@clerk/nextjs";
-import { haalShifts } from "@/app/lib/actions/shiftArray.actions";
-import { useEffect, useState } from "react";
-/* import {  haalFactuur } from "@/app/lib/actions/factuur.actions"; */
-import { haalFlexpool } from "@/app/lib/actions/flexpool.actions";
-import { haalCheckouts } from "@/app/lib/actions/checkout.actions";
+import { Fragment, useEffect, useState } from "react";
+import {  haalFactuur } from "@/app/lib/actions/factuur.actions"; 
 import React from 'react';
-import ShiftCard from '../cards/ShiftCard';
-import logo from '@/app/assets/images/178884748_padded_logo.png';
 import Image from 'next/image';
+import Calender from './Calender';
+import UitlogModal from './UitlogModal';
+import ShiftCard from '../cards/ShiftCard';
+import { haalCheckouts } from '@/app/lib/actions/checkout.actions';
+import { haalFlexpool } from '@/app/lib/actions/flexpool.actions';
+import { haalShifts } from '@/app/lib/actions/shiftArray.actions';
 
 
 
 const navigation = [
-  { name: 'Dashboard', href: '#', icon: HomeIcon, current: true },
-  { name: 'Geplaatste shifts', href: '#', icon: CalendarIcon, current: false },
-  { name: 'Checkouts', href: '#', icon: CalendarIcon, current: false },
-  { name: 'Facturen', href: '#', icon: DocumentDuplicateIcon, current: false },
-  { name: 'Flexpools', href: '#', icon: ChartPieIcon, current: false },
+  { name: 'Dashboard', value: 'Dashboard', icon: HomeIcon, current: true },
+  { name: 'Geplaatste shifts', value: 'Shifts', icon: CalendarIcon, current: false },
+  { name: 'Checkouts', value: 'Checkouts', icon: DocumentCheckIcon, current: false },
+  { name: 'Facturen', value: 'Facturen', icon: BanknotesIcon, current: false },
+  { name: 'Flexpools', value: 'Flexpools', icon: UserGroupIcon, current: false },
 ]
 
 function classNames(...classes: string[]) {
@@ -38,16 +38,18 @@ function classNames(...classes: string[]) {
 }
 
 
-const Dashboard/* : React.FC<DashboardProps> */ = (/* { user } */) => {
+const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { isLoaded, user } = useUser();
-  const [position, setPosition] = React.useState("Shifts");
+  const [position, setPosition] = React.useState("Dashboard");
   const [shift, setShift] = useState<any[]>([])
   const [factuur, setFactuur] = useState<any[]>([])
   const [checkout, setCheckout] = useState<any[]>([])
   const [flexpool, setFlexpool] = useState<any[]>([])
   const [profilePhoto, setProfilePhoto] = useState("");
   const [fullName, setFullName] = useState<string | null>(null);
+  const [showLogOut, setShowLogOut] = useState(false);
+  
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -61,7 +63,7 @@ const Dashboard/* : React.FC<DashboardProps> */ = (/* { user } */) => {
     }
   }, [isLoaded, user]);
 
-  React.useEffect(() => {
+   React.useEffect(() => {
     const fetchShift = async () => {
       try {
         const fetchedShift = await haalShifts();
@@ -106,9 +108,9 @@ const Dashboard/* : React.FC<DashboardProps> */ = (/* { user } */) => {
     };
 
     fetchCheckout();
-  }, []);
+  }, []); 
 
-/*   useEffect(() => {
+  useEffect(() => {
     const fetchFactuur = async () => {
         try {
             if (checkout && checkout.length > 0) {
@@ -126,6 +128,7 @@ const Dashboard/* : React.FC<DashboardProps> */ = (/* { user } */) => {
 
 
   return (
+    <Fragment>
     <>
       <div>
         <Transition show={sidebarOpen}>
@@ -173,27 +176,31 @@ const Dashboard/* : React.FC<DashboardProps> */ = (/* { user } */) => {
 
                   <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-2 ring-1 ring-white/10">
                     <div className="flex h-16 shrink-0 items-center">
-                      <Image
-                        className="h-8 w-auto"
-                        src={logo}
-                        alt="Junter"
-                      />
+                    <button 
+             onClick={() => 
+              setShowLogOut(true)
+             } >
+            <Image
+              alt="Your Company"
+              src={profilePhoto}
+              className="h-8 w-auto rounded-full"
+            />
+            </button>
                     </div>
                     <nav className="flex flex-1 flex-col">
                       <ul role="list" className="-mx-2 flex-1 space-y-1">
                         {navigation.map((item) => (
-                          <li key={item.name}>
-                            <a
-                              href={item.href}
-                              className={classNames(
-                                item.current ? 'bg-gray-800 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800',
-                                'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                              )}
-                            >
-                              <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
-                              {item.name}
-                            </a>
-                          </li>
+                          <button
+                          key={item.name}
+                          onClick={() => setPosition(item.value)}
+                          className={classNames(
+                            position === item.value ? 'bg-gray-800 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                            'group flex w-full items-center justify-center gap-x-3 rounded-md p-3 text-sm font-semibold'
+                          )}
+                        >
+                          <item.icon aria-hidden="true" className="h-6 w-6" />
+                          <span className="sr-only">{item.name}</span>
+                        </button>
                         ))}
                       </ul>
                     </nav>
@@ -205,29 +212,33 @@ const Dashboard/* : React.FC<DashboardProps> */ = (/* { user } */) => {
         </Transition>
 
         {/* Static sidebar for desktop */}
-        <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-20 lg:overflow-y-auto lg:bg-gray-900 lg:pb-4">
+        <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-20 lg:overflow-y-auto lg:bg-gray-800 lg:pb-4">
           <div className="flex h-16 shrink-0 items-center justify-center">
+          <button 
+             onClick={() => 
+              setShowLogOut(true)
+             } >
             <Image
-              className="h-8 w-auto"
-              src={logo}
-              alt="Junter"
+              alt="Your Company"
+              src={profilePhoto}
+              className="h-8 w-auto rounded-full"
             />
+            </button>
           </div>
           <nav className="mt-8">
             <ul role="list" className="flex flex-col items-center space-y-1">
               {navigation.map((item) => (
-                <li key={item.name}>
-                  <a
-                    href={item.href}
-                    className={classNames(
-                      item.current ? 'bg-gray-800 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800',
-                      'group flex gap-x-3 rounded-md p-3 text-sm leading-6 font-semibold'
-                    )}
-                  >
-                    <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
-                    <span className="sr-only">{item.name}</span>
-                  </a>
-                </li>
+                <button
+                key={item.name}
+                onClick={() => setPosition(item.value)}
+                className={classNames(
+                  position === item.value ? 'bg-gray-800 text-white px-5' : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                  'group flex w-full items-center justify-center gap-x-3 rounded-md p-3 text-sm font-semibold'
+                )}
+              >
+                <item.icon aria-hidden="true" className="h-6 w-6" />
+                <span className="sr-only">{item.name}</span>
+              </button>
               ))}
             </ul>
           </nav>
@@ -245,7 +256,7 @@ const Dashboard/* : React.FC<DashboardProps> */ = (/* { user } */) => {
           <div className="flex-1 text-sm font-semibold leading-6 text-white">Dashboard</div>
           <a href="#">
             <span className="sr-only">{fullName}</span>
-            <img
+            <Image
               className="h-8 w-8 rounded-full bg-gray-800"
               src={profilePhoto}
               alt="Profielfoto"
@@ -254,10 +265,16 @@ const Dashboard/* : React.FC<DashboardProps> */ = (/* { user } */) => {
         </div>
 
 
+        
         {/* Main area */}
-        <main className="lg:pl-20">
-            <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-6">{/* Main area */}
-            {position === 'Dashboard' && (
+         <main className="lg:pl-20 h-full overflow-hidden">
+            <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-6">
+            {position === 'Dashboard' && 
+            (
+              <Calender/>
+            )
+          }
+            {position === 'Shifts' && (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
                     {shift.slice(0, 9).map((shiftItem, index) => (
@@ -267,15 +284,6 @@ const Dashboard/* : React.FC<DashboardProps> */ = (/* { user } */) => {
                 </ScrollArea>
               )}
 
-              {position === 'Geplaatste shifts' && (
-                <ScrollArea>
-                  <div className="grid grid-cols-3 gap-4">
-                    {shift.slice(0, 9).map((shiftItem, index) => (
-                      <ShiftCard key={index} shift={shiftItem} />
-                    ))}
-                  </div>
-                </ScrollArea>
-              )}
               {position === 'Checkouts' && (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
@@ -306,50 +314,80 @@ const Dashboard/* : React.FC<DashboardProps> */ = (/* { user } */) => {
             </div>
         </main>
 
-        <aside className="fixed inset-y-0 left-20 hidden w-96 overflow-y-auto border-r border-gray-200 px-4 py-6 sm:px-6 lg:px-8 xl:block">
-        <div className='buitenste div'> 
+        <aside className="fixed inset-y-0 left-20 w-full sm:w-96 sm:block hidden overflow-y-hidden border-r border-gray-200 px-4 py-6 sm:px-6 lg:px-8">
+          <div className="h-full py-2 px-2 items-stretch rounded-lg border-2 border-b flex flex-col">
+            <div className="h-1/3 border-2 rounded-lg flex flex-col">
+              <div className="w-full border-b-2 h-10">
+                <p className="italic font-mono text-lg font-semibold text-center">Shifts</p>
+              </div>
+              <div className="flex-grow overflow-hidden">
+                <ScrollArea>
+                  {shift.map((shiftItem, index) => (
+                    <li key={index} className="col-span-1 flex rounded-md shadow-sm">
+                      <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white">
+                        {shiftItem.datum}, {shiftItem.begintijd} - {shiftItem.eindtijd}
+                      </div>
+                      <div className="flex flex-1 items-center justify-between truncate rounded-r-md border-b border-r border-t border-gray-200 bg-white">
+                        <div className="flex-1 truncate px-4 py-2 text-sm">
+                          <a href="#" className="font-medium text-gray-900 hover:text-gray-600">
+                            {shiftItem.titel}
+                          </a>
+                          <p className="text-gray-500">{shiftItem.aanmeldingen?.length} Aanmeldingen</p>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ScrollArea>
+              </div>
+            </div>
 
-        
-        <div className='div facturen'>
-        <div className='header facturen'>
-        <p>Facturen</p>
-        </div>
-        <div className='body facturen'>
-        <ScrollArea>
-        
-        </ScrollArea>
-        </div>
-        </div>
+            <div className="h-1/3 border-2 rounded-lg flex flex-col mt-2">
+              <div className="w-full border-b-2 h-10">
+                <p className="italic font-mono text-lg font-semibold text-center">Checkouts</p>
+              </div>
+              <div className="flex-grow overflow-hidden">
+                <ScrollArea>
+                  {checkout.map((checkoutItem, index) => (
+                    <li key={index} className="col-span-1 flex rounded-md shadow-sm">
+                      <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white">
+                        {checkoutItem?.datum ? new Date(checkoutItem.datum).toLocaleDateString() : 'Datum'}, {checkoutItem?.begintijd ? new Date(checkoutItem.begintijd).toLocaleTimeString() : 'Begintijd'} - {checkoutItem?.eindtijd ? new Date(checkoutItem.eindtijd).toLocaleTimeString() : 'Eindtijd'}
+                      </div>
+                      <div className="flex flex-1 items-center justify-between truncate rounded-r-md border-b border-r border-t border-gray-200 bg-white">
+                        <p className="text-gray-500">{checkoutItem?.opdrachtnemer?.voornaam} {checkoutItem?.opdrachtnemer?.achternaam}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ScrollArea>
+              </div>
+            </div>
 
-
-        <div className='div twee rubriek'>
-        <div className='header tweede rubriek'>
-        <p>Checkouts</p>
-        </div>
-        <div className='body tweede rubriek'>
-        <ScrollArea>
-        
-        </ScrollArea>
-        </div>
-        </div>
-
-
-        <div className='div derde rubriek'>
-        <div className='header derde rubriek'>
-        <p>Flexpools</p>
-        <div className='body derde rubriek'>
-        <ScrollArea>
-    
-        </ScrollArea>
-        </div>
-        </div>
-        </div>
-
-
-        </div>
+            <div className="h-1/3 border-2 rounded-lg flex flex-col mt-2">
+              <div className="w-full border-b-2 h-10">
+                <p className="italic font-mono text-lg font-semibold text-center">Flexpools</p>
+              </div>
+              <div className="flex-grow overflow-hidden">
+                <ScrollArea>
+                  {flexpool.map((flexpoolItem, index) => (
+                    <li key={index} className="col-span-1 flex rounded-md shadow-sm">
+                      <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white">
+                        {flexpoolItem.freelancers?.length} freelancer
+                      </div>
+                      <div className="flex flex-1 items-center justify-between truncate rounded-r-md border-b border-r border-t border-gray-200 bg-white">
+                        <p className="text-gray-500">{flexpoolItem.shifts?.length} shifts</p>
+                      </div>
+                    </li>
+                  ))}
+                </ScrollArea>
+              </div>
+            </div>
+          </div>
         </aside>
-        </div>
-    </>
+
+
+    </div>
+  </>
+    <UitlogModal isVisible={showLogOut} onClose={() => setShowLogOut(false)}/>
+    </Fragment>
   )
 }
 

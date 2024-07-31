@@ -50,6 +50,7 @@ export async function updateBedrijf( organization: bedrijf)
 
 export async function verwijderBedrijf(organization: bedrijf) {
     try {
+        connectToDB();
         const deletedBedrijf = await Bedrijf.findOneAndDelete(organization);
 
         if (!deletedBedrijf) {
@@ -115,6 +116,18 @@ export async function zoekBedrijf({
     }
 }
 
-
+export const fetchBedrijfDetails = async (bedrijvenID: string) => {
+    try {
+        connectToDB();
+      const bedrijf = await Bedrijf.findById(bedrijvenID).exec();
+      if (bedrijf) {
+        return bedrijf.toObject();
+      }
+      throw new Error('Bedrijf not found');
+    } catch (error) {
+      console.error('Error fetching bedrijf details:', error);
+      throw error;
+    }
+  };
 
 

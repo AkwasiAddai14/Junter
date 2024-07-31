@@ -1,107 +1,226 @@
-import { CalendarDaysIcon, CreditCardIcon, UserCircleIcon } from '@heroicons/react/20/solid'
-import { useState } from 'react'
+"use client"
+
+
+import { StarIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
+import { useUser } from '@clerk/nextjs';
+import Image from 'next/image';
+import { haalFreelancer, updateFreelancer } from '@/app/lib/actions/freelancer.actions';
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/app/components/ui/form";
+import { useForm } from 'react-hook-form';
+import { FreelancerValidation } from "@/app/lib/validations/freelancer";
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from 'zod';
+import { Input } from '../ui/input';
+import { Textarea } from '../ui/textarea';
+
+
 
 export default function ProfielModal({isVisible, onClose} : {isVisible: boolean, onClose: any}) {
-    const [open, setOpen] = useState(true);
-    const [fullName, setFullName] = useState(true);
-    const [stad, setStad] = useState(true);
-    const [leeftijd, setLeeftijd] = useState(true);
-    const [rating, setRating] = useState(true);
-    const [kvknr, setKvknr] = useState(true);
-    const [btwid, setBtwid] = useState(true);
-    const [iban, setIban] = useState("");
-    const [percentageAanwezig, setPercentageAanwezig] = useState(100);
-    const [percentageOptijd, setPercentageOptijd] = useState(100);
-    const [bio, setBio] = useState("");
-    const [shiftsCount, setShiftCount] = useState("");
     if (!isVisible) return null;
-  return (
-    <div className='fixed inset-0 bg-black
-    bg-opacity-25 backdrop-blur-sm flex justify-center items-center'>
-    <div className="lg:col-start-3 lg:row-end-1">
-      <h2 className="sr-only">Profiel</h2>
-      <div className="rounded-lg bg-gray-50 shadow-sm ring-1 ring-gray-900/5">
-        <dl className="flex flex-wrap">
-          <div className="flex-auto pl-6 pt-6">
-            <dt className="text-sm font-semibold leading-6 text-gray-900">{fullName}</dt>
-            <dd className="mt-1 text-base font-semibold leading-6 text-gray-900">{stad}, {leeftijd}</dd>
-          </div>
-          <div className="flex-none self-end px-6 pt-4">
-            <dt className="sr-only">rating</dt>
-            <dd className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-              {rating}
-            </dd>
-          </div>
-          <div className="mt-6 flex w-full flex-none gap-x-4 border-t border-gray-900/5 px-6 pt-6">
-            <dt className="flex-none">
-              <span className="sr-only">KVK-nummer: </span>
-              <UserCircleIcon aria-hidden="true" className="h-6 w-5 text-gray-400" />
-            </dt>
-            <dd className="text-sm font-medium leading-6 text-gray-900">{kvknr}</dd>
-          </div>
-          <div className="mt-4 flex w-full flex-none gap-x-4 px-6">
-            <dt className="flex-none">
-              <span className="sr-only">BTW-id: </span>
-              <CalendarDaysIcon aria-hidden="true" className="h-6 w-5 text-gray-400" />
-            </dt>
-            <dd className="text-sm leading-6 text-gray-500">
-              <time dateTime="2023-01-31">{btwid}</time>
-            </dd>
-          </div>
-          <div className="mt-4 flex w-full flex-none gap-x-4 px-6">
-            <dt className="flex-none">
-              <span className="sr-only">iban: </span>
-              <CreditCardIcon aria-hidden="true" className="h-6 w-5 text-gray-400" />
-            </dt>
-            <dd className="text-sm leading-6 text-gray-500">{iban}</dd>
-          </div>
-        </dl>
-        <dl className="flex flex-wrap">
+    const [open, setOpen] = useState(true);
+    const [freelancer, setFreelancer] = useState<any>(null);
+    const [ClerkId, setClerkId] = useState("");
+    const [profielfoto, setProfielfoto] = useState("");
+    const [fullName, setFullName] = useState<string | null>(null); 
+    const { isLoaded, user } = useUser();
 
-          <div className="mt-6 flex w-full flex-none gap-x-4 border-t border-gray-900/5 px-6 pt-6">
-            <dt className="flex-none">
-              <span className="sr-only">{shiftsCount}</span>
-              <UserCircleIcon aria-hidden="true" className="h-6 w-5 text-gray-400" />
-            </dt>
-            <dd className="text-sm font-medium leading-6 text-gray-900">Shifts</dd>
+    useEffect(() => {
+      if (isLoaded && user) {
+        (async () => {
+          try {
+            const fetchedFreelancer = await haalFreelancer(user.id);
+            setFreelancer(fetchedFreelancer);
+          } catch (error) {
+            console.error('Error fetching freelancer:', error);
+          }
+        })();
+      }
+    }, [isLoaded, user]);
+
+   
+  if (!user /* || !freelancer */) {
+    return null; {/* <div>Gebruiker informatie niet beschikbaar...</div>; */}
+  }
+
+  const DefaultValues = {
+    telefoonnummer: freelancer?.telefoonnummer || "",
+    emailadres: freelancer?.emailadres || "",
+    kvknr: freelancer?.kvknr || "",
+    btwid: freelancer?.btwid || "",
+    iban: freelancer?.iban || "",
+    bio: freelancer?.bio || ""
+  };
+
+    const form = useForm<z.infer<typeof FreelancerValidation>>({
+      resolver: zodResolver(FreelancerValidation),
+      defaultValues: DefaultValues,
+    })
+
+    async function onSubmit(values: z.infer<typeof FreelancerValidation>) {
+
+    const updateInformatie = updateFreelancer({
+      clerkId: user!.id,
+      voornaam: freelancer.voornaam,
+      tussenvoegsel: freelancer.tussenvoegsel,
+      achternaam: freelancer.achternaam,
+      geboortedatum: freelancer.geboortedatum,
+      emailadres: values?.emailadres || freelancer.emailadres,
+      telefoonnummer: values?.telefoonnummer || freelancer.telefoonnummer,
+      postcode: freelancer.postcode,
+      huisnummer: freelancer.huisnummer,
+      straat: freelancer.straat,
+      stad: freelancer.stad,
+      korregeling: false,
+      btwid: values?.btwid || freelancer.btwid,
+      iban: values?.iban || freelancer.iban,
+      path: freelancer.path,
+      kvk: freelancer.kvknr,
+      bio: values?.bio || freelancer.bio,
+      profielfoto:  freelancer.profielfoto || user!.imageUrl ,
+      werkervaring: freelancer.werkervaring,
+      vaardigheden: freelancer.vaardigheden,
+      opleidingen: freelancer.opleidingen
+    })
+
+  }
+
+  return (
+    <Form {...form}>
+    <form onSubmit={form.handleSubmit(onSubmit)} className="fixed inset-0 mt-14 bg-black bg-opacity-25 backdrop-blur-sm flex justify-center items-center overflow-hidden w-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-25 backdrop-blur-sm flex justify-center items-center overflow-hidden w-auto">
+            <div className="lg:col-start-3 lg:row-end-1 max-w-lg w-full"> 
+                <h2 className="sr-only">Profiel</h2>
+                <div className="rounded-lg bg-gray-50 shadow-sm ring-1 ring-gray-900/5">
+                    <dl className="flex flex-wrap">
+                        <div className="flex-auto pl-6 pt-6">
+                            <dt className="text-sm font-semibold leading-6 text-gray-900">{user.fullName}</dt>
+                            <dd className="mt-1 text-base font-semibold leading-6 text-gray-900">{freelancer?.stad} {freelancer?.leeftijd}</dd>
+                        </div>
+                        <div className="flex-none justify-center items-center self-end px-6 pt-4">
+                            <Image
+                                className="h-8 w-8 rounded-full"
+                                src={user?.imageUrl}
+                                alt="profielfoto"
+                                width={32}
+                                height={32}
+                            />
+                            <dt className="sr-only">rating</dt>
+                            <dd className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                {freelancer?.rating || "nog geen rating"}
+                                <StarIcon aria-hidden="true" className="h-4 w-5 text-gray-400" />
+                            </dd>
+                        </div>
+                    </dl>
+                    <dl className="flex flex-wrap border-b  border-gray-900/5 px-6 pb-6">
+          <div className="mt-6 flex w-full flex-auto gap-x-4  border-t border-gray-900/5 px-6 pt-6">
+              <p className="text-sm font-semibold leading-6 text-gray-900">{freelancer?.shiftsCount || "0"} </p>
+            <dd className="text-sm leading-6 text-gray-500">Shifts gewerkt</dd>
           </div>
-          <div className="mt-4 flex w-full flex-none gap-x-4 px-6">
-            <dt className="flex-none">
-              <span className="sr-only">{percentageAanwezig}</span>
-              <CalendarDaysIcon aria-hidden="true" className="h-6 w-5 text-gray-400" />
-            </dt>
+          <div className="mt-4 flex w-full flex-auto gap-x-4 px-6">
+              <span className="text-sm font-semibold leading-6 text-gray-900">{freelancer?.percentageAanwezig || 100} %</span>
             <dd className="text-sm leading-6 text-gray-500">
-              <time dateTime="2023-01-31">Aanwezig</time>
+              <p className="text-sm leading-6 text-gray-500">Aanwezig</p>
             </dd>
           </div>
-          <div className="mt-4 flex w-full flex-none gap-x-4 px-6">
-            <dt className="flex-none">
-              <span className="sr-only">{percentageOptijd}</span>
-              <CreditCardIcon aria-hidden="true" className="h-6 w-5 text-gray-400" />
-            </dt>
+          <div className="mt-4 flex w-full flex-auto gap-x-4 px-6">
+              <p className="text-sm font-semibold leading-6 text-gray-900">{freelancer?.percentageOptijd || 100} %</p>
             <dd className="text-sm leading-6 text-gray-500">Op tijd</dd>
           </div>
         </dl>
-        <div className="mt-6 border-t border-gray-900/5 px-6 py-6">
-        <div className="text-black">
-         {bio}
-          </div>
+                    <div className="px-6 py-4 space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="kvk"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <Input placeholder={freelancer?.kvknr || "geen KVK-nummer"} {...field} className="input-field" />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="btwid"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <Input placeholder={freelancer?.btwid || "geen BTW-ID"} {...field} className="input-field" />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="iban"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <Input placeholder={freelancer?.iban || "geen IBAN"} {...field} className="input-field" />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="telefoonnummer"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <Input placeholder={freelancer?.telefoonnummer || "geen telefoonnummer"} {...field} className="input-field" />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="emailadres"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <Input placeholder={freelancer?.emailadres || "geen emailadres"} {...field} className="input-field" />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="bio"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <Textarea placeholder={freelancer?.bio || "Schrijf wat over jezelf.."} {...field} className="rounded-2xl" />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                    <div className="border-t border-gray-900/5 px-6 py-6 flex justify-between">
+                        <Button className="bg-white text-black border-2 border-black hover:text-white" onClick={() => onClose()}>
+                            Annuleren
+                        </Button>
+                        <Button 
+                            type="submit"
+                            size="lg"
+                            disabled={form.formState.isSubmitting}
+                            className="bg-sky-500"
+                        >
+                            {form.formState.isSubmitting ? 'Opslaan...' : 'Opslaan'}
+                        </Button>
+                    </div>
+                </div>
+            </div>
         </div>
-        </div> 
-        <div className="mt-6 border-t border-gray-900/5 px-6 py-6">
-        <div className="justify-between">
-          <Button className="mt-20 bg-white text-black border-2 border-black mr-10"
-          onClick={() => onClose()}
-          >
-            Annueleren
-          </Button>
-          <Button className="mt-20 bg-sky-500" >
-            Opslaan
-          </Button>
-          </div>
-        </div>
-      </div>
-    </div>
+    </form>
+</Form>
   )
 }
+       

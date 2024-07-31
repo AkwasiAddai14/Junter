@@ -9,8 +9,6 @@ const nextConfig = {
       ignoreDuringBuilds: true,
     },
     images: {
-      
-      domains: ['example.com'], // voeg hier de domeinen toe van waar je afbeeldingen haalt
       remotePatterns: [
         {
           protocol: "https",
@@ -27,6 +25,10 @@ const nextConfig = {
         {
           protocol: "https",
           hostname: "placehold.co",
+        },
+        {
+          protocol: "https",
+          hostname: "example.com",
         },
       ],
     },

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, FormEventHandler } from 'react';
 import { easeInOut, motion } from 'framer-motion';
 import axios from 'axios';
 import { z } from 'zod';
@@ -8,8 +8,9 @@ import { BedrijfValidation } from '@/app/lib/validations/bedrijf';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { usePathname, useRouter } from 'next/navigation';
+import { useOrganizationList } from "@clerk/nextjs";
 import { maakBedrijf } from '@/app/lib/actions/bedrijven.actions';
-
+import { useUser } from '@clerk/nextjs';
 import { PhotoIcon, UserCircleIcon, CheckIcon } from '@heroicons/react/24/solid';
 
 type Inputs = z.infer<typeof BedrijfValidation>;
@@ -48,30 +49,49 @@ interface Props {
 }
 
 const BedrijfsForm = ({ bedrijven }: Props) => {
+    const { createOrganization } = useOrganizationList();
+    const [organizationName, setOrganizationName] = useState("");
     const router = useRouter();
     const pathname = usePathname();
-    const [street, setStreet] = useState('');
-    const [city, setCity] = useState('');
-    const [kvknr, setKvknr] = useState('');
+    const [kvkNummer, setKvkNummer] = useState('');
+    const { isLoaded, user } = useUser();
 
-    const fetchAddressData = async (postcode: string, huisnummer: string) => {
+    const haalBedrijfsData = async (kvkNummer: string) => {
         try {
-            const apiKey = process.env.POSTCODE_API_KEY; // Replace 'YOUR_API_KEY' with your actual API key
-            const url = `https://api.postcodeapi.nu/v3/lookup/${postcode}/${huisnummer}`;
-
-            const response = await axios.get(url, {
-                headers: {
-                    'X-Api-Key': apiKey,
-                },
-            });
-
-            const { street, city } = response.data;
-            setStreet(street);
-            setCity(city);
+            const response = await axios.get(`/api/kvk?kvkNummer=${kvkNummer}`);
+      
+          if (response.data && response.data.items && response.data.items.length > 0) {
+            const companyData = response.data.items[0];
+            const address = companyData.adres;
+      
+            const companyName = companyData.handelsnaam;
+            const streetName = address.straatnaam;
+            const houseNumber = address.huisnummer;
+            const houseNumberAddition = address.huisnummerToevoeging || '';
+            const houseLetter = address.huisletter || '';
+            const postalCode = address.postcode;
+            const place = address.plaats;
+      
+            return {
+              companyName,
+              streetName,
+              houseNumber,
+              houseNumberAddition,
+              houseLetter,
+              postalCode,
+              place
+            };
+          } else {
+            throw new Error('No company data found for the provided KVK number.');
+          }
         } catch (error) {
-            console.error('Error fetching address data:', error);
+          console.error('Error fetching company details:', error);
+          throw error;
         }
-    };
+      };
+    
+
+    
 
     const {
         register,
@@ -79,6 +99,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
         watch,
         reset,
         trigger,
+        setValue,
         formState: { errors },
     } = useForm<Inputs>({
         resolver: zodResolver(BedrijfValidation),
@@ -97,27 +118,64 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
         },
     });
 
+    useEffect(() => {
+        const fetchDetails = async () => {
+          if (kvkNummer.length === 8) {
+            try {
+              const details = await haalBedrijfsData(kvkNummer);
+              console.log('Company Details:', details);
+              setValue('displaynaam', details.companyName);
+              setValue('straat', details.streetName);
+              setValue('huisnummer', details.houseNumber + details.houseNumberAddition + details.houseLetter);
+              setValue('postcode', details.postalCode);
+              setValue('stad', details.place);
+            } catch (error: any) {
+              console.error('Error:', error.message);
+            }
+          }
+        };
+    
+        fetchDetails();
+      }, [kvkNummer, setValue]);
+
+    const handleSubmitOrganization: FormEventHandler<HTMLFormElement> = async (e) => {
+        e.preventDefault();
+        if (createOrganization) {
+            await createOrganization({ name: organizationName });
+            setOrganizationName("");
+        router.push('../dashboard') 
+        }
+        else {
+            console.error('createOrganization is undefined');
+        }
+    };
+
+    const handleButtonClick = async () => {
+        await handleSubmitOrganization(new Event('submit') as unknown as React.FormEvent<HTMLFormElement>);
+    };
+
     const processForm: SubmitHandler<Inputs> = async (data) => {
-        /* await fetchAddressData(data.postcode, data.huisnummer); */
-
-        maakBedrijf({
-            clerkId: data.bedrijvenID,
-            naam: data.naam,
-            profielfoto: data.profielfoto,
-            kvknr: data.kvknr,
-            btwnr: data.btwnr,
-            postcode: data.postcode,
-            huisnummer: data.huisnummer,
-            emailadres: data.emailadres,
-            telefoonnummer: data.telefoonnummer,
-            iban: data.iban,
-            path: data.path,
-        });
-
-        if (pathname === 'profiel/wijzigen') {
-            router.back();
-        } else {
-            router.push('/dashboard');
+       
+        if (isLoaded && user) {
+            await maakBedrijf({
+                clerkId: user.id,
+                naam: data.naam,
+                profielfoto: data.profielfoto,
+                kvknr: data.kvknr,
+                btwnr: data.btwnr,
+                postcode: data.postcode,
+                huisnummer: data.huisnummer,
+                emailadres: data.emailadres,
+                telefoonnummer: data.telefoonnummer,
+                iban: data.iban,
+                path: data.path,
+            });
+            
+            if (pathname === 'profiel/wijzigen') {
+                router.back();
+            } else {
+                router.push('/dashboard');
+            }
         }
     };
 
@@ -202,23 +260,21 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                         <div className="px-8 space-y-12 sm:space-y-16">
                             <div className="border-b border-gray-900/10 pb-12">
                                 <h2 className="text-base font-semibold mt-10 leading-7 text-gray-900">Bedrijfgegevens</h2>
-                                {/* <p className="mt-1 text-sm leading-6 text-gray-600">
-                                    Dit wordt het visitekaartje naar de opdrachtnemers toe
-                                </p> */}
-
                                 <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                                     <div className="sm:col-span-4">
                                         <label htmlFor="kvk" className="block text-sm font-medium leading-6 text-gray-900">
-                                            KVK / Bedrijfsnaam
+                                            KVK
                                         </label>
                                         <div className="mt-2">
-                                            <input
-                                                id="kvknr"
-                                                {...register('kvknr')}
-                                                type="text"
-                                                autoComplete="textinput"
-                                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                            />
+                                        <input
+                                            id="kvknr"
+                                            {...register('kvknr')}
+                                            value={kvkNummer}
+                                            onChange={(e) => setKvkNummer(e.target.value)}
+                                            type="text"
+                                            autoComplete="textinput"
+                                            className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                        />                                                        
                                             {errors.kvknr && (
                                                 <p className="text-red-500 text-sm">{errors.kvknr.message}</p>
                                             )}
@@ -235,7 +291,8 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                                 {...register('naam')}
                                                 type="text"
                                                 autoComplete="name"
-                                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                placeholder=''
+                                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                             />
                                             {errors.naam && (
                                                 <p className="text-red-500 text-sm">{errors.naam.message}</p>
@@ -253,7 +310,10 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                                 {...register('postcode')}
                                                 type="text"
                                                 autoComplete="postal-code"
+                                                placeholder=''
                                                 className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                value={watch('postcode')}
+                                                onChange={(e) => setValue('postcode', e.target.value)}
                                             />
                                             {errors.postcode && (
                                                 <p className="text-red-500 text-sm">{errors.postcode.message}</p>
@@ -271,7 +331,10 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                                 {...register('huisnummer')}
                                                 type="text"
                                                 autoComplete="textinput"
-                                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                placeholder=''
+                                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                value={watch('huisnummer')}
+                                                onChange={(e) => setValue('huisnummer', e.target.value)}
                                             />
                                             {errors.huisnummer && (
                                                 <p className="text-red-500 text-sm">{errors.huisnummer.message}</p>
@@ -289,7 +352,10 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                                 {...register('straat')}
                                                 type="text"
                                                 autoComplete="textinput"
-                                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                placeholder=''
+                                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                value={watch('straat')}
+                                                onChange={(e) => setValue('straat', e.target.value)}
                                             />
                                             {errors.straat && (
                                                 <p className="text-red-500 text-sm">{errors.straat.message}</p>
@@ -306,11 +372,49 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                                 id="city"
                                                 {...register('stad')}
                                                 type="text"
-                                                autoComplete="address-level2"
-                                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                autoComplete="stad"
+                                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                value={watch('stad')}
+                                                onChange={(e) => setValue('stad', e.target.value)}
                                             />
                                             {errors.stad && (
                                                 <p className="text-red-500 text-sm">{errors.stad.message}</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="sm:col-span-4 sm:col-start-1">
+                                        <label htmlFor="city" className="block text-sm font-medium leading-6 text-gray-900">
+                                            Emailadres
+                                        </label>
+                                        <div className="mt-2">
+                                            <input
+                                                id="emailadres"
+                                                {...register('emailadres')}
+                                                type="text"
+                                                autoComplete="emailadres"
+                                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            />
+                                            {errors.emailadres && (
+                                                <p className="text-red-500 text-sm">{errors.emailadres.message}</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="sm:col-span-4 sm:col-start-1">
+                                        <label htmlFor="city" className="block text-sm font-medium leading-6 text-gray-900">
+                                            Telefoonnummer
+                                        </label>
+                                        <div className="mt-2">
+                                            <input
+                                                id="telefoonnummer"
+                                                {...register('telefoonnummer')}
+                                                type="text"
+                                                autoComplete="telefoonnummer"
+                                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            />
+                                            {errors.telefoonnummer && (
+                                                <p className="text-red-500 text-sm">{errors.telefoonnummer.message}</p>
                                             )}
                                         </div>
                                     </div>
@@ -325,7 +429,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                                 {...register('iban')}
                                                 type="text"
                                                 autoComplete="iban"
-                                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                             />
                                             {errors.iban && (
                                                 <p className="text-red-500 text-sm">{errors.iban.message}</p>
@@ -338,7 +442,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                     </motion.div>
                 )}
 
-                {currentStep === 1 && (
+                 {currentStep === 1 && (
                     <motion.div
                         initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
@@ -351,8 +455,8 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                     Vul hier de gegevens in voor het visitekaartje van het bedrijf.
                                 </p>
 
-                                <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                                    <div className="sm:col-span-4">
+                                 <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                                 <div className="sm:col-span-4">
                                         <label htmlFor="displaynaam" className="block text-sm font-medium leading-6 text-gray-900">
                                             Displaynaam
                                         </label>
@@ -369,6 +473,13 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                             )}
                                         </div>
                                     </div>
+
+                                    <input
+                                        type="text"
+                                        name="organizationName"
+                                        value={organizationName}
+                                        onChange={(e) => setOrganizationName(e.currentTarget.value)}
+                                    />
 
                                     <div className="col-span-full">
                                         <label htmlFor="profielfoto" className="block text-sm font-medium leading-6 text-gray-900">
@@ -413,7 +524,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                             </div>
                         </div>
                     </motion.div>
-                )}
+                )} 
 
                 {currentStep === 2 && (
                     <motion.div
@@ -423,9 +534,9 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                     >
                         <div className="px-8 space-y-12 sm:space-y-16">
                             <div className="border-b border-gray-900/10 pb-12">
-                                <h2 className="text-base font-semibold leading-7 text-gray-900">Notifications</h2>
+                                <h2 className="mt-7 text-base font-semibold leading-7 text-gray-900">Welkom bij Junter!</h2>
                                 <p className="mt-1 text-sm leading-6 text-gray-600">
-                                    We'll always let you know about important changes, but you pick what else you want to hear about.
+                                Je bent klaar! Klik op 'Voltooien' om het proces af te ronden.
                                 </p>
                             </div>
                         </div>
@@ -454,7 +565,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                     <button
                         type="submit"
                         className="rounded-md bg-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                        onClick={() => router.push('../dashboard')}
+                        onClick={handleButtonClick}
                     >
                         Voltooien
                     </button>

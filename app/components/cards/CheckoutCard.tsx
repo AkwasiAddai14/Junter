@@ -1,29 +1,242 @@
-import React from 'react'
+"use client"
 
-interface checkout {
-    afbeelding: string,
-    opdrachtnemer: string,
-    datum: string,
-    begintijd: string,
-    eindtijd: string,
-    pauze: number,
-}
 
-interface Props {
-    checkout: checkout
-}
+import { useEffect, useState } from 'react';
+import { Button } from '../ui/button';
+import { useUser } from '@clerk/nextjs';
+import Image from 'next/image';
+import { haalFreelancer } from '@/app/lib/actions/freelancer.actions';
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/app/components/ui/form";
+import { Controller, useForm } from 'react-hook-form';
+import { CheckoutValidation } from "@/app/lib/validations/checkout";
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from 'zod';
+import { Textarea } from '../ui/textarea';
+import { maakCheckout, vulCheckout } from '@/app/lib/actions/checkout.actions';
+import Dropdown from '../shared/Dropdown';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker/TimePicker';
+import dayjs from 'dayjs';
+import ReactStars from "react-rating-stars-component";
 
-const CheckoutCard: React.FC<Props> = ({checkout}) => {
+
+
+export default function CheckoutCard({isVisible, onClose, shiftId} : {isVisible: boolean, onClose: any, shiftId: string}) {
+    if (!isVisible) return null;
+    const { control } = useForm();
+    const [begintijd, setBegintijd] = useState<Date | null>(dayjs('T15:30').toDate());
+    const [eindtijd, setEindtijd] = useState<Date | null>(dayjs('T15:30').toDate());
+    const [checkout, setCheckout] = useState<any>(null);
+
+  const DefaultValues = {
+   beginttijd: "",
+   eindtijd: "",
+   pauze: "",
+   rating: 5,
+   opmerking: "",
+   feedback: "",
+  };
+
+    const form = useForm<z.infer<typeof CheckoutValidation>>({
+      resolver: zodResolver(CheckoutValidation),
+      defaultValues: DefaultValues,
+    })
+
+    useEffect(() => {
+        const fetchCheckout = async () => {
+            try {
+                const data = await maakCheckout({ shiftId });
+                setCheckout(data);
+            } catch (error) {
+                console.error('Failed to fetch checkout data:', error);
+            }
+        };
+
+        fetchCheckout();
+    }, [shiftId]);
+
+    async function onSubmit(values: z.infer<typeof CheckoutValidation>) {
+        try {
+            await vulCheckout({
+                shiftId,
+                rating: values.rating || 5,
+                begintijd: values.begintijd || checkout?.begintijd,
+                eindtijd: values.eindtijd || checkout?.eindtijd,
+                pauze: values.pauze || checkout?.pauze,
+                feedback: values.feedback || "",
+                opmerking: values.opmerking || ""
+            });
+        } catch (error) {
+            console.error('Failed to submit checkout:', error);
+        }
+    }
+
+    if (!checkout) {
+        return <div>Loading...</div>;
+    }
+
   return (
-    <>
-    <h2>{checkout.afbeelding}</h2>
-    <h2>{checkout.opdrachtnemer}</h2>
-    <h2>{checkout.datum}</h2>
-    <h2>{checkout.begintijd}</h2>
-    <h2>{checkout.eindtijd}</h2>
-    <h2>{checkout.pauze}</h2>
-    </>
+    <Form {...form}>
+    <form onSubmit={form.handleSubmit(onSubmit)} className="fixed inset-0 mt-14 bg-black bg-opacity-25 backdrop-blur-sm flex justify-center items-center overflow-hidden w-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-25 backdrop-blur-sm flex justify-center items-center overflow-hidden w-auto">
+            <div className="lg:col-start-3 lg:row-end-1 max-w-lg w-full"> 
+                <div className="rounded-lg bg-gray-50 shadow-sm ring-1 ring-gray-900/5">
+                    <dl className="flex flex-wrap">
+                        <div className="flex-none justify-center items-center self-end px-6 pt-4">
+                            <Image
+                                className="object-cover rounded-lg"
+                                src={checkout?.shift?.afbeelding || ''}
+                                alt="profielfoto"
+                                width={32}
+                                height={32}
+                            />
+                        </div>
+                    </dl>
+                    <dl className="flex flex-wrap border-b  border-gray-900/5 px-6 pb-6">
+          <div className="mt-6 flex w-full flex-auto gap-x-4  border-t border-gray-900/5 px-6 pt-6">
+              <p className="text-sm font-semibold leading-6 text-gray-900"> {checkout?.opdrachtgever?.voornaam || 'Opdrachtgever naam'}, {checkout?.shift?.functie || 'Functie'}</p>
+            <dd className="text-sm leading-6 text-gray-500">{checkout?.opdrachtgever?.stad || 'Stad'}</dd>
+          </div>
+          <div className="mt-4 flex w-full flex-auto gap-x-4 px-6">
+              <span className="text-sm font-semibold leading-6 text-gray-900">{checkout?.datum ? new Date(checkout.datum).toLocaleDateString() : 'Datum'}, {checkout?.begintijd ? new Date(checkout.begintijd).toLocaleTimeString() : 'Begintijd'} - {checkout?.eindtijd ? new Date(checkout.eindtijd).toLocaleTimeString() : 'Eindtijd'}
+        </span>
+            <dd className="text-sm leading-6 text-gray-500">
+              <p className="text-sm leading-6 text-gray-500">{checkout?.pauze || 0} minuten</p>
+            </dd>
+          </div>
+          <div className="mt-4 flex w-full flex-auto gap-x-4 px-6">
+              <p className="text-sm font-semibold leading-6 text-gray-900">€{checkout?.uurtarief || '14.00'}</p>
+            <dd className="text-sm leading-6 text-gray-500">p/u</dd>
+          </div>
+        </dl>
+                    <div className="px-6 py-4 space-y-4">
+                    <FormField
+                            control={form.control}
+                            name="pauze"
+                            render={({ field }) => (
+                              <FormItem className="w-full">
+                               <FormControl>
+                                <Dropdown onChangeHandler={field.onChange} value={field.value} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                         />
+                    </div>
+                    <div className="flex flex-col gap-5 md:flex-row">
+        <Controller
+            control={control}
+            name="begintijd"
+            render={({ field }) => (
+              <div className="w-full">
+                <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-grey-50 px-4 py-2">
+                  <Image
+                    src="/assets/icons/calendar.svg"
+                    alt="calendar"
+                    width={24}
+                    height={24}
+                    className="filter-grey"
+                  />
+                  <p className="ml-3 whitespace-nowrap text-grey-600">Begintijd:</p>
+                  <TimePicker
+                    label="Begintijd"
+                    /* value={field.value ? dayjs(field.value).toDate() : null} */
+                    onChange={(newValue: Date | null) => {
+                      field.onChange(newValue ? dayjs(newValue).toISOString() : null);
+                      setBegintijd(newValue);
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          />
+        
+        <Controller
+            control={control}
+            name="eindtijd"
+            render={({ field }) => (
+              <div className="w-full">
+                <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-grey-50 px-4 py-2">
+                  <Image
+                    src="/assets/icons/calendar.svg"
+                    alt="calendar"
+                    width={24}
+                    height={24}
+                    className="filter-grey"
+                  />
+                  <p className="ml-3 whitespace-nowrap text-grey-600">Eindtijd:</p>
+                  <TimePicker
+                    label="Eindtijd"
+                    /* value={field.value ? dayjs(field.value).toDate() : null} */
+                    onChange={(newValue: Date | null) => {
+                      field.onChange(newValue ? dayjs(newValue).toISOString() : null);
+                      setEindtijd(newValue);
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          />
+        </div>
+
+        <div className="flex flex-col gap-5 md:flex-row">
+        <FormField
+              control={form.control}
+              name="rating"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormControl className="h-72">
+                  <ReactStars
+                        count={5}
+                        size={24}
+                        isHalf={true}
+                        emptyIcon={<i className="far fa-star"></i>}
+                        halfIcon={<i className="fa fa-star-half-alt"></i>}
+                        fullIcon={<i className="fa fa-star"></i>}
+                        activeColor="#ffd700"
+                        {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="border-t border-gray-900/5 px-6 py-6 flex justify-center items-center">
+            <Button className="bg-red-500 text-white border-2 border-red-500 hover:text-black" onClick={() => onClose()}>
+                Niet gewerkt
+            </Button>
+            </div>
+          <FormField
+              control={form.control}
+              name="opmerking"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormControl className="h-72">
+                    <Textarea placeholder="opmerking" {...field} className="textarea rounded-2xl" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+        </div>
+                    <div className="border-t border-gray-900/5 px-6 py-6 flex justify-between">
+                        <Button className="bg-white text-black border-2 border-black hover:text-white" onClick={() => onClose()}>
+                            Annuleren
+                        </Button>
+                        <Button 
+                            type="submit"
+                            size="lg"
+                            disabled={form.formState.isSubmitting}
+                            className="bg-sky-500"
+                        >
+                            {form.formState.isSubmitting ? 'Checkout indienen...' : 'Indienen'}
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</Form>
+
   )
 }
-
-export default CheckoutCard
+       

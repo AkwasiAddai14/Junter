@@ -43,8 +43,8 @@ const navigation = [
 
 
 const userNavigation = [
-  { name: 'Your profile', href: '#' },
-  { name: 'Sign out', href: '#' },
+  { name: 'Profiel', href: '#' },
+  { name: 'Uitloggen', href: '#' },
 ]
 
 function classNames(...classes: string[]) {
@@ -383,11 +383,11 @@ const applyFilters = () => {
           {/* Secondary column (hidden on smaller screens) */}
           <div>
          <div>
-          {/* <Calendar
-            className="pr-20"
-            selected={dateRange}
-            onSelect={(range: React.SetStateAction<{ from: Date | undefined; to: Date | undefined }>) => setDateRange(range)} 
-          /> */}
+          <Calendar
+            className=""
+            /* selected={dateRange} */
+            /* onSelect={(range: React.SetStateAction<{ from: Date | undefined; to: Date | undefined }>) => setDateRange(range)}  */
+          />
          </div>
          <div>
           <p className="mt-20">

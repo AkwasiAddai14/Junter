@@ -1,14 +1,16 @@
-import { JSX, SVGProps } from "react"
+"use client"
+
+import { JSX, SVGProps, useState } from "react"
 
 const navigation = {
   Opdrachtnemers: [
     { name: 'Hoe werkt het', href: '../freelancers' },
-    { name: 'Vind klussen', href: '../freelancers' },
+    { name: 'Vind klussen', href: '../sign-up' },
     { name: 'Contact', href: '../contact' },
   ],
   Opdrachtgevers: [
     { name: 'Kosten', href: '../bedrijven' },
-    { name: 'Vind werkers', href: '../bedrijven' },
+    { name: 'Vind werkers', href: '../sign-up' },
     { name: 'API integratie', href: '../bedrijven' },
   ],
   Junter: [
@@ -86,7 +88,29 @@ const navigation = {
   ],
 }
 
-export default function Example() {
+export default function Footer() {
+  const [agreed, setAgreed] = useState(false);
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+
+  const handleSubmit = async (e: { preventDefault: () => void; }) => {
+    e.preventDefault();
+
+    const res = await fetch('/api/subscribe', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      setMessage('Subscribed successfully!');
+    } else {
+      setMessage(data.error);
+    }
+  };
   return (
     <footer className="bg-white" aria-labelledby="footer-heading">
       <h2 id="footer-heading" className="sr-only">
@@ -153,7 +177,7 @@ export default function Example() {
             <p className="mt-2 text-sm leading-6 text-gray-600">
             Ontvang wekelijks een overzicht van (nieuwe) klussen bij jou in de buurt en blijf op de hoogte van het laatste nieuws!
             </p>
-            <form className="mt-6 sm:flex sm:max-w-md">
+            <form onSubmit={handleSubmit} className="mt-6 sm:flex sm:max-w-md">
               <label htmlFor="email-address" className="sr-only">
                 Email address
               </label>
@@ -162,6 +186,7 @@ export default function Example() {
                 name="email-address"
                 id="email-address"
                 autoComplete="email"
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full min-w-0 appearance-none rounded-md border-0 bg-white px-3 py-1.5 text-base text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:w-64 sm:text-sm sm:leading-6 xl:w-full"
                 placeholder="Vul je emailaddress in..."
@@ -174,6 +199,9 @@ export default function Example() {
                   Abonneren
                 </button>
               </div>
+              {message && (
+            <p className="mt-2 text-sm text-center text-red-500">{message}</p>
+          )}
             </form>
           </div>
         </div>

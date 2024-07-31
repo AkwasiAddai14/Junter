@@ -1,7 +1,14 @@
 "use server";
 
+
+import mongoose from 'mongoose';
+import { connectToDB } from '../mongoose';
 import Bedrijf from '../models/bedrijven.model';
 import ShiftArray from '../models/shiftArray.model';
+import Shift from '@/app/lib/models/shift.model';
+import Freelancer from '@/app/lib/models/freelancer.model';
+
+
 
 export const haalShifts = async () => {
     try {
@@ -43,4 +50,30 @@ export const haalGeplaatsteShifts = async ({ bedrijfId }: { bedrijfId: string })
         console.error('Error fetching geplaatste shifts:', error);
         throw new Error('Failed to fetch geplaatste shifts');
     }
+};
+
+
+
+export const haalAanmeldingen = async (shiftId: any) => {
+  try {
+    connectToDB()
+    const shift = await Shift.findById(shiftId);
+    if (!shift) {
+      throw new Error(`Shift with ID ${shiftId} not found`);
+    }
+
+    const shiftArray = await ShiftArray.findOne({ shiftArrayId: shift.shiftArrayId }).populate('aanmeldingen');
+    if (!shiftArray) {
+      throw new Error(`ShiftArray with ID ${shift.shiftArrayId} not found`);
+    }
+
+    const freelancers = await Freelancer.find({
+      _id: { $in: shiftArray.aanmeldingen }
+    });
+
+    return freelancers;
+  } catch (error: any) {
+    console.error(error);
+    throw new Error(`Failed to fetch aanmeldingen: ${error.message}`);
+  }
 };
