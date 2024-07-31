@@ -268,23 +268,30 @@ const Dashboard = () => {
         
         {/* Main area */}
          <main className="lg:pl-20 h-full overflow-hidden">
-            <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-6">
-            {position === 'Dashboard' && 
-            (
-              <Calender/>
-            )
-          }
-            {position === 'Shifts' && (
-                <ScrollArea>
-                  <div className="grid grid-cols-3 gap-4">
-                    {shift.slice(0, 9).map((shiftItem, index) => (
-                      <ShiftCard key={index} shift={shiftItem} />
-                    ))}
-                  </div>
-                </ScrollArea>
-              )}
 
-              {position === 'Checkouts' && (
+          
+            <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-6">
+            {position === 'Dashboard' && ( <Calender/> )}
+            </div>
+
+
+                  { position === 'Shifts' ? (
+                    shift.length > 0 ? (
+                      <ScrollArea>
+                        <div className="grid grid-cols-3 gap-4">
+                          {shift.slice(0, 9).map((shiftItem, index) => (
+                            <ShiftCard key={index} shift={shiftItem} />
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    ) : (
+      <div>Geen shifts beschikbaar</div>
+                    )
+                  ) : null
+                }
+
+              {position === 'Checkouts' ? 
+              checkout.length > 0 ? (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
                     {checkout.slice(0, 9).map((checkoutItem, index) => (
@@ -292,8 +299,14 @@ const Dashboard = () => {
                     ))}
                   </div>
                 </ScrollArea>
-              )}
-              {position === 'Facturen' && (
+              ) : (
+                <div> Geen checkouts beschikbaar </div>
+              ): null 
+              }
+
+
+              {position === 'Facturen' ? 
+              factuur.length > 0 ? (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
                     {factuur.slice(0, 9).map((factuurItem, index) => (
@@ -301,8 +314,14 @@ const Dashboard = () => {
                     ))}
                   </div>
                 </ScrollArea>
-              )}
-              {position === 'Flexpool' && (
+               ) : (
+                <div> Geen checkouts beschikbaar </div>
+              ): null 
+              }
+
+
+              {position === 'Flexpool' ?
+              flexpool.length > 0 ? (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
                     {flexpool.slice(0, 9).map((flexpoolItem, index) => (
@@ -310,8 +329,10 @@ const Dashboard = () => {
                     ))}
                   </div>
                 </ScrollArea>
-              )}
-            </div>
+              ) : (
+                <div> Geen checkouts beschikbaar </div>
+              ): null 
+              }
         </main>
 
         <aside className="fixed inset-y-0 left-20 w-full sm:w-96 sm:block hidden overflow-y-hidden border-r border-gray-200 px-4 py-6 sm:px-6 lg:px-8">

@@ -75,17 +75,12 @@ export default function Example() {
   useEffect(() => {
     if (isLoaded && user) {
       setProfilePhoto(user.imageUrl);
-    }
-  }, [isLoaded, user]);
-
-  useEffect(() => {
-    if (isLoaded && user) {
       setFullName(user.fullName);
     }
   }, [isLoaded, user]);
 
-  React.useEffect(() => {
-    const fetchShift = async () => {
+  useEffect(() => {
+    const fetchShifts = async () => {
       try {
         const fetchedShift = await haalShifts();
         setShift(fetchedShift);
@@ -93,28 +88,25 @@ export default function Example() {
         console.error('Error fetching shifts:', error);
       }
     };
-
-    fetchShift();
+    fetchShifts();
   }, []);
 
   useEffect(() => {
     const fetchFlexpools = async () => {
-        try {
-            if (user?.id) {
-                const fetchedFlexpools = await haalFlexpool(user.id);
-                setFlexpool(fetchedFlexpools);
-            }
-            
-        } catch (error) {
-          console.error('Error fetching flexpools:', error);
+      try {
+        if (user?.id) {
+          const fetchedFlexpools = await haalFlexpool(user.id);
+          setFlexpool(fetchedFlexpools);
         }
+      } catch (error) {
+        console.error('Error fetching flexpools:', error);
+      }
     };
 
     if (user) {
-        fetchFlexpools();
+      fetchFlexpools();
     }
-}, [user]);
-    
+  }, [user]);
 
   useEffect(() => {
     const fetchCheckout = async () => {
@@ -122,48 +114,46 @@ export default function Example() {
         if (user?.id) {
           const fetchedCheckout = await haalCheckouts(user.id);
           setCheckout(fetchedCheckout);
-      }
+        }
       } catch (error) {
-        console.error('Error fetching shifts:', error);
+        console.error('Error fetching checkouts:', error);
       }
     };
-
     fetchCheckout();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const fetchFactuur = async () => {
-        try {
-            if (checkout && checkout.length > 0) {
-                // Voorbeeld: Haal de factuur op voor de eerste checkout in de lijst
-                const fetchedFactuur = await haalFactuur(checkout[0].id);
-                setFactuur(fetchedFactuur);
-            }
-        } catch (error) {
-            console.error('Error fetching factuur:', error);
+      try {
+        if (checkout.length > 0) {
+          const fetchedFactuur = await haalFactuur(checkout[0].id);
+          setFactuur(fetchedFactuur);
         }
+      } catch (error) {
+        console.error('Error fetching factuur:', error);
+      }
     };
+    if (checkout.length > 0) {
+      fetchFactuur();
+    }
+  }, [checkout]);
 
-    fetchFactuur();
-}, [checkout]); // Voeg `checkout` toe aan de dependency array
+  useEffect(() => {
+    applyFilters();
+  }, [dateRange, uurtarief, afstand, shift]);
 
-useEffect(() => {
-  applyFilters();
-}, [dateRange, uurtarief, afstand, shift]);
+  const applyFilters = () => {
+    const filtered = shift.filter((shiftItem) => {
+      const isDateInRange = dateRange.from && dateRange.to
+        ? new Date(shiftItem.date) >= dateRange.from && new Date(shiftItem.date) <= dateRange.to
+        : true;
+      const isTariefInRange = shiftItem.uurtarief >= uurtarief[0] && shiftItem.uurtarief <= uurtarief[1];
+      const isAfstandInRange = shiftItem.afstand >= afstand[0] && shiftItem.afstand <= afstand[1];
+      return isDateInRange && isTariefInRange && isAfstandInRange;
+    });
 
-const applyFilters = () => {
-  const filtered = shift.filter((shiftItem) => {
-    const isDateInRange = dateRange.from && dateRange.to 
-      ? new Date(shiftItem.date) >= dateRange.from && new Date(shiftItem.date) <= dateRange.to
-      : true;
-    const isTariefInRange = shiftItem.uurtarief >= uurtarief[0] && shiftItem.uurtarief <= uurtarief[1];
-    const isAfstandInRange = shiftItem.afstand >= afstand[0] && shiftItem.afstand <= afstand[1];
-    return isDateInRange && isTariefInRange && isAfstandInRange;
-  });
-
-  setFilteredShifts(filtered);
-  /* setShift(filteredShifts) */
-};
+    setFilteredShifts(filtered);
+  };
 
   return (
     <Fragment>
@@ -321,7 +311,8 @@ const applyFilters = () => {
 
           <main className="xl:pl-96">
             <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-6">{/* Main area */}
-            {position === 'Shifts' && (
+            {position === 'Shifts' ?
+            shift.length > 0 ? (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
                     {shift.slice(0, 9).map((shiftItem, index) => (
@@ -329,7 +320,12 @@ const applyFilters = () => {
                     ))}
                   </div>
                 </ScrollArea>
-              )}
+              ) : (
+                <div>Geen shifts beschikbaar</div>
+                              )
+                             : null
+                          }
+          
               {position === 'Aanmeldingen' && (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
@@ -348,7 +344,8 @@ const applyFilters = () => {
                   </div>
                 </ScrollArea>
               )}
-              {position === 'Checkouts' && (
+              {position === 'Checkouts' ?
+              checkout.length > 0 ?  (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
                     {checkout.slice(0, 9).map((checkoutItem, index) => (
@@ -356,8 +353,14 @@ const applyFilters = () => {
                     ))}
                   </div>
                 </ScrollArea>
-              )}
-              {position === 'Facturen' && (
+              ) : (
+                <div>Geen shifts beschikbaar</div>
+                              )
+                             : null
+              }
+          
+              {position === 'Facturen' ?
+              factuur.length > 0 ? (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
                     {factuur.slice(0, 9).map((factuurItem, index) => (
@@ -365,8 +368,13 @@ const applyFilters = () => {
                     ))}
                   </div>
                 </ScrollArea>
-              )}
-              {position === 'Flexpool' && (
+              ) : (
+                <div>Geen shifts beschikbaar</div>
+                              )
+                             : null
+              }
+              {position === 'Flexpool' ?
+              flexpool.length > 0 ? (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
                     {flexpool.slice(0, 9).map((flexpoolItem, index) => (
@@ -374,7 +382,11 @@ const applyFilters = () => {
                     ))}
                   </div>
                 </ScrollArea>
-              )}
+              ) : (
+                <div>Geen shifts beschikbaar</div>
+                              )
+                             : null
+              }
             </div>
           </main>
             </div>
