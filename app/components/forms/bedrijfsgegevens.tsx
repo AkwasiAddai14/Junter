@@ -152,6 +152,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
 
     const handleButtonClick = async () => {
         await handleSubmitOrganization(new Event('submit') as unknown as React.FormEvent<HTMLFormElement>);
+        router.push('../dashboard');
     };
 
     const processForm: SubmitHandler<Inputs> = async (data) => {
