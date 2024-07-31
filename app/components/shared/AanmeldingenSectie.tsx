@@ -1,3 +1,5 @@
+"use client"
+
 import { accepteerFreelancer } from "@/app/lib/actions/shift.actions";
 import { afwijzenFreelancer } from "@/app/lib/actions/shift.actions";
 import { haalAanmeldingen } from "@/app/lib/actions/shiftArray.actions";
