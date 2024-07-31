@@ -1,5 +1,5 @@
 
-import ShiftForm from "@/app/components/forms/shiftForm";
+import ShiftForm from "@/app/components/forms/ShiftForm";
 import { haalShiftMetId } from "@/app/lib/actions/shift.actions"
 import { useUser } from "@clerk/nextjs";
 
