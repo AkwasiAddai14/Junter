@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
 import { easeInOut, motion } from 'framer-motion';
@@ -22,7 +22,7 @@ const steps = [
         fields: ['voornaam', 'tussenvoegsel', 'achternaam', 'kvk']
     },
     {
-        id: '2',
+        id: ' 2',
         name: 'Profiel',
         fields: ['displaynaam', 'profielfoto', 'bio']
     },
@@ -128,32 +128,40 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
 
     const processForm: SubmitHandler<Inputs> = async (data) => {
         if (isLoaded && user) {
-            await maakBedrijf({
-                clerkId: user.id,
-                naam: data.naam,
-                profielfoto: data.profielfoto,
-                kvknr: data.kvknr,
-                btwnr: data.btwnr,
-                postcode: data.postcode,
-                huisnummer: data.huisnummer,
-                emailadres: data.emailadres,
-                telefoonnummer: data.telefoonnummer,
-                iban: data.iban,
-                path: data.path,
-            });
-            if (createOrganization) {
-                await createOrganization({ name: data.displaynaam });
-                setOrganizationName(data.displaynaam);
-            } else {
-                console.error("createOrganization function is undefined");
-            }
-            
-            if (pathname === 'profiel/wijzigen') {
-                router.back();
-            } else {
-                router.push('../dashboard');
+
+            console.log("function is being called");
+            try {
+                await maakBedrijf({
+                    clerkId: user.id,
+                    naam: data.naam,
+                    profielfoto: data.profielfoto,
+                    kvknr: data.kvknr,
+                    btwnr: data.btwnr,
+                    postcode: data.postcode,
+                    huisnummer: data.huisnummer,
+                    emailadres: data.emailadres,
+                    telefoonnummer: data.telefoonnummer,
+                    iban: data.iban,
+                    path: data.path,
+                });
+                console.log("db process finished, creating clerk organization..");
+                if (createOrganization) {
+                    await createOrganization({ name: data.displaynaam });
+                    setOrganizationName(data.displaynaam);
+                } else {
+                    console.error("createOrganization function is undefined");
+                }
+                console.log("organization created");
+                if (pathname === 'profiel/wijzigen') {
+                    router.back();
+                } else {
+                    router.push('../dashboard');
+                }
+            } catch (error) {
+                console.error('Error processing form:', error);
             }
         }
+        console.log("process is done");
     };
 
     const [previousStep, setPreviousStep] = useState(0);
@@ -437,20 +445,17 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                         <label htmlFor="displaynaam" className="block text-sm font-medium leading-6 text-gray-900">
                                             Displaynaam
                                         </label>
-                                        <div className="mt-2">
-                                            <input
-                                                id="displaynaam"
-                                                {...register('displaynaam')}
-                                                type="text"
-                                                autoComplete="displaynaam"
-                                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                            />
-                                            {errors.displaynaam && (
-                                                <p className="text-red-500 text-sm">{errors.displaynaam.message}</p>
-                                            )}
-                                        </div>
+                                        <input
+                                            id="displaynaam"
+                                            {...register('displaynaam')}
+                                            type="text"
+                                            autoComplete="displaynaam"
+                                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                        />
+                                        {errors.displaynaam && (
+                                            <p className="text-red-500 text-sm">{errors.displaynaam.message}</p>
+                                        )}
                                     </div>
-
 
                                     <div className="col-span-full">
                                         <label htmlFor="profielfoto" className="block text-sm font-medium leading-6 text-gray-900">

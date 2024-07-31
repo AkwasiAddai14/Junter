@@ -2,9 +2,10 @@
 
 import { connectToDB} from "../mongoose";
 import Bedrijf from "../models/bedrijven.model";
+import mongoose from "mongoose";
 
 type bedrijf = {
-    clerkId:string,
+    clerkId: string,
     profielfoto: string,
     naam: string,
     kvknr: string,
@@ -15,23 +16,37 @@ type bedrijf = {
     telefoonnummer: string,
     iban: string,
     path: string
-}
+};
 
-export async function maakBedrijf(organization: bedrijf){
+export async function maakBedrijf(organization: bedrijf) {
     try {
-        connectToDB();
-        // Create a new bedrijf document
+        console.log("Function is being called");
+        console.log("Connecting to db...");
+        await connectToDB();
+        
+        // Check if the connection is successful
+        if (mongoose.connection.readyState === 1) {
+            console.log("Connected to db");
+        } else {
+            console.log("DB connection attempt failed");
+            throw new Error("DB connection attempt failed");
+        }
+        
+        console.log("Creating a new bedrijf document...");
         const newBedrijf = new Bedrijf(organization);
         
         // Save the document to the database
         await newBedrijf.save();
-        
+        console.log("Document saved successfully:", newBedrijf);
+
         return newBedrijf;
     } catch (error) {
         console.error('Error creating bedrijf:', error);
         throw new Error('Error creating bedrijf');
     }
 }
+
+
 
 export async function updateBedrijf( organization: bedrijf)
 {
