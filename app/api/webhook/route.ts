@@ -184,76 +184,93 @@ export async function POST(req: Request) {
   }
   
   interface Freelancer extends UserJSON {
-    id:string | "",
-    profielfoto: string | "",
-    voornaam: string | "",
-    achternaam: string,
-    tussenvoegsel: string,
-    geboortedatum: string,
-    kvknr: string | "",
-    btwid: string | "",
-    postcode: string | "",
-    huisnummer: string | "",
-    emailadres: string | "",
-    telefoonnummer: string | "",
-    iban: string | "",
-    korregeling: boolean,
-    werkervaring: string | "",
-    vaardigheden: string | "",
-    opleidingen: string | "",
-    path: string | "",
+    id: string;
+    profielfoto: string;
+    voornaam: string;
+    achternaam: string;
+    tussenvoegsel: string;
+    geboortedatum: string;
+    kvknr: string;
+    btwid: string;
+    postcode: string;
+    huisnummer: string;
+    stad: string;
+    straat: string;
+    emailadres: string;
+    telefoonnummer: string;
+    iban: string;
+    korregeling: boolean;
+    werkervaring: string;
+    vaardigheden: string;
+    opleidingen: string;
+    bio: string,
+    kvk: string,
+    path: string;
   }
 
-  if(eventType === 'user.created'){
-    const { id, voornaam, tussenvoegsel, achternaam, geboortedatum, emailadres, telefoonnummer, postcode, huisnummer, btwid, iban, profielfoto, korregeling, werkervaring, vaardigheden, opleidingen, path} = evt.data as Freelancer
+  if (eventType === 'user.created') {
+    const { id, voornaam, tussenvoegsel, achternaam, geboortedatum, emailadres, telefoonnummer, postcode, huisnummer, stad, straat, btwid, iban, profielfoto, korregeling, werkervaring, vaardigheden, opleidingen, bio, kvk, path } = evt.data as Freelancer;
+
     const user = {
-        clerkId: id,
-        voornaam: voornaam,
-        tussenvoegsel: tussenvoegsel,
-        achternaam: achternaam,
-        geboortedatum: geboortedatum,
-        emailadres: emailadres,
-        telefoonnummer: telefoonnummer,
-        postcode: postcode,
-        huisnummer: huisnummer,
-        btwid: btwid,
-        iban: iban,
-        profielfoto: profielfoto,
-        korregeling: korregeling,
-        werkervaring: werkervaring,
-        vaardigheden: vaardigheden,
-        opleidingen: opleidingen,
-        path: path
-    }
-    const newUser = await maakFreelancer(user);
-    if(newUser){
+      clerkId: id,
+      voornaam,
+      tussenvoegsel,
+      achternaam,
+      geboortedatum,
+      emailadres,
+      telefoonnummer,
+      postcode,
+      huisnummer,
+      btwid,
+      iban,
+      profielfoto,
+      korregeling,
+      werkervaring,
+      vaardigheden,
+      opleidingen,
+      path,
+      straat,
+      stad,
+      bio,
+      kvk,
+    };
+
+    try {
+      const newUser = await maakFreelancer(user);
+      if (newUser) {
         await clerkClient.users.updateUserMetadata(id, {
-            publicMetadata: {
-                userId: user.clerkId,
-                voornaam,
-                tussenvoegsel,
-                achternaam,
-                geboortedatum,
-                emailadres,
-                telefoonnummer,
-                postcode,
-                huisnummer,
-                btwid,
-                iban,
-                profielfoto,
-                korregeling,
-                werkervaring,
-                vaardigheden,
-                opleidingen,
-                path
-            }
-        })
+          publicMetadata: {
+            userId: user.clerkId,
+            voornaam,
+            tussenvoegsel,
+            achternaam,
+            geboortedatum,
+            emailadres,
+            telefoonnummer,
+            postcode,
+            huisnummer,
+            straat: user.straat,
+            stad: user.stad,
+            btwid,
+            iban,
+            profielfoto,
+            korregeling,
+            werkervaring,
+            vaardigheden,
+            opleidingen,
+            path,
+          },
+        });
+      }
+      return NextResponse.json({ message: 'OK', user: newUser });
+    } catch (error) {
+      return NextResponse.json({ message: 'Error creating user', error }, { status: 500 });
     }
-    return NextResponse.json({message: "OK", user: newUser})
   }
+
 
   if(eventType === 'user.updated'){
-    const { id, voornaam, tussenvoegsel, achternaam, geboortedatum, emailadres, telefoonnummer, postcode, huisnummer, btwid, iban, profielfoto, korregeling, werkervaring, vaardigheden, opleidingen, path} = evt.data as Freelancer
+    const { id, voornaam, tussenvoegsel, achternaam, geboortedatum, emailadres, telefoonnummer, postcode, huisnummer, stad, straat, btwid, iban, profielfoto, korregeling, werkervaring, vaardigheden, opleidingen, kvk, bio, path} = evt.data as Freelancer
     const user = {
         clerkId: id,
         voornaam: voornaam,
@@ -264,6 +281,8 @@ export async function POST(req: Request) {
         telefoonnummer: telefoonnummer,
         postcode: postcode,
         huisnummer: huisnummer,
+        stad: stad,
+        straat: straat,
         btwid: btwid,
         iban: iban,
         profielfoto: profielfoto,
@@ -271,6 +290,8 @@ export async function POST(req: Request) {
         werkervaring: werkervaring,
         vaardigheden: vaardigheden,
         opleidingen: opleidingen,
+        kvk: kvk,
+        bio: bio,
         path: path
     }
     const newUser = await updateFreelancer(user);
@@ -286,6 +307,8 @@ export async function POST(req: Request) {
                 telefoonnummer,
                 postcode,
                 huisnummer,
+                stad,
+                straat,
                 btwid,
                 iban,
                 profielfoto,
@@ -293,6 +316,8 @@ export async function POST(req: Request) {
                 werkervaring,
                 vaardigheden,
                 opleidingen,
+                kvk,
+                bio,
                 path
             }
         })
