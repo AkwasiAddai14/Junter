@@ -30,6 +30,7 @@ import UitlogModal from "./UitlogModal"
 import ProfielModal from "./ProfielModal"
 import logo from '@/app/assets/images/178884748_padded_logo.png';
 import Image from 'next/image'; 
+import axios from "axios"
 
 
 
@@ -81,62 +82,56 @@ export default function Example() {
 
   useEffect(() => {
     const fetchShifts = async () => {
-      try {
-        const fetchedShift = await haalShifts();
-        setShift(fetchedShift);
-      } catch (error) {
-        console.error('Error fetching shifts:', error);
-      }
+        try {
+            const response = await axios.get('/api/shifts');
+            setShift(response.data);
+        } catch (error) {
+            console.error('Error fetching shifts:', error);
+        }
     };
+
     fetchShifts();
-  }, []);
+}, []);
 
-  useEffect(() => {
-    const fetchFlexpools = async () => {
-      try {
-        if (user?.id) {
-          const fetchedFlexpools = await haalFlexpool(user.id);
-          setFlexpool(fetchedFlexpools);
-        }
-      } catch (error) {
-        console.error('Error fetching flexpools:', error);
-      }
-    };
-
-    if (user) {
-      fetchFlexpools();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    const fetchCheckout = async () => {
-      try {
-        if (user?.id) {
-          const fetchedCheckout = await haalCheckouts(user.id);
-          setCheckout(fetchedCheckout);
-        }
-      } catch (error) {
-        console.error('Error fetching checkouts:', error);
-      }
-    };
-    fetchCheckout();
-  }, [user]);
-
-  useEffect(() => {
+useEffect(() => {
     const fetchFactuur = async () => {
-      try {
-        if (checkout.length > 0) {
-          const fetchedFactuur = await haalFactuur(checkout[0].id);
-          setFactuur(fetchedFactuur);
+        try {
+            const response = await axios.get('/api/factuur');
+            setFactuur(response.data);
+        } catch (error) {
+            console.error('Error fetching factuur:', error);
         }
-      } catch (error) {
-        console.error('Error fetching factuur:', error);
-      }
     };
-    if (checkout.length > 0) {
-      fetchFactuur();
-    }
-  }, [checkout]);
+
+    fetchFactuur();
+}, []);
+
+useEffect(() => {
+    const fetchCheckout = async () => {
+        try {
+            const response = await axios.get('/api/checkouts');
+            setCheckout(response.data);
+        } catch (error) {
+            console.error('Error fetching checkouts:', error);
+        }
+    };
+
+    fetchCheckout();
+}, []);
+
+useEffect(() => {
+    const fetchFlexpool = async () => {
+        try {
+            const response = await axios.get('/api/flexpool');
+            setFlexpool(response.data);
+        } catch (error) {
+            console.error('Error fetching flexpool:', error);
+        }
+    };
+
+    fetchFlexpool();
+}, []);
+
 
   useEffect(() => {
     applyFilters();
