@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect } from 'react';
 import { easeInOut, motion } from 'framer-motion';
@@ -22,7 +22,7 @@ const steps = [
         fields: ['voornaam', 'tussenvoegsel', 'achternaam', 'kvk']
     },
     {
-        id: ' 2',
+        id: '2',
         name: 'Profiel',
         fields: ['displaynaam', 'profielfoto', 'bio']
     },
