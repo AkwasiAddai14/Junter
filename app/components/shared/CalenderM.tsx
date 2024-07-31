@@ -8,17 +8,12 @@ import {
   EllipsisHorizontalIcon,
 } from '@heroicons/react/20/solid'
 import { Menu, Transition } from '@headlessui/react'
-import { User, currentUser } from '@clerk/nextjs/server'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import React from 'react'
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameDay, isSameMonth, parse } from 'date-fns'
 
 function classNames(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(' ')
-}
-
-interface CalenderMProps {
-  user: User | null
 }
 
 const CalenderM = () => {
@@ -138,21 +133,21 @@ const CalenderM = () => {
                 type="button"
                 className={classNames(
                   isSameMonth(day, currentMonth) ? 'bg-white' : 'bg-gray-50',
-                  (isSameDay(day, selectedDate) || isSameDay(day, new Date())) && 'font-semibold',
-                  isSameDay(day, selectedDate) && 'text-white',
-                  !isSameDay(day, selectedDate) && isSameDay(day, new Date()) && 'text-sky-600',
-                  !isSameDay(day, selectedDate) && isSameMonth(day, currentMonth) && !isSameDay(day, new Date()) && 'text-gray-900',
-                  !isSameDay(day, selectedDate) && !isSameMonth(day, currentMonth) && !isSameDay(day, new Date()) && 'text-gray-500',
+                  (isSameDay(day, selectedDate ?? new Date()) || isSameDay(day, new Date())) && 'font-semibold',
+                  isSameDay(day, selectedDate ?? new Date()) && 'text-white',
+                  !isSameDay(day, selectedDate ?? new Date()) && isSameDay(day, new Date()) && 'text-sky-600',
+                  !isSameDay(day, selectedDate ?? new Date()) && isSameMonth(day, currentMonth) && !isSameDay(day, new Date()) && 'text-gray-900',
+                  !isSameDay(day, selectedDate ?? new Date()) && !isSameMonth(day, currentMonth) && !isSameDay(day, new Date()) && 'text-gray-500',
                   'flex h-36 flex-col px-3 py-2 hover:bg-gray-100 focus:z-10'
                 )}
-                /* onClick={() => handleDateClick(day)} */
+                onClick={() => handleDateClick(day)}
               >
                 <time
                   dateTime={format(day, 'yyyy-MM-dd')}
                   className={classNames(
-                    isSameDay(day, selectedDate) && 'flex h-6 w-6 items-center justify-center rounded-full',
-                    isSameDay(day, selectedDate) && isSameDay(day, new Date()) && 'bg-sky-600',
-                    isSameDay(day, selectedDate) && !isSameDay(day, new Date()) && 'bg-gray-900',
+                    isSameDay(day, selectedDate ?? new Date()) && 'flex h-6 w-6 items-center justify-center rounded-full',
+                    isSameDay(day, selectedDate ?? new Date()) && isSameDay(day, new Date()) && 'bg-sky-600',
+                    isSameDay(day, selectedDate ?? new Date()) && !isSameDay(day, new Date()) && 'bg-gray-900',
                     'ml-auto'
                   )}
                 >
@@ -170,4 +165,3 @@ const CalenderM = () => {
 }
 
 export default CalenderM
-

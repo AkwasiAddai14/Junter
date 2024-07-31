@@ -16,6 +16,7 @@ const Pagination = ({ page, totalPages, urlParamName }: PaginationProps) => {
   const searchParams = useSearchParams()
 
   const onClick = (btnType: string) => {
+    if (!searchParams) return;
     const pageValue = btnType === 'next' 
       ? Number(page) + 1 
       : Number(page) - 1

@@ -1,17 +1,17 @@
-"use client"
+/* 'use client'
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker, DayPickerProps } from "react-day-picker"
-
+import { DayPicker, DateRange } from "react-day-picker"
 import { cn } from "@/app/lib/utils"
+import { nl } from "date-fns/locale"
 import { buttonVariants } from "@/app/components/ui/button"
 
 export type CalendarProps = Omit<React.ComponentProps<typeof DayPicker>, 'selected' | 'onDayClick'> & {
   onDateChange?: (date: Date | undefined) => void;
   onDateRangeChange?: (from: Date | undefined, to: Date | undefined) => void;
   selectedDate?: Date | undefined;
-  selectedRange?: { from: Date | undefined, to: Date | undefined } | undefined;
+  selectedRange?: DateRange | undefined;
 }
 
 function Calendar({
@@ -24,39 +24,23 @@ function Calendar({
   selectedRange,
   ...props
 }: CalendarProps) {
-  const [range, setRange] = React.useState<{ from: Date | undefined; to: Date | undefined }>({
-    from: selectedRange?.from,
-    to: selectedRange?.to,
-  });
+  const [range, setRange] = React.useState<DateRange | undefined>(selectedRange);
 
-  const handleDayClick = (day: Date, modifiers: { selected: boolean; disabled: boolean }) => {
-    if (modifiers.disabled) return;
-
-    let newRange: { from: Date | undefined; to: Date | undefined };
-
-    if (range.from && range.to) {
-      newRange = { from: day, to: undefined };
-    } else if (range.from && day < range.from) {
-      newRange = { from: day, to: range.from };
-    } else if (range.to && day > range.to) {
-      newRange = { from: range.from, to: day };
-    } else {
-      newRange = { from: range.from || day, to: undefined };
+  const handleDayClick = (range: DateRange | undefined) => {
+    setRange(range);
+    if (range?.from && range?.to) {
+      onDateRangeChange?.(range.from, range.to);
+    } else if (range?.from) {
+      onDateChange?.(range.from);
     }
-
-    setRange(newRange);
-
-    if (newRange.from && !newRange.to) {
-      onDateChange?.(newRange.from);
-    } else if (newRange.from && newRange.to) {
-      onDateRangeChange?.(newRange.from, newRange.to);
-    }
-  }
+  };
 
   return (
-     <DayPicker
-      selected={selectedRange ? { from: selectedRange.from, to: selectedRange.to } : undefined}
-      onDayClick={() => {handleDayClick}}  
+    <DayPicker
+      mode="range"
+      locale={nl}
+      selected={range}
+      onSelect={handleDayClick}
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
@@ -98,11 +82,10 @@ function Calendar({
         IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
       }}
       {...props}
-    /> 
+    />
   )
 }
 
 Calendar.displayName = "Calendar"
 
-export { Calendar }
-
+export { Calendar } */

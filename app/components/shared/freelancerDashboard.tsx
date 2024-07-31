@@ -1,15 +1,15 @@
-'use client'
+"use client"
 
 import * as React from "react"
 import ShiftCard from '../cards/ShiftCard'
 import { Slider } from "@/app/components/ui/slider"  
-import { Calendar } from '@/app/components/ui/calendar'
+/* import { Calendar } from '@/app/components/ui/calendar' */
 import { Button } from '@/app/components/ui/button'
 import { ScrollArea } from "@/app/components/ui/scroll-area"
 import { useUser } from "@clerk/nextjs"
 import { haalShifts } from "@/app/lib/actions/shiftArray.actions"
 import { useEffect, useState } from "react"
-/* import {  haalFactuur } from "@/app/lib/actions/factuur.actions" */
+import {  haalFactuur } from "@/app/lib/actions/factuur.actions"
 import { haalFlexpool } from "@/app/lib/actions/flexpool.actions"
 import { haalCheckouts } from "@/app/lib/actions/checkout.actions"
 import { Dialog, Menu, MenuButton, MenuItems, } from '@headlessui/react'
@@ -30,6 +30,7 @@ import UitlogModal from "./UitlogModal"
 import ProfielModal from "./ProfielModal"
 import logo from '@/app/assets/images/178884748_padded_logo.png';
 import Image from 'next/image'; 
+
 
 
 const navigation = [
@@ -130,7 +131,7 @@ export default function Example() {
     fetchCheckout();
   }, []);
 
-/*   useEffect(() => {
+  useEffect(() => {
     const fetchFactuur = async () => {
         try {
             if (checkout && checkout.length > 0) {
@@ -144,7 +145,7 @@ export default function Example() {
     };
 
     fetchFactuur();
-}, [checkout]); // Voeg `checkout` toe aan de dependency array */
+}, [checkout]); // Voeg `checkout` toe aan de dependency array
 
 useEffect(() => {
   applyFilters();
@@ -383,11 +384,11 @@ const applyFilters = () => {
           {/* Secondary column (hidden on smaller screens) */}
           <div>
          <div>
-          <Calendar
+          {/* <Calendar
             className=""
-            /* selected={dateRange} */
-            /* onSelect={(range: React.SetStateAction<{ from: Date | undefined; to: Date | undefined }>) => setDateRange(range)}  */
-          />
+            selected={dateRange} 
+            onSelect={(range: React.SetStateAction<{ from: Date | undefined; to: Date | undefined }>) => setDateRange(range)}  
+          /> */}
          </div>
          <div>
           <p className="mt-20">

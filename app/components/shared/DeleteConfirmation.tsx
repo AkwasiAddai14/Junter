@@ -33,7 +33,7 @@ export const DeleteConfirmation = ({ shiftId }: { shiftId: string }) => {
   }, [shiftId]);
 
   if (!shift) {
-    console.log("Failed to fetch shift") // or a loading indicator
+    return <p>Loading...</p>; // or a loading indicator
   }
 
   const shiftArrayId = shift.shiftArrayId;
@@ -55,14 +55,18 @@ export const DeleteConfirmation = ({ shiftId }: { shiftId: string }) => {
         <AlertDialogFooter>
           <AlertDialogCancel>Annuleer</AlertDialogCancel>
 
-          <AlertDialogAction
-            onClick={() =>
-              startTransition(async () => {
-                await verwijderShiftArray({ shiftArrayId, forceDelete: true, path: pathname })
-              })
-            }>
-            {isPending ? 'Verwijderen...' : 'verwijderen'}
-          </AlertDialogAction>
+          {shiftArrayId ? (
+            <AlertDialogAction
+              onClick={() =>
+                startTransition(async () => {
+                  await verwijderShiftArray({ shiftArrayId, forceDelete: true, path: pathname || "/dashboard" })
+                })
+              }>
+              {isPending ? 'Verwijderen...' : 'verwijderen'}
+            </AlertDialogAction>
+          ) : (
+            <p>Invalid Shift ID</p>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

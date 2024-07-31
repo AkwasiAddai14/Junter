@@ -8,7 +8,7 @@ import { z } from "zod"
 
 import { cn } from "@/app/lib/utils"
 import { Button } from "@/app/components/ui/button"
-import { Calendar } from "@/app/components/ui/calendar"
+/* import { Calendar } from "@/app/components/ui/calendar" */
 import {
   Form,
   FormControl,
@@ -81,7 +81,7 @@ export const DatePickerForm: React.FC<DatePickerFormProps> = ({ selectedDate, on
                   </FormControl>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                   <Calendar
+                 {/*   <Calendar
                      mode="single"
                     selectedDate={field.value}
                     onDateChange={field.onChange}
@@ -89,7 +89,7 @@ export const DatePickerForm: React.FC<DatePickerFormProps> = ({ selectedDate, on
                       date > new Date() || date < new Date("1900-01-01")
                     }
                     initialFocus 
-                  /> 
+                  />  */}
                 </PopoverContent>
               </Popover>
               <FormDescription className='flex flex-col'>
