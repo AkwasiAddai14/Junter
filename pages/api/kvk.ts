@@ -11,7 +11,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   
   try {
     const apiKey = process.env.NEXT_PUBLIC_KVK_API_KEY;
-    const url = `https://api.kvk.nl/api/v1/basisprofielen?kvkNummer=${kvkNummer}`;
+    const url = `https://api.kvk.nl/api/v2/zoeken?kvkNummer=${kvkNummer}`;
     
     // Logging the request being made
     console.log(`Requesting KVK data for number: ${kvkNummer}`);
@@ -25,7 +25,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (response.data && response.data.items && response.data.items.length > 0) {
       const companyData = response.data.items[0];
       const address = companyData.adres;
-  
       const companyName = companyData.handelsnaam;
       const streetName = address.straatnaam;
       const houseNumber = address.huisnummer;

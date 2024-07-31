@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, FormEventHandler } from 'react';
+import { useState, useEffect } from 'react';
 import { easeInOut, motion } from 'framer-motion';
 import axios from 'axios';
 import { z } from 'zod';
@@ -11,7 +11,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useOrganizationList } from "@clerk/nextjs";
 import { maakBedrijf } from '@/app/lib/actions/bedrijven.actions';
 import { useUser } from '@clerk/nextjs';
-import { PhotoIcon, UserCircleIcon, CheckIcon } from '@heroicons/react/24/solid';
+import { CheckIcon, UserCircleIcon } from 'lucide-react';
 
 type Inputs = z.infer<typeof BedrijfValidation>;
 
@@ -59,49 +59,37 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
     const haalBedrijfsData = async (kvkNummer: string) => {
         try {
             const response = await axios.get(`/api/kvk?kvkNummer=${kvkNummer}`);
-      
-          if (response.data && response.data.items && response.data.items.length > 0) {
-            const companyData = response.data.items[0];
-            const address = companyData.adres;
-      
-            const companyName = companyData.handelsnaam;
-            const streetName = address.straatnaam;
-            const houseNumber = address.huisnummer;
-            const houseNumberAddition = address.huisnummerToevoeging || '';
-            const houseLetter = address.huisletter || '';
-            const postalCode = address.postcode;
-            const place = address.plaats;
-      
-            return {
-              companyName,
-              streetName,
-              houseNumber,
-              houseNumberAddition,
-              houseLetter,
-              postalCode,
-              place
-            };
-          } else {
-            throw new Error('No company data found for the provided KVK number.');
-          }
+            if (response.data && response.data.items && response.data.items.length > 0) {
+                const companyData = response.data.items[0];
+                const address = companyData.adres;
+
+                const companyName = companyData.handelsnaam;
+                const streetName = address.straatnaam;
+                const houseNumber = address.huisnummer;
+                const houseNumberAddition = address.huisnummerToevoeging || '';
+                const houseLetter = address.huisletter || '';
+                const postalCode = address.postcode;
+                const place = address.plaats;
+
+                return {
+                    companyName,
+                    streetName,
+                    houseNumber,
+                    houseNumberAddition,
+                    houseLetter,
+                    postalCode,
+                    place
+                };
+            } else {
+                throw new Error('No company data found for the provided KVK number.');
+            }
         } catch (error) {
-          console.error('Error fetching company details:', error);
-          throw error;
+            console.error('Error fetching company details:', error);
+            throw error;
         }
-      };
-    
+    };
 
-    
-
-    const {
-        register,
-        handleSubmit,
-        watch,
-        reset,
-        trigger,
-        setValue,
-        formState: { errors },
-    } = useForm<Inputs>({
+    const { register, handleSubmit, watch, reset, trigger, setValue, formState: { errors } } = useForm<Inputs>({
         resolver: zodResolver(BedrijfValidation),
         defaultValues: {
             bedrijvenID: bedrijven?.bedrijvenID || '',
@@ -120,43 +108,25 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
 
     useEffect(() => {
         const fetchDetails = async () => {
-          if (kvkNummer.length === 8) {
-            try {
-              const details = await haalBedrijfsData(kvkNummer);
-              console.log('Company Details:', details);
-              setValue('displaynaam', details.companyName);
-              setValue('straat', details.streetName);
-              setValue('huisnummer', details.houseNumber + details.houseNumberAddition + details.houseLetter);
-              setValue('postcode', details.postalCode);
-              setValue('stad', details.place);
-            } catch (error: any) {
-              console.error('Error:', error.message);
+            if (kvkNummer.length === 8) {
+                try {
+                    const details = await haalBedrijfsData(kvkNummer);
+                    console.log('Company Details:', details);
+                    setValue('displaynaam', details.companyName);
+                    setValue('straat', details.streetName);
+                    setValue('huisnummer', details.houseNumber + details.houseNumberAddition + details.houseLetter);
+                    setValue('postcode', details.postalCode);
+                    setValue('stad', details.place);
+                } catch (error: any) {
+                    console.error('Error:', error.message);
+                }
             }
-          }
         };
-    
+
         fetchDetails();
-      }, [kvkNummer, setValue]);
-
-    const handleSubmitOrganization: FormEventHandler<HTMLFormElement> = async (e) => {
-        e.preventDefault();
-        if (createOrganization) {
-            await createOrganization({ name: organizationName });
-            setOrganizationName("");
-        router.push('../dashboard') 
-        }
-        else {
-            console.error('createOrganization is undefined');
-        }
-    };
-
-    const handleButtonClick = async () => {
-        await handleSubmitOrganization(new Event('submit') as unknown as React.FormEvent<HTMLFormElement>);
-        router.push('../dashboard');
-    };
+    }, [kvkNummer, setValue]);
 
     const processForm: SubmitHandler<Inputs> = async (data) => {
-       
         if (isLoaded && user) {
             await maakBedrijf({
                 clerkId: user.id,
@@ -171,11 +141,17 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                 iban: data.iban,
                 path: data.path,
             });
+            if (createOrganization) {
+                await createOrganization({ name: data.displaynaam });
+                setOrganizationName(data.displaynaam);
+            } else {
+                console.error("createOrganization function is undefined");
+            }
             
             if (pathname === 'profiel/wijzigen') {
                 router.back();
             } else {
-                router.push('/dashboard');
+                router.push('../dashboard');
             }
         }
     };
@@ -475,12 +451,6 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                         </div>
                                     </div>
 
-                                    <input
-                                        type="text"
-                                        name="organizationName"
-                                        value={organizationName}
-                                        onChange={(e) => setOrganizationName(e.currentTarget.value)}
-                                    />
 
                                     <div className="col-span-full">
                                         <label htmlFor="profielfoto" className="block text-sm font-medium leading-6 text-gray-900">
@@ -566,7 +536,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                     <button
                         type="submit"
                         className="rounded-md bg-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                        onClick={handleButtonClick}
+                        onClick={() => router.push("../dashboard")}
                     >
                         Voltooien
                     </button>
