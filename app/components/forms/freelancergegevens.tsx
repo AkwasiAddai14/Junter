@@ -24,7 +24,6 @@ import {
 import { Input } from "@/app/components/ui/input";
 import Image from 'next/image';
 
-
 const steps = [
   { id: 1, name: 'Persoonlijke gegevens' },
   { id: 2, name: 'Zakelijke gegevens' },
@@ -62,10 +61,9 @@ const Page: React.FC<Props> = ({ freelancer }) => {
   const [files, setFiles] = useState<File[]>([]);
   const router = useRouter();
 
-
   const fetchAddressData = async (postcode: string, huisnummer: string) => {
     try {
-      const apiKey = process.env.POSTCODE_API_KEY; // Replace 'YOUR_API_KEY' with your actual API key
+      const apiKey = process.env.POSTCODE_API_KEY;
       const url = `https://api.postcodeapi.nu/v3/lookup/${postcode}/${huisnummer}`;
   
       const response = await axios.get(url, {
@@ -74,14 +72,11 @@ const Page: React.FC<Props> = ({ freelancer }) => {
         }
       });
   
-      // Extract street and city from the response
       const { street, city } = response.data;
   
-      // Update state with the obtained street and city
       setStreet(street);
       setCity(city);
   
-      // Set form values directly
       setValue('straatnaam', street);
       setValue('stad', city);
     } catch (error) {
@@ -89,60 +84,20 @@ const Page: React.FC<Props> = ({ freelancer }) => {
     }
   };
 
-  // Stappen definitie
-
-  // Functies voor volgende en vorige stap
   const nextStep = () => {
-    setPreviousStep(currentStep); // Huidige stap wordt vorige stap
+    setPreviousStep(currentStep);
     setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
   };
 
   const prevStep = () => {
-    setPreviousStep(currentStep); // Huidige stap wordt vorige stap
+    setPreviousStep(currentStep);
     setCurrentStep((prev) => (prev > 0 ? prev - 1 : prev));
   };
 
-  // Delta berekening
   const delta = currentStep - previousStep;
-
-  /* const handleImage = (
-    e: ChangeEvent<HTMLInputElement>,
-    fieldChange: (value: string) => void
-  ) => {
-    e.preventDefault();
-
-    const fileReader = new FileReader();
-
-    if(e.target.files && e.target.files.length > 0){
-      const file = e.target.files[0];
-      setFiles(Array.from(e.target.files));
-
-      if(!file.type.includes("image")) return;
-
-      fileReader.onload = async (event) => {
-        const imageDataUrl = event.target?.result?.toString() || "";
-        fieldChange(imageDataUrl);
-      };
-
-      fileReader.readAsDataURL(file)
-
-    }
-
-  } */
-
 
   const OnSubmit = async (data: { postcode: string; huisnummer: string }, values: z.infer<typeof FreelancerValidation>) => {
     await fetchAddressData(data.postcode, data.huisnummer);
-    /* const blob = values.profielfoto;
-
-    const hasImageChanged = isBase64Image(blob);
-    if (hasImageChanged){
-      const imgRes = await startUpload(files);
-
-      if(imgRes && imgRes[0].fileUrl){
-        values.profielfoto = imgRes[0].fileUrl
-      }
-    } */
   };
 
   const {
@@ -184,13 +139,6 @@ const Page: React.FC<Props> = ({ freelancer }) => {
 
   const selectedDate = watch('geboortedatum');
 
-  /* const form = useForm<z.infer<typeof FreelancerValidation>>({
-    resolver: zodResolver(FreelancerValidation),
-    defaultValues: {
-      profielfoto: freelancer?.profielfoto || "",
-    },
-  }); */
-
   const processForm: SubmitHandler<Inputs> = data => {
     maakFreelancer({
       clerkId: data.freelancerID,
@@ -214,16 +162,14 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       opleidingen: '',
       bio: '',
       kvk: ''
-    })
+    });
 
     if (pathname === 'profiel/wijzigen') {
       router.back();
-  } else {
+    } else {
       router.push('/dashboard');
-  }
-
+    }
   };
-
 
   return (
     <main>
@@ -271,7 +217,6 @@ const Page: React.FC<Props> = ({ freelancer }) => {
           </ol>
         </nav>
 
-
         <form onSubmit={handleSubmit(processForm)} className="relative my-8  items-center rounded-lg bg-white shadow-lg ring-1 ring-black/5">
         {currentStep === 0  && (
            <>
@@ -297,7 +242,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                         {...register('voornaam', { required: true })}
                         id="voornaam"
                         className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
-                      {errors.voornaam && <p className="mt-2 text-sm text-red-600">{errors.voornaam.message}Error</p>}
+                      {errors.voornaam && <p className="mt-2 text-sm text-red-600">{errors.voornaam.message}</p>}
                     </div>
                   </div>
                   <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
@@ -342,8 +287,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
               </div>
               </motion.div>
               </>
-        )
-       }
+        )}
         {currentStep === 1 && (
           <motion.div
             initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
@@ -548,7 +492,6 @@ const Page: React.FC<Props> = ({ freelancer }) => {
             <button
               type="submit"
               className="inline-flex justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
-              onClick={() => router.push('../dashboard')}
             >
               Voltooien
             </button>
