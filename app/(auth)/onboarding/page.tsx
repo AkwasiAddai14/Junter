@@ -42,6 +42,7 @@ function Page() {
                 freelancerID: undefined,
                 profielfoto: "",
                 voornaam: "",
+                tussenvoegsel: "",
                 achternaam: "",
                 geboortedatum: "",
                 emailadres: "",
