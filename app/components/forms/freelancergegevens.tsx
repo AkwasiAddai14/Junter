@@ -22,9 +22,9 @@ import {
 import { Input } from "@/app/components/ui/input";
 
 const steps = [
-  { id: 1, name: 'Persoonlijke gegevens' },
-  { id: 2, name: 'Zakelijke gegevens' },
-  { id: 3, name: 'Profiel' },
+  { id: 1, name: 'Persoonlijke gegevens', fields: ['voornaam', 'tussenvoegsel', 'achternaam', 'geboortedatum'] },
+  { id: 2, name: 'Zakelijke gegevens', fields: ['btwid', 'iban', 'huisnummer', 'postcode', 'straatnaam', 'stad'] },
+  { id: 3, name: 'Profiel', fields: ['profielfoto', 'bio', 'cv'] },
   { id: 4, name: 'Compleet' }
 ];
 
@@ -79,9 +79,15 @@ const Page: React.FC<Props> = ({ freelancer }) => {
     }
   };
 
+  type FieldName = keyof Inputs;
+
   const nextStep = async () => {
     setPreviousStep(currentStep);
-    /* const output = await trigger(fields as FieldName[], shouldfocus: true) */
+    const fields = steps[currentStep].fields
+    const output = await trigger(fields as FieldName[], {shouldFocus: true});
+
+    if(!output) return;
+
     setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
     if(currentStep < steps.length -1) {
       if (currentStep === steps.length - 2){
