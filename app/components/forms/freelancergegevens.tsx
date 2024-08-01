@@ -1,17 +1,15 @@
 'use client';
 
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { motion } from 'framer-motion';
 import { DatePickerForm } from '../shared/DatePicker';
-import { SubmitHandler, useForm } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { FreelancerValidation } from '@/app/lib/validations/freelancer';
 import axios from 'axios';
 import { maakFreelancer } from '@/app/lib/actions/freelancer.actions';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useUploadThing } from "@/app/lib/uploadthing";
-import { isBase64Image } from '@/app/lib/utils';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Form,
@@ -22,7 +20,6 @@ import {
   FormMessage,
 } from "@/app/components/ui/form";
 import { Input } from "@/app/components/ui/input";
-import Image from 'next/image';
 
 const steps = [
   { id: 1, name: 'Persoonlijke gegevens' },
@@ -52,18 +49,16 @@ interface Props {
 }
 
 const Page: React.FC<Props> = ({ freelancer }) => {
-  const { startUpload } = useUploadThing("media");
   const pathname = usePathname();
   const [currentStep, setCurrentStep] = useState(0);
   const [previousStep, setPreviousStep] = useState(0);
   const [street, setStreet] = useState('');
   const [city, setCity] = useState('');
-  const [files, setFiles] = useState<File[]>([]);
   const router = useRouter();
 
   const fetchAddressData = async (postcode: string, huisnummer: string) => {
     try {
-      const apiKey = process.env.POSTCODE_API_KEY;
+      const apiKey = process.env.NEXT_PUBLIC_POSTCODE_API_KEY; // Use NEXT_PUBLIC_ prefix for public environment variables
       const url = `https://api.postcodeapi.nu/v3/lookup/${postcode}/${huisnummer}`;
   
       const response = await axios.get(url, {
@@ -95,10 +90,6 @@ const Page: React.FC<Props> = ({ freelancer }) => {
   };
 
   const delta = currentStep - previousStep;
-
-  const OnSubmit = async (data: { postcode: string; huisnummer: string }, values: z.infer<typeof FreelancerValidation>) => {
-    await fetchAddressData(data.postcode, data.huisnummer);
-  };
 
   const {
     register,
@@ -139,8 +130,8 @@ const Page: React.FC<Props> = ({ freelancer }) => {
 
   const selectedDate = watch('geboortedatum');
 
-  const processForm: SubmitHandler<Inputs> = data => {
-    maakFreelancer({
+  const processForm: SubmitHandler<Inputs> = async (data) => {
+    const Submithandling = await maakFreelancer({
       clerkId: data.freelancerID,
       voornaam: data.voornaam,
       tussenvoegsel: data.tussenvoegsel,
@@ -150,8 +141,8 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       telefoonnummer: data.telefoonnummer,
       postcode: data.postcode,
       huisnummer: data.huisnummer,
-      straat: street,
-      stad: city,
+      straat: data.straatnaam,
+      stad: data.stad,
       korregeling: data.korregeling,
       btwid: data.btwid,
       iban: data.iban,
@@ -164,10 +155,14 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       kvk: ''
     });
 
-    if (pathname === 'profiel/wijzigen') {
-      router.back();
+    if (Submithandling) {
+      if (pathname === 'profiel/wijzigen') {
+        router.back();
+      } else {
+        router.push('/dashboard');
+      }
     } else {
-      router.push('/dashboard');
+      console.error('Error during form submission');
     }
   };
 
@@ -216,6 +211,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
             ))}
           </ol>
         </nav>
+
 
         <form onSubmit={handleSubmit(processForm)} className="relative my-8  items-center rounded-lg bg-white shadow-lg ring-1 ring-black/5">
         {currentStep === 0  && (
@@ -267,7 +263,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                         {...register('achternaam', { required: true })}
                         id="achternaam"
                         className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
-                      {errors.achternaam && <p className="mt-2 text-sm text-red-600">{errors.achternaam.message}Error</p>}
+                      {errors.achternaam && <p className="mt-2 text-sm text-red-600">{errors.achternaam.message}</p>}
                     </div>
                   </div>
                   <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
@@ -279,7 +275,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                           selectedDate={selectedDate}
                           onDateChange={(date: any) => reset({ ...watch(), geboortedatum: date })}
                         />
-                      {errors.geboortedatum && <p className="mt-2 text-sm text-red-600">{errors.geboortedatum.message}Error</p>}
+                      {errors.geboortedatum && <p className="mt-2 text-sm text-red-600">{errors.geboortedatum.message}</p>}
                     </div>
                   </div>
                 </div>
@@ -287,7 +283,8 @@ const Page: React.FC<Props> = ({ freelancer }) => {
               </div>
               </motion.div>
               </>
-        )}
+        )
+       }
         {currentStep === 1 && (
           <motion.div
             initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
