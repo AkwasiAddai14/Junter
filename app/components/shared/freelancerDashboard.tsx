@@ -80,7 +80,7 @@ export default function Example() {
     }
   }, [isLoaded, user]);
 
-  useEffect(() => {
+/*   useEffect(() => {
     const fetchShifts = async () => {
         try {
             const response = await axios.get('/api/shifts');
@@ -148,7 +148,7 @@ useEffect(() => {
     });
 
     setFilteredShifts(filtered);
-  };
+  }; */
 
   return (
     <Fragment>
@@ -306,7 +306,7 @@ useEffect(() => {
 
           <main className="xl:pl-96">
             <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-6">{/* Main area */}
-            {position === 'Shifts' ?
+          {/*   {position === 'Shifts' ?
             shift.length > 0 ? (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
@@ -315,13 +315,13 @@ useEffect(() => {
                     ))}
                   </div>
                 </ScrollArea>
-              ) : (
+              ) : ( */}
                 <div>Geen shifts beschikbaar</div>
-                              )
+                            {/*   )
                              : null
                           }
-          
-              {position === 'Aanmeldingen' && (
+           */}
+            {/*   {position === 'Aanmeldingen' && (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
                     {shift.slice(0, 9).map((shiftItem, index) => (
@@ -329,8 +329,8 @@ useEffect(() => {
                     ))}
                   </div>
                 </ScrollArea>
-              )}
-              {position === 'Geaccepteerde shifts' && (
+              )} */}
+              {/* {position === 'Geaccepteerde shifts' && (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
                     {shift.slice(0, 9).map((shiftItem, index) => (
@@ -338,8 +338,8 @@ useEffect(() => {
                     ))}
                   </div>
                 </ScrollArea>
-              )}
-              {position === 'Checkouts' ?
+              )} */}
+              {/* {position === 'Checkouts' ?
               checkout.length > 0 ?  (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
@@ -348,13 +348,13 @@ useEffect(() => {
                     ))}
                   </div>
                 </ScrollArea>
-              ) : (
+              ) : ( */}
                 <div>Geen shifts beschikbaar</div>
-                              )
+                            {/*   )
                              : null
               }
-          
-              {position === 'Facturen' ?
+           */}
+             {/*  {position === 'Facturen' ?
               factuur.length > 0 ? (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
@@ -363,12 +363,12 @@ useEffect(() => {
                     ))}
                   </div>
                 </ScrollArea>
-              ) : (
+              ) : ( */}
                 <div>Geen shifts beschikbaar</div>
-                              )
+                              {/* )
                              : null
-              }
-              {position === 'Flexpool' ?
+              } */}
+              {/* {position === 'Flexpool' ?
               flexpool.length > 0 ? (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
@@ -377,11 +377,11 @@ useEffect(() => {
                     ))}
                   </div>
                 </ScrollArea>
-              ) : (
+              ) : ( */}
                 <div>Geen shifts beschikbaar</div>
-                              )
+                            {/*   )
                              : null
-              }
+              } */}
             </div>
           </main>
             </div>
@@ -415,14 +415,14 @@ useEffect(() => {
            defaultValue={[0, 100]}
            step={5}
            className="mt-5"
-           /* onChange={(value) => setAfstand(value)} */
+           /* onChange={(value) => setAfstand(value)} */ 
          />
          <div>
           <div className="justify-between">
-          <Button className="mt-20 bg-white text-black border-2 border-black mr-10" onClick={() => { setDateRange({ from: undefined, to: undefined }); setUurtarief([0, 100]); setAfstand([0, 100]); applyFilters(); /* setShift(shift) */}} >
+          <Button className="mt-20 bg-white text-black border-2 border-black mr-10" onClick={() => { setDateRange({ from: undefined, to: undefined }); setUurtarief([0, 100]); setAfstand([0, 100]); /* applyFilters(); */ /* setShift(shift) */}} >
             Reset
           </Button>
-          <Button className="mt-20 bg-sky-500" onClick={applyFilters} >
+          <Button className="mt-20 bg-sky-500" /* onClick={applyFilters} */ >
             Zoek
           </Button>
           </div>
