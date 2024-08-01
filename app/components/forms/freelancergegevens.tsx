@@ -411,7 +411,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
 
 
               <div className="mt-10 space-y-8  pb-12 sm:space-y-0 sm:divide-y sm:divide-gray-900/10 sm:border-t sm:pb-0">
-                <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                {/* <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
                   <label htmlFor="profielfoto" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
                     Profielfoto
                   </label>
@@ -425,7 +425,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                       className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none" />
                     {errors.profielfoto && <p className="mt-2 text-sm text-red-600">{errors.profielfoto.message}</p>}
                   </div>}
-                </div>
+                </div> */}
                 <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
                   <label htmlFor="bio" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
                     Bio
@@ -439,7 +439,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                     {errors.bio && <p className="mt-2 text-sm text-red-600">{errors.bio.message}</p>}
                   </div>
                 </div>
-                <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                {/* <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
                   <label htmlFor="cv" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
                     CV
                   </label>
@@ -451,7 +451,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                       className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none" />
                     {errors.cv && <p className="mt-2 text-sm text-red-600">{errors.cv.message}</p>}
                   </div>
-                </div>
+                </div> */}
               </div>
               </div>
             </div>
