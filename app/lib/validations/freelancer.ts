@@ -17,8 +17,8 @@ kvk: z.string(),
 huisnummer: z.string(),
 stad: z.string(),
 straatnaam: z.string(),
-profielfoto:  z.string(),
-cv:  z.instanceof(File),
+profielfoto:  z.string().url(),
+cv:  z.string().url(),
 bio: z.string(),
 path: z.string()
 })

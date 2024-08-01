@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useEffect, useState } from 'react';
 import { CheckIcon } from '@radix-ui/react-icons';
@@ -11,15 +11,6 @@ import axios from 'axios';
 import { maakFreelancer } from '@/app/lib/actions/freelancer.actions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { usePathname, useRouter } from 'next/navigation';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/app/components/ui/form";
-import { Input } from "@/app/components/ui/input";
 
 const steps = [
   { id: 1, name: 'Persoonlijke gegevens', fields: ['voornaam', 'tussenvoegsel', 'achternaam', 'geboortedatum'] },
