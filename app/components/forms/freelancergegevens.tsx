@@ -90,9 +90,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
 
     setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
     if(currentStep < steps.length -1) {
-      if (currentStep === steps.length - 2){
         await handleSubmit(processForm)()
-      } setCurrentStep(step => step + 1)
     } 
   };
 
@@ -486,7 +484,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
               Vorige
             </button>
           )}
-          {currentStep < steps.length - 1 && (
+          {currentStep < steps.length - 2 && (
             <button
               type="button"
               onClick={nextStep}
