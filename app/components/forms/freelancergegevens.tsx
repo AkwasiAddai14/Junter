@@ -79,9 +79,13 @@ const Page: React.FC<Props> = ({ freelancer }) => {
     }
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     setPreviousStep(currentStep);
+    /* const output = await trigger(fields as FieldName[], shouldfocus: true) */
     setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
+    if (currentStep === steps.length - 2){
+      await handleSubmit(processForm)()
+    } setCurrentStep(step => step + 1)
   };
 
   const prevStep = () => {
