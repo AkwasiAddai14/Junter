@@ -89,7 +89,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
     if(!output) return;
 
     setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
-    if(currentStep === steps.length ) {
+    if(currentStep === steps.length - 1 ) {
         await handleSubmit(processForm)()
     } 
   };
@@ -165,8 +165,13 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       bio: '',
       kvk: ''
     });
+
+
+
     console.log("process is done");
     router.push("../dashboard");
+
+
       if (pathname === '../profielModal') {
         router.back();
       } else {
