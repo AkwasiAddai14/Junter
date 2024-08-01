@@ -33,7 +33,7 @@ type Inputs = z.infer<typeof FreelancerValidation>;
 interface Props {
   freelancer: {
     freelancerID: any;
-    profielfoto: string;
+    profielfoto: any;
     voornaam: string;
     achternaam: string;
     geboortedatum: string;
@@ -109,7 +109,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
     resolver: zodResolver(FreelancerValidation),
     defaultValues: {
       freelancerID: freelancer?.freelancerID || "",
-      profielfoto: freelancer?.profielfoto || "",
+      profielfoto: freelancer?.profielfoto,
       voornaam: freelancer?.voornaam || "",
       achternaam: freelancer?.achternaam || "",
       geboortedatum: freelancer?.geboortedatum || "",
@@ -161,7 +161,8 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       bio: '',
       kvk: ''
     });
-    console.log("process is done")
+    console.log("process is done");
+    router.push("../dashboard");
       if (pathname === '../profielModal') {
         router.back();
       } else {
