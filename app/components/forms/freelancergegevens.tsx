@@ -489,7 +489,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
               Vorige
             </button>
           )}
-          {currentStep < steps.length - 2 && (
+          {currentStep < steps.length - 1 && (
             <button
               type="button"
               onClick={nextStep}
