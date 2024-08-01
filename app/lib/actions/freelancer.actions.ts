@@ -24,6 +24,7 @@ type freelancer = {
     bio: string,
     kvk:string,
     profielfoto: any,
+    cv: any,
     werkervaring: string,
     vaardigheden: string,
     opleidingen: string,

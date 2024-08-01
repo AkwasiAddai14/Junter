@@ -26,6 +26,7 @@ interface Props {
     freelancerID: any;
     profielfoto: string;
     voornaam: string;
+    tussenvoegsel: string;
     achternaam: string;
     geboortedatum: string;
     emailadres: string;
@@ -106,6 +107,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       freelancerID: freelancer?.freelancerID || "",
       profielfoto: undefined,
       voornaam: freelancer?.voornaam || "",
+      tussenvoegsel: freelancer?.tussenvoegsel || "",
       achternaam: freelancer?.achternaam || "",
       geboortedatum: freelancer?.geboortedatum || "",
       emailadres: freelancer?.emailadres || "",
@@ -135,28 +137,29 @@ const Page: React.FC<Props> = ({ freelancer }) => {
   const processForm: SubmitHandler<Inputs> = async (data) => {
     console.log("Function invoked");
      await maakFreelancer({
-      clerkId: data.freelancerID,
-      voornaam: data.voornaam,
-      tussenvoegsel: data.tussenvoegsel,
-      achternaam: data.achternaam,
-      geboortedatum: data.geboortedatum,
-      emailadres: data.emailadres,
-      telefoonnummer: data.telefoonnummer,
-      postcode: data.postcode,
-      huisnummer: data.huisnummer,
-      straat: data.straatnaam,
-      stad: data.stad,
-      korregeling: data.korregeling,
-      btwid: data.btwid,
-      iban: data.iban,
-      path: data.path,
-      profielfoto: data.profielfoto,
-      werkervaring: '',
-      vaardigheden: '',
-      opleidingen: '',
-      bio: '',
-      kvk: ''
-    });
+       clerkId: data.freelancerID,
+       voornaam: data.voornaam,
+       tussenvoegsel: data.tussenvoegsel,
+       achternaam: data.achternaam,
+       geboortedatum: data.geboortedatum,
+       emailadres: data.emailadres,
+       telefoonnummer: data.telefoonnummer,
+       postcode: data.postcode,
+       huisnummer: data.huisnummer,
+       straat: data.straatnaam,
+       stad: data.stad,
+       korregeling: data.korregeling,
+       btwid: data.btwid,
+       iban: data.iban,
+       path: data.path,
+       profielfoto: data.profielfoto,
+       werkervaring: '',
+       vaardigheden: '',
+       opleidingen: '',
+       bio: '',
+       kvk: '',
+       cv: undefined
+     });
 
 
 
