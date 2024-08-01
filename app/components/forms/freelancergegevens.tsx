@@ -33,7 +33,7 @@ type Inputs = z.infer<typeof FreelancerValidation>;
 interface Props {
   freelancer: {
     freelancerID: any;
-    profielfoto: any;
+    profielfoto: string;
     voornaam: string;
     achternaam: string;
     geboortedatum: string;

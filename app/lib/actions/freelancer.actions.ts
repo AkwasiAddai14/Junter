@@ -23,7 +23,7 @@ type freelancer = {
     path: string,
     bio: string,
     kvk:string,
-    profielfoto: any,
+    profielfoto: string,
     werkervaring: string,
     vaardigheden: string,
     opleidingen: string,
