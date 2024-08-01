@@ -498,7 +498,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
               Volgende
             </button>
           )}
-          {currentStep === steps.length - 2 && (
+          {currentStep === steps.length - 1 && (
             <button
               type="submit"
               className="inline-flex justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
