@@ -32,7 +32,9 @@ type freelancer = {
 
 export const maakFreelancer = async (user:freelancer) => {
     try {
+        console.log("Connecting to db..")
         connectToDB();
+        console.log("Connected to db")
         const newFreelancer = await Freelancer.create(user);
         await Freelancer.findOneAndUpdate({id: user.clerkId}, {
             onboarded:true

@@ -1,9 +1,8 @@
-"use client";
 
 import { useState } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { Switch } from '@headlessui/react';
-import NavBar from './NavBar';
+
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -185,9 +184,9 @@ export default function Contact() {
             <div className="flex h-6 items-center">
               <Switch
                 checked={agreed}
-                onChange={setAgreed}
+                onChange={() =>setAgreed(true)}
                 className={classNames(
-                  agreed ? 'bg-indigo-600' : 'bg-gray-200',
+                  agreed ? 'bg-sky-600' : 'bg-gray-200',
                   'flex w-8 flex-none cursor-pointer rounded-full p-px ring-1 ring-inset ring-gray-900/5 transition-colors duration-200 ease-in-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
                 )}
               >

@@ -1,7 +1,7 @@
 import ShiftForm from "@/app/components/forms/ShiftForm"
 import { useUser } from "@clerk/nextjs";
 
-const CreateEvent = () => {
+const MaakShift = () => {
   const { user } = useUser();
 
   const userId = user?.id as string;
@@ -19,4 +19,4 @@ const CreateEvent = () => {
   )
 }
 
-export default CreateEvent
+export default MaakShift;
