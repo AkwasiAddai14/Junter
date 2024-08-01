@@ -83,9 +83,11 @@ const Page: React.FC<Props> = ({ freelancer }) => {
     setPreviousStep(currentStep);
     /* const output = await trigger(fields as FieldName[], shouldfocus: true) */
     setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
-    if (currentStep === steps.length - 2){
-      await handleSubmit(processForm)()
-    } setCurrentStep(step => step + 1)
+    if(currentStep < steps.length -1) {
+      if (currentStep === steps.length - 2){
+        await handleSubmit(processForm)()
+      } setCurrentStep(step => step + 1)
+    } 
   };
 
   const prevStep = () => {
@@ -135,7 +137,8 @@ const Page: React.FC<Props> = ({ freelancer }) => {
   const selectedDate = watch('geboortedatum');
 
   const processForm: SubmitHandler<Inputs> = async (data) => {
-    const Submithandling = await maakFreelancer({
+    console.log("Function invoked");
+     await maakFreelancer({
       clerkId: data.freelancerID,
       voornaam: data.voornaam,
       tussenvoegsel: data.tussenvoegsel,
@@ -158,16 +161,12 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       bio: '',
       kvk: ''
     });
-
-    if (Submithandling) {
-      if (pathname === 'profiel/wijzigen') {
+    console.log("process is done")
+      if (pathname === '../profielModal') {
         router.back();
       } else {
-        router.push('/dashboard');
+        router.push('/');
       }
-    } else {
-      console.error('Error during form submission');
-    }
   };
 
   return (
