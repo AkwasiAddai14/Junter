@@ -24,7 +24,7 @@ import { Input } from "@/app/components/ui/input";
 const steps = [
   { id: 1, name: 'Persoonlijke gegevens', fields: ['voornaam', 'tussenvoegsel', 'achternaam', 'geboortedatum'] },
   { id: 2, name: 'Zakelijke gegevens', fields: ['btwid', 'iban', 'huisnummer', 'postcode', 'straatnaam', 'stad'] },
-  /* { id: 3, name: 'Profiel', fields: ['profielfoto', 'bio', 'cv'] }, */
+  { id: 3, name: 'Profiel', fields: ['profielfoto', 'bio', 'cv'] }, 
   { id: 3, name: 'Compleet' }
 ];
 
@@ -89,7 +89,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
     if(!output) return;
 
     setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
-    if(currentStep < steps.length -1) {
+    if(currentStep === steps.length ) {
         await handleSubmit(processForm)()
     } 
   };
@@ -396,7 +396,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
           </motion.div>
         )}
 
-{/* {currentStep === 2 && (
+{currentStep === 2 && (
           <motion.div
             initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -457,8 +457,8 @@ const Page: React.FC<Props> = ({ freelancer }) => {
             </div>
           </motion.div>
         )}
- */}
-        {currentStep === 2 && (
+
+        {currentStep === 3 && (
           <motion.div
             initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -484,7 +484,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
               Vorige
             </button>
           )}
-          {currentStep < steps.length - 1 && (
+          {currentStep < steps.length - 2 && (
             <button
               type="button"
               onClick={nextStep}
@@ -493,7 +493,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
               Volgende
             </button>
           )}
-          {currentStep === steps.length -1 && (
+          {currentStep === steps.length - 1 && (
             <button
               type="submit"
               className="inline-flex justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
