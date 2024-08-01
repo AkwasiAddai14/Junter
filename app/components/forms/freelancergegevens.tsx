@@ -104,7 +104,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
     resolver: zodResolver(FreelancerValidation),
     defaultValues: {
       freelancerID: freelancer?.freelancerID || "",
-      profielfoto: freelancer?.profielfoto,
+      profielfoto: undefined,
       voornaam: freelancer?.voornaam || "",
       achternaam: freelancer?.achternaam || "",
       geboortedatum: freelancer?.geboortedatum || "",
@@ -112,7 +112,8 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       telefoonnummer: freelancer?.telefoonnummer || "",
       btwid: freelancer?.btwid || "",
       iban: freelancer?.iban || "",
-      path: freelancer?.path || ""
+      path: freelancer?.path || "",
+      cv: undefined
     }
   });
 
