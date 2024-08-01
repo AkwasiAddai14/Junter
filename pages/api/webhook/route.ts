@@ -203,13 +203,14 @@ export async function POST(req: Request) {
     werkervaring: string;
     vaardigheden: string;
     opleidingen: string;
+    cv: any;
     bio: string,
     kvk: string,
     path: string;
   }
 
   if (eventType === 'user.created') {
-    const { id, voornaam, tussenvoegsel, achternaam, geboortedatum, emailadres, telefoonnummer, postcode, huisnummer, stad, straat, btwid, iban, profielfoto, korregeling, werkervaring, vaardigheden, opleidingen, bio, kvk, path } = evt.data as Freelancer;
+    const { id, voornaam, tussenvoegsel, achternaam, geboortedatum, emailadres, telefoonnummer, postcode, huisnummer, stad, straat, btwid, iban, profielfoto, korregeling, werkervaring, cv, vaardigheden, opleidingen, bio, kvk, path } = evt.data as Freelancer;
 
     const user = {
       clerkId: id,
@@ -228,6 +229,7 @@ export async function POST(req: Request) {
       werkervaring,
       vaardigheden,
       opleidingen,
+      cv,
       path,
       straat,
       stad,
@@ -258,6 +260,7 @@ export async function POST(req: Request) {
             werkervaring,
             vaardigheden,
             opleidingen,
+            cv,
             path,
           },
         });
@@ -270,7 +273,7 @@ export async function POST(req: Request) {
 
 
   if(eventType === 'user.updated'){
-    const { id, voornaam, tussenvoegsel, achternaam, geboortedatum, emailadres, telefoonnummer, postcode, huisnummer, stad, straat, btwid, iban, profielfoto, korregeling, werkervaring, vaardigheden, opleidingen, kvk, bio, path} = evt.data as Freelancer
+    const { id, voornaam, tussenvoegsel, achternaam, geboortedatum, emailadres, telefoonnummer, postcode, huisnummer, stad, straat, btwid, iban, profielfoto, korregeling, werkervaring, cv, vaardigheden, opleidingen, kvk, bio, path} = evt.data as Freelancer
     const user = {
         clerkId: id,
         voornaam: voornaam,
@@ -292,6 +295,7 @@ export async function POST(req: Request) {
         opleidingen: opleidingen,
         kvk: kvk,
         bio: bio,
+        cv: cv,
         path: path
     }
     const newUser = await updateFreelancer(user);
@@ -318,6 +322,7 @@ export async function POST(req: Request) {
                 opleidingen,
                 kvk,
                 bio,
+                cv,
                 path
             }
         })
