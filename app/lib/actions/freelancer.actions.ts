@@ -5,39 +5,56 @@ import Freelancer from "../models/freelancer.model";
 import { revalidatePath } from "next/cache";
 import { SortOrder } from "mongoose";
 
-type freelancer = {
-    clerkId:string,
-    voornaam: string,
-    tussenvoegsel: string,
-    achternaam: string,
-    geboortedatum: string,
-    emailadres: string,
-    telefoonnummer: string,
-    postcode: string,
-    huisnummer: string,
-    straat: string,
-    stad: string,
-    korregeling: boolean,
-    btwid: string,
-    iban: string,
-    path: string,
-    bio: string,
-    kvk:string,
-    profielfoto: any,
-    cv: any,
-    werkervaring: string,
-    vaardigheden: string,
-    opleidingen: string,
-}
+type Werkervaring = {
+    bedrijf: string;
+    functie: string;
+    duur: string;
+  };
+  
+  type Vaardigheid = {
+    vaardigheid: string;
+  };
+  
+  type Opleiding = {
+    naam: string;
+    school: string;
+    niveau?: string;
+  };
+  
+  type Freelancer = {
+    clerkId: string;
+    voornaam: string;
+    tussenvoegsel?: string;
+    achternaam: string;
+    geboortedatum: string;
+    emailadres: string;
+    telefoonnummer: string;
+    postcode: string;
+    huisnummer: string;
+    straat: string;
+    stad: string;
+    korregeling: boolean;
+    btwid?: string;
+    iban: string;
+    path: string;
+    bio: string;
+    kvk?: string;
+    profielfoto: any;
+    cv: any;
+    werkervaring: Werkervaring[];
+    vaardigheden: Vaardigheid[];
+    opleidingen: Opleiding[];
+    bsn: string; // Ensure bsn is included as it is required in the schema
+  };
 
 
-export const maakFreelancer = async (user:freelancer) => {
+export const maakFreelancer = async (user:Freelancer) => {
     try {
         console.log("Connecting to db..")
         connectToDB();
         console.log("Connected to db")
         const newFreelancer = await Freelancer.create(user);
-        await Freelancer.findOneAndUpdate({id: user.clerkId}, {
+        await Freelancer.findOneAndUpdate({clerkId: user.clerkId}, {
             onboarded:true
         },
         {
@@ -55,7 +72,7 @@ export const maakFreelancer = async (user:freelancer) => {
 }
 
 
-export const updateFreelancer = async  (user: freelancer ) => {
+export const updateFreelancer = async  (user: Freelancer ) => {
 
     try {
         connectToDB();
@@ -88,7 +105,7 @@ export const updateFreelancer = async  (user: freelancer ) => {
    } 
 
 
-export async function verwijderFreelancer(clerkId: string): Promise<freelancer | null> {
+export async function verwijderFreelancer(clerkId: string): Promise<Freelancer | null> {
     try {
         const deletedFreelancer = await Freelancer.findOneAndDelete({ clerkId: clerkId });
         if (!deletedFreelancer) {

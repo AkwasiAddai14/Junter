@@ -183,15 +183,31 @@ export async function POST(req: Request) {
     return NextResponse.json({message: "OK", organization: newOrganization})
   }
   
+  interface Werkervaring {
+    bedrijf: string;
+    functie: string;
+    duur: string;
+  }
+  
+  interface Vaardigheid {
+    vaardigheid: string;
+  }
+  
+  interface Opleiding {
+    naam: string;
+    school: string;
+    niveau?: string;
+  }
+  
   interface Freelancer extends UserJSON {
     id: string;
     profielfoto: string;
     voornaam: string;
     achternaam: string;
-    tussenvoegsel: string;
+    tussenvoegsel?: string;
     geboortedatum: string;
-    kvknr: string;
-    btwid: string;
+    kvknr?: string;
+    btwid?: string;
     postcode: string;
     huisnummer: string;
     stad: string;
@@ -200,17 +216,18 @@ export async function POST(req: Request) {
     telefoonnummer: string;
     iban: string;
     korregeling: boolean;
-    werkervaring: string;
-    vaardigheden: string;
-    opleidingen: string;
+    werkervaring: Werkervaring[];
+    vaardigheden: Vaardigheid[];
+    opleidingen: Opleiding[];
     cv: any;
-    bio: string,
-    kvk: string,
+    bio: string;
+    kvk?: string;
+    bsn: string;
     path: string;
   }
 
   if (eventType === 'user.created') {
-    const { id, voornaam, tussenvoegsel, achternaam, geboortedatum, emailadres, telefoonnummer, postcode, huisnummer, stad, straat, btwid, iban, profielfoto, korregeling, werkervaring, cv, vaardigheden, opleidingen, bio, kvk, path } = evt.data as Freelancer;
+    const { id, voornaam, tussenvoegsel, achternaam, geboortedatum, emailadres, telefoonnummer, postcode, huisnummer, stad, straat, btwid, iban, bsn, profielfoto, korregeling, werkervaring, cv, vaardigheden, opleidingen, bio, kvk, path } = evt.data as Freelancer;
 
     const user = {
       clerkId: id,
@@ -234,6 +251,7 @@ export async function POST(req: Request) {
       straat,
       stad,
       bio,
+      bsn,
       kvk,
     };
 
@@ -261,6 +279,7 @@ export async function POST(req: Request) {
             vaardigheden,
             opleidingen,
             cv,
+            bsn,
             path,
           },
         });
@@ -273,7 +292,7 @@ export async function POST(req: Request) {
 
 
   if(eventType === 'user.updated'){
-    const { id, voornaam, tussenvoegsel, achternaam, geboortedatum, emailadres, telefoonnummer, postcode, huisnummer, stad, straat, btwid, iban, profielfoto, korregeling, werkervaring, cv, vaardigheden, opleidingen, kvk, bio, path} = evt.data as Freelancer
+    const { id, voornaam, tussenvoegsel, achternaam, geboortedatum, emailadres, telefoonnummer, postcode, huisnummer, stad, straat, btwid, bsn, iban, profielfoto, korregeling, werkervaring, cv, vaardigheden, opleidingen, kvk, bio, path} = evt.data as Freelancer
     const user = {
         clerkId: id,
         voornaam: voornaam,
@@ -296,6 +315,7 @@ export async function POST(req: Request) {
         kvk: kvk,
         bio: bio,
         cv: cv,
+        bsn: bsn,
         path: path
     }
     const newUser = await updateFreelancer(user);

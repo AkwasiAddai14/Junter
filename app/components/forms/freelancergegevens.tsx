@@ -103,12 +103,13 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       iban: "NL56ABNA0462941655",
       path: "profiel/wijzigen",
       profielfoto: "image/url",
-      werkervaring: '',
-      vaardigheden: '',
-      opleidingen: '',
+      werkervaring: [], // Pass an empty array
+      vaardigheden: [], // Pass an empty array
+      opleidingen: [], // Pass an empty array
       bio: '',
       kvk: '',
-      cv: undefined
+      cv: undefined,
+      bsn: "123456789" // Ensure bsn is provided
     });
     router.push("../dashboard");
   }
