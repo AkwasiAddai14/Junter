@@ -70,7 +70,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                     place
                 };
             } else {
-                throw new Error('There is no company data found for the provided KVK number.');
+                throw new Error('No company data found for the provided KVK number.');
             }
         } catch (error) {
             console.error('Error fetching company details:', error);
