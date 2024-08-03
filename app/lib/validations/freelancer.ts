@@ -27,14 +27,14 @@ export const FreelancerValidation = z.object({
     huisnummer: z.string(),
     stad: z.string(),
     straatnaam: z.string(),
-    profielfoto: z.instanceof(File).optional()
+    profielfoto: z.string(),/* z.instanceof(File).optional()
         .refine(file => !file || (file.size <= MAX_UPLOAD_SIZE && ACCEPTED_IMAGE_TYPES.includes(file.type)), {
             message: 'File size must be less than 3MB and must be a PNG or JPEG'
-        }),
-    cv: z.instanceof(File).optional()
+        }), */
+    cv: z.string(),/* z.instanceof(File).optional()
         .refine(file => !file || (file.size < MAX_FILE_SIZE && checkFileType(file)), {
             message: 'Max size is 5MB and only .pdf, .docx formats are supported'
-        }),
+        }), */
     bio: z.string(),
     path: z.string()
 });

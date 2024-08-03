@@ -59,29 +59,18 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
     const haalBedrijfsData = async (kvkNummer: string) => {
         try {
             const response = await axios.get(`/api/kvk?kvkNummer=${kvkNummer}`);
-            if (response.data && response.data.items && response.data.items.length > 0) {
-                const companyData = response.data.items[0];
-                const address = companyData.adres;
-
-                const companyName = companyData.handelsnaam;
-                const streetName = address.straatnaam;
-                const houseNumber = address.huisnummer;
-                const houseNumberAddition = address.huisnummerToevoeging || '';
-                const houseLetter = address.huisletter || '';
-                const postalCode = address.postcode;
-                const place = address.plaats;
+            if (response.data) {
+                const { companyName, streetName, houseNumber, houseNumberAddition, houseLetter, postalCode, place } = response.data;
 
                 return {
                     companyName,
                     streetName,
-                    houseNumber,
-                    houseNumberAddition,
-                    houseLetter,
+                    houseNumber: `${houseNumber}${houseNumberAddition}${houseLetter}`,
                     postalCode,
                     place
                 };
             } else {
-                throw new Error('No company data found for the provided KVK number.');
+                throw new Error('There is no company data found for the provided KVK number.');
             }
         } catch (error) {
             console.error('Error fetching company details:', error);
@@ -114,7 +103,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                     console.log('Company Details:', details);
                     setValue('displaynaam', details.companyName);
                     setValue('straat', details.streetName);
-                    setValue('huisnummer', details.houseNumber + details.houseNumberAddition + details.houseLetter);
+                    setValue('huisnummer', details.houseNumber);
                     setValue('postcode', details.postalCode);
                     setValue('stad', details.place);
                 } catch (error: any) {
@@ -128,8 +117,6 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
 
     const processForm: SubmitHandler<Inputs> = async (data) => {
         if (isLoaded && user) {
-
-            console.log("function is being called");
             try {
                 await maakBedrijf({
                     clerkId: user.id,
@@ -144,14 +131,12 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                     iban: data.iban,
                     path: data.path,
                 });
-                console.log("db process finished, creating clerk organization..");
                 if (createOrganization) {
                     await createOrganization({ name: data.displaynaam });
                     setOrganizationName(data.displaynaam);
                 } else {
                     console.error("createOrganization function is undefined");
                 }
-                console.log("organization created");
                 if (pathname === 'profiel/wijzigen') {
                     router.back();
                 } else {
@@ -161,7 +146,6 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                 console.error('Error processing form:', error);
             }
         }
-        console.log("process is done");
     };
 
     const [previousStep, setPreviousStep] = useState(0);

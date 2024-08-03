@@ -285,10 +285,10 @@ useEffect(() => {
                             'block px-3 py-1 text-sm leading-6 text-gray-900'
                           )}
                                 onClick={() => {
-                            if (item.name === 'Sign out') {
+                            if (item.name === 'Uitloggen') {
                               setShowLogOut(true);
                             }
-                            if (item.name === 'Your profile'){
+                            if (item.name === 'Profiel'){
                               setShowProfiel(true)
                             }
                           }}

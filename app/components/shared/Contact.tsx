@@ -1,10 +1,8 @@
 "use client"
 
-
 import { useState } from 'react';
 import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import { Switch } from '@headlessui/react';
-
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -21,34 +19,47 @@ export default function Contact() {
     message: '',
   });
 
-  const handleChange = (e: { target: { name: any; value: any; }; }) => {
+  const handleChange = (e: { target: { name: string; value: string; }; }) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
   const handleSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
-    const response = await fetch('/api/sendEmail', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    });
-    if (response.ok) {
-      alert('Email sent successfully');
-      setFormData({
-        firstName: '',
-        lastName: '',
-        company: '',
-        email: '',
-        phoneNumber: '',
-        message: '',
+    if (!agreed) {
+      alert('You must agree to the privacy policy before submitting.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/sendEmail', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
-    } else {
-      alert('Failed to send email');
+
+      if (response.ok) {
+        alert('Email sent successfully');
+        setFormData({
+          firstName: '',
+          lastName: '',
+          company: '',
+          email: '',
+          phoneNumber: '',
+          message: '',
+        });
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to send email: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+      alert('Failed to send email. Please try again later.');
     }
   };
+
 
   return (
     <div className="isolate bg-white py-24 sm:py-32 lg:px-8">
@@ -146,7 +157,6 @@ export default function Contact() {
                   id="country"
                   name="country"
                   value="NL"
-                  /* readOnly */
                   className="h-full rounded-md border-0 bg-transparent bg-none py-0 pl-4 pr-9 text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
                 >
                   <option>NL</option>
@@ -204,7 +214,7 @@ export default function Contact() {
             </div>
             <Switch.Label className="text-sm leading-6 text-gray-600">
               Door dit te selecteren gaat u akkoord met ons{' '}
-              <a href="#" className="font-semibold text-sky-600">
+              <a href="../pb" className="font-semibold text-sky-600">
                 privacybeleid
               </a>
               .

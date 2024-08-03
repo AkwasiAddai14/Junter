@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { CheckIcon } from '@radix-ui/react-icons';
 import { motion } from 'framer-motion';
-import { DatePickerForm } from '../shared/DatePicker';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { FreelancerValidation } from '@/app/lib/validations/freelancer';
@@ -15,8 +14,8 @@ import { usePathname, useRouter } from 'next/navigation';
 const steps = [
   { id: 1, name: 'Persoonlijke gegevens', fields: ['voornaam', 'tussenvoegsel', 'achternaam', 'geboortedatum'] },
   { id: 2, name: 'Zakelijke gegevens', fields: ['btwid', 'iban', 'huisnummer', 'postcode', 'straatnaam', 'stad'] },
-  { id: 3, name: 'Profiel', fields: ['profielfoto', 'bio', 'cv'] }, 
-  { id: 3, name: 'Compleet' }
+  { id: 3, name: 'Profiel', fields: ['profielfoto', 'bio', 'cv'] },
+  { id: 4, name: 'Compleet' }
 ];
 
 type Inputs = z.infer<typeof FreelancerValidation>;
@@ -50,14 +49,9 @@ const Page: React.FC<Props> = ({ freelancer }) => {
 
   const fetchAddressData = async (postcode: string, huisnummer: string) => {
     try {
-      const apiKey = process.env.NEXT_PUBLIC_POSTCODE_API_KEY; // Use NEXT_PUBLIC_ prefix for public environment variables
-      const url = `https://api.postcodeapi.nu/v3/lookup/${postcode}/${huisnummer}`;
+      const url = `/api/postcode?postcode=${postcode}&huisnummer=${huisnummer}`;
   
-      const response = await axios.get(url, {
-        headers: {
-          'X-Api-Key': apiKey
-        }
-      });
+      const response = await axios.get(url);
   
       const { street, city } = response.data;
   
@@ -75,15 +69,12 @@ const Page: React.FC<Props> = ({ freelancer }) => {
 
   const nextStep = async () => {
     setPreviousStep(currentStep);
-    const fields = steps[currentStep].fields
-    const output = await trigger(fields as FieldName[], {shouldFocus: true});
+    const fields = steps[currentStep].fields;
+    const output = await trigger(fields as FieldName[], { shouldFocus: true });
 
-    if(!output) return;
+    if (!output) return;
 
     setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
-    if(currentStep === steps.length - 1 ) {
-        await handleSubmit(processForm)()
-    } 
   };
 
   const prevStep = () => {
@@ -92,6 +83,35 @@ const Page: React.FC<Props> = ({ freelancer }) => {
   };
 
   const delta = currentStep - previousStep;
+
+  const maakEenGebruiker = async () => {
+    console.log("invoking function");
+    await maakFreelancer({
+      clerkId: "123",
+      voornaam: "George",
+      tussenvoegsel: "Owusu",
+      achternaam: "Addai",
+      geboortedatum: "14/05/1995",
+      emailadres: "g.addai95@gmail.com",
+      telefoonnummer: "0612173989",
+      postcode: "1022LB",
+      huisnummer: "21G14",
+      straat: "Termini",
+      stad: "Amsterdam",
+      korregeling: false,
+      btwid: "NL002335635B50",
+      iban: "NL56ABNA0462941655",
+      path: "profiel/wijzigen",
+      profielfoto: "image/url",
+      werkervaring: '',
+      vaardigheden: '',
+      opleidingen: '',
+      bio: '',
+      kvk: '',
+      cv: undefined
+    });
+    router.push("../dashboard");
+  }
 
   const {
     register,
@@ -130,50 +150,12 @@ const Page: React.FC<Props> = ({ freelancer }) => {
   
     fetchDetails();
   }, [watch('postcode'), watch('huisnummer')]);
-  
 
   const selectedDate = watch('geboortedatum');
 
-
   const processForm: SubmitHandler<Inputs> = async (data) => {
-    console.log(data);
     console.log("Function invoked");
-     await maakFreelancer({
-       clerkId: data.freelancerID,
-       voornaam: data.voornaam,
-       tussenvoegsel: data.tussenvoegsel,
-       achternaam: data.achternaam,
-       geboortedatum: data.geboortedatum,
-       emailadres: data.emailadres,
-       telefoonnummer: data.telefoonnummer,
-       postcode: data.postcode,
-       huisnummer: data.huisnummer,
-       straat: data.straatnaam,
-       stad: data.stad,
-       korregeling: data.korregeling,
-       btwid: data.btwid,
-       iban: data.iban,
-       path: data.path,
-       profielfoto: data.profielfoto,
-       werkervaring: '',
-       vaardigheden: '',
-       opleidingen: '',
-       bio: '',
-       kvk: '',
-       cv: undefined
-     });
-
-
-
-    console.log("process is done");
-    router.push("../dashboard");
-
-
-      if (pathname === '../profielModal') {
-        router.back();
-      } else {
-        router.push('/');
-      }
+    console.log(data);
   };
 
   return (
@@ -222,261 +204,216 @@ const Page: React.FC<Props> = ({ freelancer }) => {
           </ol>
         </nav>
 
-
         <form onSubmit={handleSubmit(processForm)} className="relative my-8  items-center rounded-lg bg-white shadow-lg ring-1 ring-black/5">
-        {currentStep === 0  && (
-           <>
-           <motion.div
+          {currentStep === 0 && (
+            <>
+              <motion.div
+                initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }} 
+              >
+                <div className="px-8 space-y-12 sm:space-y-16">
+                  <div className="border-b border-gray-900/10 pb-12">
+                    <h2 className="text-base font-semibold leading-7 mt-10 text-gray-900">Persoonlijke gegevens</h2>
+                    <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">
+                      Vul je persoonlijke gegevens in.
+                    </p>
+                    <div className="mt-10 space-y-8  pb-12 sm:space-y-0 sm:divide-y sm:divide-gray-900/10 sm:border-t sm:pb-0">
+                      <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                        <label htmlFor="voornaam" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
+                          Voornaam
+                        </label>
+                        <div className="mt-2 sm:col-span-2 sm:mt-0">
+                          <input
+                            type="text"
+                            {...register('voornaam', { required: true })}
+                            id="voornaam"
+                            className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                          {errors.voornaam && <p className="mt-2 text-sm text-red-600">{errors.voornaam.message}</p>}
+                        </div>
+                      </div>
+                      <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                        <label htmlFor="tussenvoegsel" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
+                          Tussenvoegsel
+                        </label>
+                        <div className="mt-2 sm:col-span-2 sm:mt-0">
+                          <input
+                            type="text"
+                            {...register('tussenvoegsel')}
+                            id="tussenvoegsel"
+                            className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                        </div>
+                      </div>
+                      <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                        <label htmlFor="achternaam" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
+                          Achternaam
+                        </label>
+                        <div className="mt-2 sm:col-span-2 sm:mt-0">
+                          <input
+                            type="text"
+                            {...register('achternaam', { required: true })}
+                            id="achternaam"
+                            className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                          {errors.achternaam && <p className="mt-2 text-sm text-red-600">{errors.achternaam.message}</p>}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+          {currentStep === 1 && (
+            <motion.div
               initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.3, ease: 'easeInOut' }} 
-              >
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+            >
               <div className="px-8 space-y-12 sm:space-y-16">
-              <div className="border-b border-gray-900/10 pb-12">
-                <h2 className="text-base font-semibold leading-7 mt-10 text-gray-900">Persoonlijke gegevens</h2>
-                <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">
-                  Vul je persoonlijke gegevens in.
-                </p>
-                <div className="mt-10 space-y-8  pb-12 sm:space-y-0 sm:divide-y sm:divide-gray-900/10 sm:border-t sm:pb-0">
-                  <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-                    <label htmlFor="voornaam" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
-                      Voornaam
-                    </label>
-                    <div className="mt-2 sm:col-span-2 sm:mt-0">
-                      <input
-                        type="text"
-                        {...register('voornaam', { required: true })}
-                        id="voornaam"
-                        className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
-                      {errors.voornaam && <p className="mt-2 text-sm text-red-600">{errors.voornaam.message}</p>}
+                <div className="border-b border-gray-900/10 pb-12">
+                  <h2 className="text-base font-semibold leading-7 mt-10 text-gray-900">Zakelijke gegevens</h2>
+                  <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">
+                    Vul je zakelijke gegevens in.
+                  </p>
+                  <div className="mt-10 space-y-8  pb-12 sm:space-y-0 sm:divide-y sm:divide-gray-900/10 sm:border-t sm:pb-0">
+                    <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                      <label htmlFor="btwid" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
+                        BTW ID
+                      </label>
+                      <div className="mt-2 sm:col-span-2 sm:mt-0">
+                        <input
+                          type="text"
+                          {...register('btwid', { required: true })}
+                          id="btwid"
+                          className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                        {errors.btwid && <p className="mt-2 text-sm text-red-600">{errors.btwid.message}</p>}
+                      </div>
                     </div>
-                  </div>
-                  <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-                    <label htmlFor="tussenvoegsel" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
-                      Tussenvoegsel
-                    </label>
-                    <div className="mt-2 sm:col-span-2 sm:mt-0">
-                      <input
-                        type="text"
-                        {...register('tussenvoegsel')}
-                        id="tussenvoegsel"
-                        className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                    <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                      <label htmlFor="iban" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
+                        IBAN
+                      </label>
+                      <div className="mt-2 sm:col-span-2 sm:mt-0">
+                        <input
+                          type="text"
+                          {...register('iban', { required: true })}
+                          id="iban"
+                          className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                        {errors.iban && <p className="mt-2 text-sm text-red-600">{errors.iban.message}</p>}
+                      </div>
                     </div>
-                  </div>
-                  <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-                    <label htmlFor="achternaam" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
-                      Achternaam
-                    </label>
-                    <div className="mt-2 sm:col-span-2 sm:mt-0">
-                      <input
-                        type="text"
-                        {...register('achternaam', { required: true })}
-                        id="achternaam"
-                        className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
-                      {errors.achternaam && <p className="mt-2 text-sm text-red-600">{errors.achternaam.message}</p>}
+                    <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                      <label htmlFor="huisnummer" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
+                        Huisnummer
+                      </label>
+                      <div className="mt-2 sm:col-span-2 sm:mt-0">
+                        <input
+                          type="text"
+                          {...register('huisnummer', { required: true })}
+                          id="huisnummer"
+                          className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                        {errors.huisnummer && <p className="mt-2 text-sm text-red-600">{errors.huisnummer.message}</p>}
+                      </div>
                     </div>
-                  </div>
-                  <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-                    <label htmlFor="geboortedatum" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
-                      Geboortedatum
-                    </label>
-                    <div className="mt-2 sm:col-span-2 sm:mt-0">
-                        <DatePickerForm
-                          selectedDate={selectedDate}
-                          onDateChange={(date: any) => reset({ ...watch(), geboortedatum: date })}
+                    <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                      <label htmlFor="postcode" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
+                        Postcode
+                      </label>
+                      <div className="mt-2 sm:col-span-2 sm:mt-0">
+                        <input
+                          type="text"
+                          {...register('postcode', { required: true })}
+                          id="postcode"
+                          className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                        {errors.postcode && <p className="mt-2 text-sm text-red-600">{errors.postcode.message}</p>}
+                      </div>
+                    </div>
+                    <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                      <label htmlFor="stad" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
+                        Stad
+                      </label>
+                      <div className="mt-2 sm:col-span-2 sm:mt-0">
+                        <input
+                          type="text"
+                          {...register('stad', { required: true })}
+                          id="stad"
+                          className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
                         />
-                      {errors.geboortedatum && <p className="mt-2 text-sm text-red-600">{errors.geboortedatum.message}</p>}
+                        {errors.stad && <p className="mt-2 text-sm text-red-600">{errors.stad.message}</p>}
+                      </div>
+                    </div>
+                    <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                      <label htmlFor="straatnaam" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
+                        Straatnaam
+                      </label>
+                      <div className="mt-2 sm:col-span-2 sm:mt-0">
+                        <input
+                          type="text"
+                          {...register('straatnaam', { required: true })}
+                          id="straatnaam"
+                          className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          value={street}
+                          onChange={(e) => setStreet(e.target.value)}
+                        />
+                        {errors.straatnaam && <p className="mt-2 text-sm text-red-600">{errors.straatnaam.message}</p>}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-              </div>
-              </motion.div>
-              </>
-        )
-       }
-        {currentStep === 1 && (
-          <motion.div
-            initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-          >
-            <div className="px-8 space-y-12 sm:space-y-16">
-            <div className="border-b border-gray-900/10 pb-12">
-              <h2 className="text-base font-semibold leading-7 mt-10 text-gray-900">Zakelijke gegevens</h2>
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">
-                Vul je zakelijke gegevens in.
-              </p>
-              <div className="mt-10 space-y-8  pb-12 sm:space-y-0 sm:divide-y sm:divide-gray-900/10 sm:border-t sm:pb-0">
-                <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-                  <label htmlFor="btwid" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
-                    BTW ID
-                  </label>
-                  <div className="mt-2 sm:col-span-2 sm:mt-0">
-                    <input
-                      type="text"
-                      {...register('btwid', { required: true })}
-                      id="btwid"
-                      className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
-                    {errors.btwid && <p className="mt-2 text-sm text-red-600">{errors.btwid.message}</p>}
-                  </div>
-                </div>
-                <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-                  <label htmlFor="iban" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
-                    IBAN
-                  </label>
-                  <div className="mt-2 sm:col-span-2 sm:mt-0">
-                    <input
-                      type="text"
-                      {...register('iban', { required: true })}
-                      id="iban"
-                      className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
-                    {errors.iban && <p className="mt-2 text-sm text-red-600">{errors.iban.message}</p>}
-                  </div>
-                </div>
-                <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-                  <label htmlFor="huisnummer" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
-                    Huisnummer
-                  </label>
-                  <div className="mt-2 sm:col-span-2 sm:mt-0">
-                    <input
-                      type="text"
-                      {...register('huisnummer', { required: true })}
-                      id="huisnummer"
-                      className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
-                    {errors.huisnummer && <p className="mt-2 text-sm text-red-600">{errors.huisnummer.message}</p>}
-                  </div>
-                </div>
-                <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-                  <label htmlFor="postcode" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
-                    Postcode
-                  </label>
-                  <div className="mt-2 sm:col-span-2 sm:mt-0">
-                    <input
-                      type="text"
-                      {...register('postcode', { required: true })}
-                      id="postcode"
-                      className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
-                    {errors.postcode && <p className="mt-2 text-sm text-red-600">{errors.postcode.message}</p>}
-                  </div>
-                </div>
-                 <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-                  <label htmlFor="stad" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
-                    Stad
-                  </label>
-                  <div className="mt-2 sm:col-span-2 sm:mt-0">
-              <input
-                type="text"
-                {...register('stad', { required: true })}
-                id="stad"
-                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-              />
-              {errors.stad && <p className="mt-2 text-sm text-red-600">{errors.stad.message}</p>}
-            </div> 
-                </div> 
-                <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-                  <label htmlFor="straatnaam" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
-                    Straatnaam
-                  </label>
-                  <div className="mt-2 sm:col-span-2 sm:mt-0">
-                    <input
-                      type="text"
-                      {...register('straatnaam', { required: true })}
-                      id="straatnaam"
-                      className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" 
-                      value={street}
-                      onChange={(e) => setStreet(e.target.value)}
-                      />
-                    {errors.straatnaam && <p className="mt-2 text-sm text-red-600">{errors.straatnaam.message}</p>}
+            </motion.div>
+          )}
+          {currentStep === 2 && (
+            <motion.div
+              initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+            >
+              <div className="px-8 space-y-12 sm:space-y-16">
+                <div className="border-b border-gray-900/10 pb-12">
+                  <h2 className="text-base font-semibold leading-7 mt-10 text-gray-900">Profiel</h2>
+                  <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">
+                    Jouw visitekaartje naar opdrachtgevers toe. 😁👋
+                  </p>
+
+                  <div className="mt-10 space-y-8  pb-12 sm:space-y-0 sm:divide-y sm:divide-gray-900/10 sm:border-t sm:pb-0">
+                    <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                      <label htmlFor="bio" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
+                        Bio
+                      </label>
+                      <div className="mt-2 sm:col-span-2 sm:mt-0">
+                        <textarea
+                          {...register('bio')}
+                          id="bio"
+                          rows={4}
+                          className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
+                        {errors.bio && <p className="mt-2 text-sm text-red-600">{errors.bio.message}</p>}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
+            </motion.div>
+          )}
+
+          {currentStep === 3 && (
+            <motion.div
+              initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+            >
+              <div className="px-8 space-y-7 sm:space-y-16">
+                <h2 className="text-base font-semibold leading-7 text-gray-900 pt-10">Compleet</h2>
+                <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">
+                  Je bent klaar! Klik op 'Voltooien' om het proces af te ronden.
+                </p>
               </div>
-              </div>
-          </motion.div>
-        )}
+            </motion.div>
+          )}
 
-{currentStep === 2 && (
-          <motion.div
-            initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-          >
-            <div className="px-8 space-y-12 sm:space-y-16">
-            <div className="border-b border-gray-900/10 pb-12">
-              <h2 className="text-base font-semibold leading-7 mt-10 text-gray-900">Profiel</h2>
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">
-                Jouw visitekaartje naar opdrachtgevers toe. 😁👋 
-              </p>
-
-
-              <div className="mt-10 space-y-8  pb-12 sm:space-y-0 sm:divide-y sm:divide-gray-900/10 sm:border-t sm:pb-0">
-                {/* <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-                  <label htmlFor="profielfoto" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
-                    Profielfoto
-                  </label>
-                 
-                 { <div className="mt-2 sm:col-span-2 sm:mt-0">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      {...register('profielfoto')}
-                      id="profielfoto"
-                      className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none" />
-                    {errors.profielfoto && <p className="mt-2 text-sm text-red-600">{errors.profielfoto.message}</p>}
-                  </div>}
-                </div> */}
-                <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-                  <label htmlFor="bio" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
-                    Bio
-                  </label>
-                  <div className="mt-2 sm:col-span-2 sm:mt-0">
-                    <textarea
-                      {...register('bio')}
-                      id="bio"
-                      rows={4}
-                      className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" />
-                    {errors.bio && <p className="mt-2 text-sm text-red-600">{errors.bio.message}</p>}
-                  </div>
-                </div>
-                {/* <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-                  <label htmlFor="cv" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
-                    CV
-                  </label>
-                  <div className="mt-2 sm:col-span-2 sm:mt-0">
-                    <input
-                      type="file"
-                      {...register('cv')}
-                      id="cv"
-                      className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none" />
-                    {errors.cv && <p className="mt-2 text-sm text-red-600">{errors.cv.message}</p>}
-                  </div>
-                </div> */}
-              </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {currentStep === 3 && (
-          <motion.div
-            initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-          >
-            <div className="px-8 space-y-12 sm:space-y-16">
-              <h2 className="text-base font-semibold leading-7 text-gray-900">Compleet</h2>
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">
-                Je bent klaar! Klik op 'Voltooien' om het proces af te ronden.
-              </p>
-            </div>
-          </motion.div>
-        )}
-
-
-        <div className="mt-8 pb-10 pr-10 flex justify-end space-x-4">
+<div className="mt-8 pb-10 pr-10 flex justify-end space-x-4">
           {currentStep > 0 && (
             <button
               type="button"
@@ -491,21 +428,22 @@ const Page: React.FC<Props> = ({ freelancer }) => {
               type="button"
               onClick={nextStep}
               className="inline-flex justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+              onClickCapture={() => console.log("Button clicked")}
             >
               Volgende
             </button>
           )}
           {currentStep === steps.length - 1 && (
-            <button
-              type="submit"
-              className="inline-flex justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
-              onClick={() => processForm}
-            >
-              Voltooien
-            </button>
-          )}
+      <button
+        type="submit"
+        className="inline-flex justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+        onClick={maakEenGebruiker}
+      >
+        Voltooien
+      </button>
+    )}
         </div>
-      </form>
+        </form>
       </section>
     </main>
   );
