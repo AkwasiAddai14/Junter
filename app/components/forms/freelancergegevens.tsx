@@ -428,7 +428,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
               type="button"
               onClick={nextStep}
               className="inline-flex justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
-              onClickCapture={() => console.log("Button clicked")}
+              onClickCapture={maakEenGebruiker} 
             >
               Volgende
             </button>
@@ -437,7 +437,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       <button
         type="submit"
         className="inline-flex justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
-        onClick={maakEenGebruiker}
+        onClick={() => console.log("Button clicked")}
       >
         Voltooien
       </button>
