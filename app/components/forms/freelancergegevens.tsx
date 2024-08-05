@@ -10,6 +10,9 @@ import axios from 'axios';
 import { maakFreelancer } from '@/app/lib/actions/freelancer.actions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { usePathname, useRouter } from 'next/navigation';
+import { useUser } from '@clerk/nextjs';
+import { DatePickerForm } from '../shared/DatePicker';
+
 
 const steps = [
   { id: 1, name: 'Persoonlijke gegevens', fields: ['voornaam', 'tussenvoegsel', 'achternaam', 'geboortedatum'] },
@@ -46,6 +49,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
   const [street, setStreet] = useState('');
   const [city, setCity] = useState('');
   const router = useRouter();
+  const {user, isLoaded} = useUser()
 
   const fetchAddressData = async (postcode: string, huisnummer: string) => {
     try {
@@ -68,13 +72,16 @@ const Page: React.FC<Props> = ({ freelancer }) => {
   type FieldName = keyof Inputs;
 
   const nextStep = async () => {
-    setPreviousStep(currentStep);
+    console.log("Current Step Before: ", currentStep);
     const fields = steps[currentStep].fields;
     const output = await trigger(fields as FieldName[], { shouldFocus: true });
-
+    console.log("Validation Output: ", output);
+    console.log(errors);
+  
     if (!output) return;
-
+  
     setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
+    console.log("Current Step After: ", currentStep);
   };
 
   const prevStep = () => {
@@ -84,35 +91,18 @@ const Page: React.FC<Props> = ({ freelancer }) => {
 
   const delta = currentStep - previousStep;
 
-  const maakEenGebruiker = async () => {
-    console.log("invoking function");
-    await maakFreelancer({
-      clerkId: "123",
-      voornaam: "George",
-      tussenvoegsel: "Owusu",
-      achternaam: "Addai",
-      geboortedatum: "14/05/1995",
-      emailadres: "g.addai95@gmail.com",
-      telefoonnummer: "0612173989",
-      postcode: "1022LB",
-      huisnummer: "21G14",
-      straat: "Termini",
-      stad: "Amsterdam",
-      korregeling: false,
-      btwid: "NL002335635B50",
-      iban: "NL56ABNA0462941655",
-      path: "profiel/wijzigen",
-      profielfoto: "image/url",
-      werkervaring: [], // Pass an empty array
-      vaardigheden: [], // Pass an empty array
-      opleidingen: [], // Pass an empty array
-      bio: '',
-      kvk: '',
-      cv: undefined,
-      bsn: "123456789" // Ensure bsn is provided
-    });
-    router.push("../dashboard");
-  }
+  const getUserPhoneNumber = (user: any) => {
+    if (user?.primaryPhoneNumber) {
+      return user.primaryPhoneNumber;
+    }
+    
+    const primaryPhone = user?.phoneNumbers?.find(
+      (phoneNumber: any) => phoneNumber.id === user?.primaryPhoneNumberId
+    );
+  
+    return primaryPhone?.primaryPhoneNumber || "";
+  };
+
 
   const {
     register,
@@ -125,14 +115,14 @@ const Page: React.FC<Props> = ({ freelancer }) => {
   } = useForm<Inputs>({
     resolver: zodResolver(FreelancerValidation),
     defaultValues: {
-      freelancerID: freelancer?.freelancerID || "",
-      profielfoto: undefined,
-      voornaam: freelancer?.voornaam || "",
+      freelancerID: freelancer?.freelancerID || user?.id || "",
+      profielfoto: user?.imageUrl || undefined,
+      voornaam: freelancer?.voornaam || user?.firstName || user?.fullName || "",
       tussenvoegsel: freelancer?.tussenvoegsel || "",
-      achternaam: freelancer?.achternaam || "",
+      achternaam: freelancer?.achternaam || user?.lastName ||"",
       geboortedatum: freelancer?.geboortedatum || "",
-      emailadres: freelancer?.emailadres || "",
-      telefoonnummer: freelancer?.telefoonnummer || "",
+      emailadres: freelancer?.emailadres || user?.emailAddresses[0].emailAddress || "" ,
+      telefoonnummer: freelancer?.telefoonnummer || getUserPhoneNumber(user) || "",
       btwid: freelancer?.btwid || "",
       iban: freelancer?.iban || "",
       path: freelancer?.path || "",
@@ -155,8 +145,39 @@ const Page: React.FC<Props> = ({ freelancer }) => {
   const selectedDate = watch('geboortedatum');
 
   const processForm: SubmitHandler<Inputs> = async (data) => {
-    console.log("Function invoked");
-    console.log(data);
+
+    console.log("Form is submitting", data);
+
+    await maakFreelancer({
+
+
+      clerkId: user?.id || "0000",
+      voornaam: data.voornaam || user?.firstName || user?.fullName ||"",
+      tussenvoegsel: data.tussenvoegsel || "",
+      achternaam: data.achternaam || user?.lastName || "",
+      geboortedatum: data.geboortedatum || "",
+      emailadres: data.emailadres ||  user?.emailAddresses[0].emailAddress || "",
+      telefoonnummer: data.telefoonnummer || getUserPhoneNumber(user) || "",
+      postcode: data.postcode || "",
+      huisnummer: data.huisnummer || "",
+      straat: data.straatnaam || "",
+      stad: data.stad,
+      korregeling: false,
+      btwid: data.btwid || "",
+      iban: data.iban || "",
+      path: "profiel/wijzigen",
+      onboarded: true,
+      profielfoto: data.profielfoto,
+      werkervaring: [], // Pass an empty array
+      vaardigheden: [], // Pass an empty array
+      opleidingen: [], // Pass an empty array
+      bio: '',
+      kvk: '',
+      cv: data.cv || "" || undefined,
+      bsn: ""  // Ensure bsn is provided
+
+
+    });
   };
 
   return (
@@ -258,6 +279,20 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                           {errors.achternaam && <p className="mt-2 text-sm text-red-600">{errors.achternaam.message}</p>}
                         </div>
                       </div>
+
+                      <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                    <label htmlFor="geboortedatum" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
+                      Geboortedatum
+                    </label>
+                    <div className="mt-2 sm:col-span-2 sm:mt-0">
+                        <DatePickerForm
+                          selectedDate={selectedDate}
+                          onDateChange={(date) => setValue('geboortedatum', date, { shouldDirty: true, shouldValidate: true })}
+                        />
+                      {errors.geboortedatum && <p className="mt-2 text-sm text-red-600">{errors.geboortedatum.message}</p>}
+                    </div>
+                  </div> 
+
                     </div>
                   </div>
                 </div>
@@ -429,7 +464,6 @@ const Page: React.FC<Props> = ({ freelancer }) => {
               type="button"
               onClick={nextStep}
               className="inline-flex justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
-              onClickCapture={maakEenGebruiker} 
             >
               Volgende
             </button>
@@ -438,7 +472,6 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       <button
         type="submit"
         className="inline-flex justify-center rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
-        onClick={() => console.log("Button clicked")}
       >
         Voltooien
       </button>

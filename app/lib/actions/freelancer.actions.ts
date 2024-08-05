@@ -27,24 +27,25 @@ type Werkervaring = {
     tussenvoegsel?: string;
     achternaam: string;
     geboortedatum: string;
-    emailadres: string;
-    telefoonnummer: string;
+    emailadres?: string;
+    telefoonnummer?: string;
     postcode: string;
     huisnummer: string;
     straat: string;
     stad: string;
-    korregeling: boolean;
+    onboarded: true;
+    korregeling?: boolean;
     btwid?: string;
     iban: string;
     path: string;
-    bio: string;
+    bio?: string;
     kvk?: string;
-    profielfoto: any;
-    cv: any;
+    profielfoto?: any;
+    cv?: any;
     werkervaring: Werkervaring[];
     vaardigheden: Vaardigheid[];
     opleidingen: Opleiding[];
-    bsn: string; // Ensure bsn is included as it is required in the schema
+    bsn?: string; // Ensure bsn is included as it is required in the schema
   };
 
 

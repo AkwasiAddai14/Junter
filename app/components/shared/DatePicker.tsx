@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { format } from "date-fns"
@@ -8,7 +8,6 @@ import { z } from "zod"
 
 import { cn } from "@/app/lib/utils"
 import { Button } from "@/app/components/ui/button"
-/* import { Calendar } from "@/app/components/ui/calendar" */
 import {
   Form,
   FormControl,
@@ -24,6 +23,7 @@ import {
   PopoverTrigger,
 } from "@/app/components/ui/popover"
 import { toast } from "@/app/components/ui/use-toast"
+import { Calendar } from "../ui/calendar"
 
 const FormSchema = z.object({
   dob: z.date({
@@ -81,15 +81,15 @@ export const DatePickerForm: React.FC<DatePickerFormProps> = ({ selectedDate, on
                   </FormControl>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                 {/*   <Calendar
-                     mode="single"
+                  <Calendar
+                    mode="single"
                     selectedDate={field.value}
                     onDateChange={field.onChange}
                     disabled={(date) =>
                       date > new Date() || date < new Date("1900-01-01")
                     }
                     initialFocus 
-                  />  */}
+                  />
                 </PopoverContent>
               </Popover>
               <FormDescription className='flex flex-col'>
@@ -107,3 +107,4 @@ export const DatePickerForm: React.FC<DatePickerFormProps> = ({ selectedDate, on
     </Form>
   )
 }
+

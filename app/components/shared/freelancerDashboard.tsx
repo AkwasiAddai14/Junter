@@ -3,7 +3,6 @@
 import * as React from "react"
 import ShiftCard from '../cards/ShiftCard'
 import { Slider } from "@/app/components/ui/slider"  
-/* import { Calendar } from '@/app/components/ui/calendar' */
 import { Button } from '@/app/components/ui/button'
 import { ScrollArea } from "@/app/components/ui/scroll-area"
 import { useUser } from "@clerk/nextjs"
@@ -12,7 +11,6 @@ import { useEffect, useState } from "react"
 import {  haalFactuur } from "@/app/lib/actions/factuur.actions"
 import { haalFlexpool } from "@/app/lib/actions/flexpool.actions"
 import { haalCheckouts } from "@/app/lib/actions/checkout.actions"
-import { Dialog, Menu, MenuButton, MenuItems, } from '@headlessui/react'
 import {
   Bars3Icon,
   BellIcon,
@@ -31,6 +29,8 @@ import ProfielModal from "./ProfielModal"
 import logo from '@/app/assets/images/178884748_padded_logo.png';
 import Image from 'next/image'; 
 import axios from "axios"
+import { Calendar } from "../ui/calendar"
+import { Dialog, Menu, MenuButton, MenuItems, } from '@headlessui/react'
 
 
 
@@ -66,90 +66,93 @@ export default function Example() {
   const [fullName, setFullName] = useState<string | null>(null); 
   const [showProfiel, setShowProfiel] = useState(false);
   const [showLogOut, setShowLogOut] = useState(false);
-  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+    from: undefined,
+    to: undefined,
+  });
   const [uurtarief, setUurtarief] = useState<[number, number]>([0, 100]);
   const [afstand, setAfstand] = useState<[number, number]>([0, 100]);
   const [filteredShifts, setFilteredShifts] = useState<any[]>([]);
-
-
-
+  
+  
+  
   useEffect(() => {
     if (isLoaded && user) {
       setProfilePhoto(user.imageUrl);
       setFullName(user.fullName);
     }
   }, [isLoaded, user]);
-
-/*   useEffect(() => {
+  
+  /*   useEffect(() => {
     const fetchShifts = async () => {
-        try {
-            const response = await axios.get('/api/shifts');
-            setShift(response.data);
-        } catch (error) {
-            console.error('Error fetching shifts:', error);
-        }
+      try {
+        const response = await axios.get('/api/shifts');
+        setShift(response.data);
+      } catch (error) {
+        console.error('Error fetching shifts:', error);
+      }
     };
-
+    
     fetchShifts();
-}, []);
-
-useEffect(() => {
+  }, []);
+  
+  useEffect(() => {
     const fetchFactuur = async () => {
-        try {
-            const response = await axios.get('/api/factuur');
-            setFactuur(response.data);
-        } catch (error) {
-            console.error('Error fetching factuur:', error);
-        }
+      try {
+        const response = await axios.get('/api/factuur');
+        setFactuur(response.data);
+      } catch (error) {
+        console.error('Error fetching factuur:', error);
+      }
     };
-
+    
     fetchFactuur();
-}, []);
-
-useEffect(() => {
+  }, []);
+  
+  useEffect(() => {
     const fetchCheckout = async () => {
-        try {
-            const response = await axios.get('/api/checkouts');
-            setCheckout(response.data);
-        } catch (error) {
-            console.error('Error fetching checkouts:', error);
-        }
+      try {
+        const response = await axios.get('/api/checkouts');
+        setCheckout(response.data);
+      } catch (error) {
+        console.error('Error fetching checkouts:', error);
+      }
     };
-
+    
     fetchCheckout();
-}, []);
-
-useEffect(() => {
+  }, []);
+  
+  useEffect(() => {
     const fetchFlexpool = async () => {
-        try {
-            const response = await axios.get('/api/flexpool');
-            setFlexpool(response.data);
-        } catch (error) {
-            console.error('Error fetching flexpool:', error);
-        }
+      try {
+        const response = await axios.get('/api/flexpool');
+        setFlexpool(response.data);
+      } catch (error) {
+        console.error('Error fetching flexpool:', error);
+      }
     };
-
+    
     fetchFlexpool();
-}, []);
-
-
+  }, []);
+  
+  
   useEffect(() => {
     applyFilters();
   }, [dateRange, uurtarief, afstand, shift]);
-
+  
   const applyFilters = () => {
     const filtered = shift.filter((shiftItem) => {
       const isDateInRange = dateRange.from && dateRange.to
-        ? new Date(shiftItem.date) >= dateRange.from && new Date(shiftItem.date) <= dateRange.to
-        : true;
+      ? new Date(shiftItem.date) >= dateRange.from && new Date(shiftItem.date) <= dateRange.to
+      : true;
       const isTariefInRange = shiftItem.uurtarief >= uurtarief[0] && shiftItem.uurtarief <= uurtarief[1];
       const isAfstandInRange = shiftItem.afstand >= afstand[0] && shiftItem.afstand <= afstand[1];
       return isDateInRange && isTariefInRange && isAfstandInRange;
     });
-
+    
     setFilteredShifts(filtered);
   }; */
-
+  
   return (
     <Fragment>
     <>
@@ -178,8 +181,8 @@ useEffect(() => {
                           className={classNames(
                             position === item.value ? 'bg-gray-800 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white',
                             'group flex w-full items-center gap-x-3 rounded-md p-2 text-sm font-semibold'
-                          )}
-                        >
+                            )}
+                            >
                           <item.icon aria-hidden="true" className="h-6 w-6" />
                           {item.name}
                         </button>
@@ -199,18 +202,18 @@ useEffect(() => {
               alt="Junter"
               src={logo}
               className="h-8 w-auto"
-            />
+              />
           </div>
           <nav className="flex grow flex-col items-center space-y-1 pt-5">
             {navigation.map((item) => (
               <button
-                key={item.name}
-                onClick={() => setPosition(item.value)}
-                className={classNames(
-                  position === item.value ? 'bg-gray-800 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white',
-                  'group flex w-full items-center justify-center gap-x-3 rounded-md p-3 text-sm font-semibold'
+              key={item.name}
+              onClick={() => setPosition(item.value)}
+              className={classNames(
+                position === item.value ? 'bg-gray-800 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white',
+                'group flex w-full items-center justify-center gap-x-3 rounded-md p-3 text-sm font-semibold'
                 )}
-              >
+                >
                 <item.icon aria-hidden="true" className="h-6 w-6" />
                 <span className="sr-only">{item.name}</span>
               </button>
@@ -236,14 +239,14 @@ useEffect(() => {
                 <MagnifyingGlassIcon
                   aria-hidden="true"
                   className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 text-gray-400"
-                />
+                  />
                 <input
                   id="search-field"
                   name="search"
                   type="search"
                   placeholder="Zoeken naar opdrachtgever..."
                   className="block h-full w-full border-0 py-0 pl-8 pr-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
-                />
+                  />
               </form>
               <div className="flex items-center gap-x-4 lg:gap-x-6">
                 <button type="button" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
@@ -262,7 +265,7 @@ useEffect(() => {
                       alt=""
                       src={profilePhoto}
                       className="h-8 w-8 rounded-full bg-gray-50"
-                    />
+                      />
                     <span className="hidden lg:flex lg:items-center">
                       <span aria-hidden="true" className="ml-4 text-sm font-semibold leading-6 text-gray-900">
                         {fullName} 
@@ -273,18 +276,18 @@ useEffect(() => {
                   <MenuItems
                     transition
                     className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
-                  >
+                    >
                     {userNavigation.map((item) => (
                       
                       <Menu.Item key={item.name}>
                       {({ active }) => (
                         <a
-                          href={item.href}
-                          className={classNames(
-                            active ? 'bg-gray-100' : '',
-                            'block px-3 py-1 text-sm leading-6 text-gray-900'
+                        href={item.href}
+                        className={classNames(
+                          active ? 'bg-gray-100' : '',
+                          'block px-3 py-1 text-sm leading-6 text-gray-900'
                           )}
-                                onClick={() => {
+                          onClick={() => {
                             if (item.name === 'Uitloggen') {
                               setShowLogOut(true);
                             }
@@ -292,7 +295,7 @@ useEffect(() => {
                               setShowProfiel(true)
                             }
                           }}
-                        >
+                          >
                           {item.name}
                         </a>
                       )}
@@ -308,80 +311,80 @@ useEffect(() => {
             <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-6">{/* Main area */}
           {/*   {position === 'Shifts' ?
             shift.length > 0 ? (
-                <ScrollArea>
-                  <div className="grid grid-cols-3 gap-4">
-                    {shift.slice(0, 9).map((shiftItem, index) => (
-                      <ShiftCard key={index} shift={shiftItem} />
-                    ))}
-                  </div>
+              <ScrollArea>
+              <div className="grid grid-cols-3 gap-4">
+              {shift.slice(0, 9).map((shiftItem, index) => (
+                <ShiftCard key={index} shift={shiftItem} />
+                ))}
+                </div>
                 </ScrollArea>
               ) : ( */}
                 <div>Geen shifts beschikbaar</div>
                             {/*   )
                              : null
-                          }
-           */}
+                            }
+                          */}
             {/*   {position === 'Aanmeldingen' && (
-                <ScrollArea>
-                  <div className="grid grid-cols-3 gap-4">
-                    {shift.slice(0, 9).map((shiftItem, index) => (
-                      <ShiftCard key={index} shift={shiftItem} />
-                    ))}
-                  </div>
+              <ScrollArea>
+              <div className="grid grid-cols-3 gap-4">
+              {shift.slice(0, 9).map((shiftItem, index) => (
+                <ShiftCard key={index} shift={shiftItem} />
+                ))}
+                </div>
                 </ScrollArea>
               )} */}
               {/* {position === 'Geaccepteerde shifts' && (
                 <ScrollArea>
-                  <div className="grid grid-cols-3 gap-4">
-                    {shift.slice(0, 9).map((shiftItem, index) => (
-                      <ShiftCard key={index} shift={shiftItem} />
-                    ))}
+                <div className="grid grid-cols-3 gap-4">
+                {shift.slice(0, 9).map((shiftItem, index) => (
+                  <ShiftCard key={index} shift={shiftItem} />
+                  ))}
                   </div>
-                </ScrollArea>
-              )} */}
+                  </ScrollArea>
+                )} */}
               {/* {position === 'Checkouts' ?
               checkout.length > 0 ?  (
                 <ScrollArea>
-                  <div className="grid grid-cols-3 gap-4">
-                    {checkout.slice(0, 9).map((checkoutItem, index) => (
-                      <ShiftCard key={index} shift={checkoutItem} />
-                    ))}
+                <div className="grid grid-cols-3 gap-4">
+                {checkout.slice(0, 9).map((checkoutItem, index) => (
+                  <ShiftCard key={index} shift={checkoutItem} />
+                  ))}
                   </div>
-                </ScrollArea>
-              ) : ( */}
+                  </ScrollArea>
+                ) : ( */}
                 <div>Geen shifts beschikbaar</div>
                             {/*   )
                              : null
-              }
-           */}
+                            }
+                          */}
              {/*  {position === 'Facturen' ?
               factuur.length > 0 ? (
                 <ScrollArea>
-                  <div className="grid grid-cols-3 gap-4">
-                    {factuur.slice(0, 9).map((factuurItem, index) => (
-                      <ShiftCard key={index} shift={factuurItem} />
-                    ))}
+                <div className="grid grid-cols-3 gap-4">
+                {factuur.slice(0, 9).map((factuurItem, index) => (
+                  <ShiftCard key={index} shift={factuurItem} />
+                  ))}
                   </div>
-                </ScrollArea>
-              ) : ( */}
+                  </ScrollArea>
+                ) : ( */}
                 <div>Geen shifts beschikbaar</div>
                               {/* )
                              : null
-              } */}
+                            } */}
               {/* {position === 'Flexpool' ?
               flexpool.length > 0 ? (
                 <ScrollArea>
-                  <div className="grid grid-cols-3 gap-4">
-                    {flexpool.slice(0, 9).map((flexpoolItem, index) => (
-                      <ShiftCard key={index} shift={flexpoolItem} />
-                    ))}
+                <div className="grid grid-cols-3 gap-4">
+                {flexpool.slice(0, 9).map((flexpoolItem, index) => (
+                  <ShiftCard key={index} shift={flexpoolItem} />
+                  ))}
                   </div>
-                </ScrollArea>
-              ) : ( */}
+                  </ScrollArea>
+                ) : ( */}
                 <div>Geen shifts beschikbaar</div>
                             {/*   )
                              : null
-              } */}
+                            } */}
             </div>
           </main>
             </div>
@@ -391,11 +394,11 @@ useEffect(() => {
           {/* Secondary column (hidden on smaller screens) */}
           <div>
          <div>
-          {/* <Calendar
-            className=""
-            selected={dateRange} 
-            onSelect={(range: React.SetStateAction<{ from: Date | undefined; to: Date | undefined }>) => setDateRange(range)}  
-          /> */}
+         <Calendar
+            mode="range"
+            selectedRange={dateRange}
+            onDateRangeChange={(range: React.SetStateAction<{ from: Date | undefined; to: Date | undefined }>) => setDateRange(range)}
+          />
          </div>
          <div>
           <p className="mt-20">
@@ -406,7 +409,7 @@ useEffect(() => {
             step={5}
             className="mt-5"
             /* onChange={(value) => setUurtarief(value)} */
-          />
+            />
          </div>
          <p className="mt-20">
             Afstand
@@ -416,7 +419,7 @@ useEffect(() => {
            step={5}
            className="mt-5"
            /* onChange={(value) => setAfstand(value)} */ 
-         />
+           />
          <div>
           <div className="justify-between">
           <Button className="mt-20 bg-white text-black border-2 border-black mr-10" onClick={() => { setDateRange({ from: undefined, to: undefined }); setUurtarief([0, 100]); setAfstand([0, 100]); /* applyFilters(); */ /* setShift(shift) */}} >
