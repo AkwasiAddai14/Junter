@@ -83,7 +83,8 @@ export default function ProfielModal({isVisible, onClose} : {isVisible: boolean,
         vaardigheden: freelancer.vaardigheden,
         opleidingen: freelancer.opleidingen,
         cv: undefined,
-        bsn: ''
+        bsn: '',
+        onboarded: true
     })
 
   }
