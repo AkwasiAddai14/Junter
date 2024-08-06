@@ -9,6 +9,7 @@ type bedrijf = {
     clerkId: string,
     profielfoto: string,
     naam: string,
+    displaynaam: string,
     kvknr: string,
     btwnr: string,
     postcode: string,
@@ -21,8 +22,7 @@ type bedrijf = {
 
 export async function maakBedrijf(organization: bedrijf) {
     try {
-        console.log("Function is being called");
-        console.log("Connecting to db...");
+
         await connectToDB();
 
         if (mongoose.connection.readyState === 1) {

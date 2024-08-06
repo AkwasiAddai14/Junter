@@ -63,7 +63,7 @@ const Dashboard = () => {
     }
   }, [isLoaded, user]);
 
-   React.useEffect(() => {
+/*    React.useEffect(() => {
     const fetchShift = async () => {
       try {
         const fetchedShift = await haalShifts();
@@ -124,7 +124,7 @@ const Dashboard = () => {
     };
 
     fetchFactuur();
-}, [checkout]); // Voeg `checkout` toe aan de dependency array */
+}, [checkout]); // Voeg `checkout` toe aan de dependency array */ 
 
 
   return (
@@ -184,6 +184,8 @@ const Dashboard = () => {
               alt="Your Company"
               src={profilePhoto}
               className="h-8 w-auto rounded-full"
+              width={8}
+              height={8}
             />
             </button>
                     </div>
@@ -222,6 +224,8 @@ const Dashboard = () => {
               alt="Your Company"
               src={profilePhoto}
               className="h-8 w-auto rounded-full"
+              width={8}
+              height={8}
             />
             </button>
           </div>
@@ -260,6 +264,8 @@ const Dashboard = () => {
               className="h-8 w-8 rounded-full bg-gray-800"
               src={profilePhoto}
               alt="Profielfoto"
+              width={8}
+              height={8}
             />
           </a>
         </div>
@@ -285,7 +291,7 @@ const Dashboard = () => {
                         </div>
                       </ScrollArea>
                     ) : (
-      <div>Geen shifts beschikbaar</div>
+      <div className="lg:pl-20 h-full overflow-hidden">Geen shifts beschikbaar</div>
                     )
                   ) : null
                 }
@@ -300,7 +306,7 @@ const Dashboard = () => {
                   </div>
                 </ScrollArea>
               ) : (
-                <div> Geen checkouts beschikbaar </div>
+                <div className="lg:pl-20 h-full overflow-hidden"> Geen checkouts beschikbaar </div>
               ): null 
               }
 
@@ -315,7 +321,7 @@ const Dashboard = () => {
                   </div>
                 </ScrollArea>
                ) : (
-                <div> Geen checkouts beschikbaar </div>
+                <div className="lg:pl-20 h-full overflow-hidden"> Geen facturen beschikbaar </div>
               ): null 
               }
 
@@ -330,7 +336,7 @@ const Dashboard = () => {
                   </div>
                 </ScrollArea>
               ) : (
-                <div> Geen checkouts beschikbaar </div>
+                <div className="lg:pl-20 h-full overflow-hidden"> Geen flexpool beschikbaar </div>
               ): null 
               }
         </main>

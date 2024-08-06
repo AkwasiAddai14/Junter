@@ -5,6 +5,7 @@ import React from 'react';
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, EllipsisHorizontalIcon } from '@heroicons/react/20/solid';
 import { Menu, Transition } from '@headlessui/react';
 import { useEffect, useState } from 'react';
+import { useRouter } from "next/router";
 import { format } from 'date-fns';
 import CalenderM from './CalenderM';
 import CalenderW from './CalenderW';
@@ -23,6 +24,7 @@ function classNames(...classes: (string | boolean | undefined)[]) {
 const Calender = () => {
     const [position, setPosition] = React.useState("Week");
     const [currentDate, setCurrentDate] = useState<Date>(new Date());
+    const router = useRouter()
     
       useEffect(() => {
         const intervalId = setInterval(() => {
@@ -126,6 +128,7 @@ const Calender = () => {
             <button
               type="button"
               className="ml-6 rounded-md bg-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600"
+              onClick={() => router.push("@/app/dashboard/shift/maak")}
             >
               Plaats shift
             </button>

@@ -155,7 +155,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       voornaam: data.voornaam || user?.firstName || user?.fullName ||"",
       tussenvoegsel: data.tussenvoegsel || "",
       achternaam: data.achternaam || user?.lastName || "",
-      geboortedatum: data.geboortedatum || "",
+      geboortedatum: data.geboortedatum || "01/01/2000",
       emailadres: data.emailadres ||  user?.emailAddresses[0].emailAddress || "",
       telefoonnummer: data.telefoonnummer || getUserPhoneNumber(user) || "",
       postcode: data.postcode || "",
@@ -167,7 +167,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       iban: data.iban || "",
       path: "profiel/wijzigen",
       onboarded: true,
-      profielfoto: data.profielfoto,
+      profielfoto: data.profielfoto || user?.imageUrl,
       werkervaring: [], // Pass an empty array
       vaardigheden: [], // Pass an empty array
       opleidingen: [], // Pass an empty array
@@ -178,6 +178,8 @@ const Page: React.FC<Props> = ({ freelancer }) => {
 
 
     });
+
+    router.push("../dashboard")
   };
 
   return (

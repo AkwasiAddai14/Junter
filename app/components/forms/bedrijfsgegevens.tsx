@@ -37,6 +37,7 @@ interface Props {
         bedrijvenID: string;
         profielfoto: string;
         naam: string;
+        displaynaam: string;
         kvknr: string;
         btwnr: string;
         postcode: string;
@@ -77,19 +78,29 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
             throw error;
         }
     };
-
+    const getUserPhoneNumber = (user: any) => {
+        if (user?.primaryPhoneNumber) {
+          return user.primaryPhoneNumber;
+        }
+        
+        const primaryPhone = user?.phoneNumbers?.find(
+          (phoneNumber: any) => phoneNumber.id === user?.primaryPhoneNumberId
+        );
+      
+        return primaryPhone?.primaryPhoneNumber || "";
+      };
     const { register, handleSubmit, watch, reset, trigger, setValue, formState: { errors } } = useForm<Inputs>({
         resolver: zodResolver(BedrijfValidation),
         defaultValues: {
-            bedrijvenID: bedrijven?.bedrijvenID || '',
-            profielfoto: bedrijven?.profielfoto || "",
+            bedrijvenID: bedrijven?.bedrijvenID || user?.id,
+            profielfoto: bedrijven?.profielfoto || user?.imageUrl,
             naam: bedrijven?.naam || '',
             kvknr: bedrijven?.kvknr || '',
             btwnr: bedrijven?.btwnr || '',
             postcode: bedrijven?.postcode || '',
             huisnummer: bedrijven?.huisnummer || '',
-            emailadres: bedrijven?.emailadres || '',
-            telefoonnummer: bedrijven?.telefoonnummer || '',
+            emailadres: bedrijven?.emailadres ||  user?.emailAddresses[0].emailAddress || "",
+            telefoonnummer: bedrijven?.telefoonnummer || getUserPhoneNumber(user) || "",
             iban: bedrijven?.iban || '',
             path: bedrijven?.path || '',
         },
@@ -116,21 +127,25 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
     }, [kvkNummer, setValue]);
 
     const processForm: SubmitHandler<Inputs> = async (data) => {
-        if (isLoaded && user) {
+        
+            console.log("Function invoked")
+            console.log(data)
             try {
-                await maakBedrijf({
-                    clerkId: user.id,
-                    naam: data.naam,
-                    profielfoto: data.profielfoto,
+                const result =  await maakBedrijf({
+                    clerkId: user?.id || "bedrijf",
+                    naam: data.naam || user?.firstName || user?.fullName ||"",
+                    profielfoto: data.profielfoto || user?.imageUrl || "",
+                    displaynaam: data.displaynaam,
                     kvknr: data.kvknr,
                     btwnr: data.btwnr,
                     postcode: data.postcode,
                     huisnummer: data.huisnummer,
-                    emailadres: data.emailadres,
-                    telefoonnummer: data.telefoonnummer,
+                    emailadres: data.emailadres ||  user?.emailAddresses[0].emailAddress || "",
+                    telefoonnummer: data.telefoonnummer || getUserPhoneNumber(user) || "",
                     iban: data.iban,
                     path: data.path,
                 });
+                console.log("Submission Result:", result);
                 if (createOrganization) {
                     await createOrganization({ name: data.displaynaam });
                     setOrganizationName(data.displaynaam);
@@ -142,10 +157,11 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                 } else {
                     router.push('../dashboard');
                 }
-            } catch (error) {
+            } catch (error:any) {
                 console.error('Error processing form:', error);
+                console.log(error);
             }
-        }
+        
     };
 
     const [previousStep, setPreviousStep] = useState(0);
@@ -155,13 +171,12 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
     const next = async () => {
         const fields = steps[currentStep].fields;
         const output = await trigger(fields as (keyof Inputs)[], { shouldFocus: true });
+        console.log("Validation Output: ", output);
+        console.log(errors);
 
         if (!output) return;
 
         if (currentStep < steps.length - 1) {
-            if (currentStep === steps.length - 2) {
-                await handleSubmit(processForm)();
-            }
             setPreviousStep(currentStep);
             setCurrentStep((step) => step + 1);
         }
@@ -390,8 +405,28 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
 
                                     <div className="col-span-full">
                                         <label htmlFor="iban" className="block text-sm font-medium leading-6 text-gray-900">
+                                            BTW-ID
+                                        </label>
+                                        <p className="text-sm text-slate-400">(optioneel)</p>
+                                        <div className="mt-2">
+                                            <input
+                                                id="btwnr"
+                                                {...register('btwnr')}
+                                                type="text"
+                                                autoComplete="btwid"
+                                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            />
+                                            {errors.iban && (
+                                                <p className="text-red-500 text-sm">{errors.iban.message}</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="col-span-full">
+                                        <label htmlFor="iban" className="block text-sm font-medium leading-6 text-gray-900">
                                             IBAN
                                         </label>
+                                        <p className="text-sm text-slate-400">(optioneel)</p>
                                         <div className="mt-2">
                                             <input
                                                 id="iban"
@@ -405,6 +440,8 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                             )}
                                         </div>
                                     </div>
+
+
                                 </div>
                             </div>
                         </div>
@@ -441,7 +478,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                         )}
                                     </div>
 
-                                    <div className="col-span-full">
+                                    {/* <div className="col-span-full">
                                         <label htmlFor="profielfoto" className="block text-sm font-medium leading-6 text-gray-900">
                                             Omslagfoto
                                         </label>
@@ -459,7 +496,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                                 <p className="text-red-500 text-sm">{"errors.profielfoto.message"}</p>
                                             )}
                                         </div>
-                                    </div>
+                                    </div> */}
 
                                     <div className="col-span-full">
                                         <label htmlFor="bio" className="block text-sm font-medium leading-6 text-gray-900">
@@ -525,7 +562,6 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                     <button
                         type="submit"
                         className="rounded-md bg-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                        onClick={() => router.push("../dashboard")}
                     >
                         Voltooien
                     </button>
