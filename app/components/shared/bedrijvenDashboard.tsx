@@ -280,7 +280,7 @@ const Dashboard = () => {
             {position === 'Dashboard' && ( <Calender/> )}
             </div>
 
-
+            <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-6">
                   { position === 'Shifts' ? (
                     shift.length > 0 ? (
                       <ScrollArea>
@@ -326,7 +326,7 @@ const Dashboard = () => {
               }
 
 
-              {position === 'Flexpool' ?
+              {position === 'Flexpools' ?
               flexpool.length > 0 ? (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
@@ -336,9 +336,10 @@ const Dashboard = () => {
                   </div>
                 </ScrollArea>
               ) : (
-                <div className="lg:pl-20 h-full overflow-hidden"> Geen flexpool beschikbaar </div>
+                <div className="lg:pl-96 h-full overflow-hidden"> Geen flexpools beschikbaar </div>
               ): null 
               }
+              </div>
         </main>
 
         <aside className="fixed inset-y-0 left-20 w-full sm:w-96 sm:block hidden overflow-y-hidden border-r border-gray-200 px-4 py-6 sm:px-6 lg:px-8">

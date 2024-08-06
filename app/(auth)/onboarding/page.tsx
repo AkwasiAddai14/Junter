@@ -61,6 +61,7 @@ function Page() {
               bedrijvenID: '',
               profielfoto: '',
               naam: '',
+              displaynaam: '',
               kvknr: '',
               btwnr: '',
               postcode: '',

@@ -5,7 +5,7 @@ import React from 'react';
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, EllipsisHorizontalIcon } from '@heroicons/react/20/solid';
 import { Menu, Transition } from '@headlessui/react';
 import { useEffect, useState } from 'react';
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { format } from 'date-fns';
 import CalenderM from './CalenderM';
 import CalenderW from './CalenderW';
@@ -128,7 +128,7 @@ const Calender = () => {
             <button
               type="button"
               className="ml-6 rounded-md bg-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600"
-              onClick={() => router.push("@/app/dashboard/shift/maak")}
+              onClick={() => router.push("../dashboard/shift/maak")}
             >
               Plaats shift
             </button>
@@ -153,7 +153,7 @@ const Calender = () => {
                   <Menu.Item>
                     {({ active }) => (
                       <a
-                        href="@/app/dashboard/shift/maak"
+                        href="../dashboard/shift/maak"
                         className={classNames(
                           active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
                           'block px-4 py-2 text-sm'

@@ -295,7 +295,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                                 type="text"
                                                 autoComplete="postal-code"
                                                 placeholder=''
-                                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                className="block px-3 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                                 value={watch('postcode')}
                                                 onChange={(e) => setValue('postcode', e.target.value)}
                                             />
@@ -471,7 +471,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                             {...register('displaynaam')}
                                             type="text"
                                             autoComplete="displaynaam"
-                                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                         />
                                         {errors.displaynaam && (
                                             <p className="text-red-500 text-sm">{errors.displaynaam.message}</p>
@@ -510,7 +510,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                                 id="bio"
                                                 {...register('bio')}
                                                 rows={3}
-                                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                                className="block px-3 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                             ></textarea>
                                             {errors.bio && (
                                                 <p className="text-red-500 text-sm">{errors.bio.message}</p>
