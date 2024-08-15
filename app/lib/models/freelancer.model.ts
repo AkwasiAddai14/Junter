@@ -5,7 +5,7 @@ const freelancerSchema = new mongoose.Schema({
     voornaam: { type: String, required: true },
     tussenvoegsel: { type: String, required: false },
     achternaam: { type: String, required: true },
-    geboortedatum: { type: String, required: true },
+    geboortedatum: { type: Date, required: true },
     telefoonnummer: { type: String, required: false },
     emailadres: { type: String, required: false },
     bsn: { type: String, required: false },

@@ -5,6 +5,9 @@ import Freelancer from "../models/freelancer.model";
 import { revalidatePath } from "next/cache";
 import { SortOrder } from "mongoose";
 
+
+connectToDB();
+
 type Werkervaring = {
     bedrijf: string;
     functie: string;
@@ -51,9 +54,7 @@ type Werkervaring = {
 
 export const maakFreelancer = async (user:Freelancer) => {
     try {
-        console.log("Connecting to db..")
-        connectToDB();
-        console.log("Connected to db")
+        
         const newFreelancer = await Freelancer.create(user);
         await Freelancer.findOneAndUpdate({clerkId: user.clerkId}, {
             onboarded:true
@@ -76,7 +77,7 @@ export const maakFreelancer = async (user:Freelancer) => {
 export const updateFreelancer = async  (user: Freelancer ) => {
 
     try {
-        connectToDB();
+        
         const updatedUser = await Freelancer.findOneAndUpdate(
             { clerkId: user.clerkId },
             {
@@ -122,7 +123,7 @@ export async function verwijderFreelancer(clerkId: string): Promise<Freelancer |
 export const haalFreelancer = async  (clerkId: string) => {
     
     try {
-        connectToDB();
+        
         const freelancer = await Freelancer.findById({clerkId});
         return freelancer;
     } catch (error) {
