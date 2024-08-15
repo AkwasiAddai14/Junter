@@ -44,7 +44,7 @@ function Page() {
                 voornaam: "",
                 tussenvoegsel: "",
                 achternaam: "",
-                geboortedatum: "",
+                geboortedatum: new Date("01/01/2000"),
                 emailadres: "",
                 straat: "",
                 stad: "",
