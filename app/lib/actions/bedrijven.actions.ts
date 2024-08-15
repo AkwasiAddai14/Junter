@@ -2,6 +2,7 @@
 
 import { connectToDB} from "../mongoose";
 import Bedrijf from "../models/bedrijven.model";
+import Flexpool from "../models/flexpool.model";
 import mongoose from "mongoose";
 
 
@@ -20,10 +21,13 @@ type bedrijf = {
     path: string
 };
 
+connectToDB();
+console.log('Connected to DB');
+
 export async function maakBedrijf(organization: bedrijf) {
     try {
 
-        await connectToDB();
+       
 
         if (mongoose.connection.readyState === 1) {
             console.log("Connected to db");
@@ -47,7 +51,7 @@ export async function maakBedrijf(organization: bedrijf) {
 
 export async function updateBedrijf( organization: bedrijf)
 {
-    connectToDB();
+
 
     try {
 
@@ -130,16 +134,37 @@ export async function zoekBedrijf({
 
 export const fetchBedrijfDetails = async (bedrijvenID: string) => {
     try {
-        connectToDB();
-      const bedrijf = await Bedrijf.findById(bedrijvenID).exec();
+        
+      const bedrijf = await Bedrijf.findById(bedrijvenID);
       if (bedrijf) {
-        return bedrijf.toObject();
+        return bedrijf;
       }
       throw new Error('Bedrijf not found');
     } catch (error) {
       console.error('Error fetching bedrijf details:', error);
       throw error;
     }
+  };
+
+  export const fetchBedrijfByClerkId = async (clerkId: string) => {
+    try {
+       
+      const bedrijf = await Bedrijf.findOne({ clerkId }).populate([{ path: 'flexpools' }, { path: 'shifts' }, { path: 'facturen' }]);  // Ensure flexpools are populated
+    if (bedrijf) {
+      console.log('Found Bedrijf: ', JSON.stringify(bedrijf, null, 2));  // Log the entire bedrijf object
+      if (!bedrijf.flexpools || bedrijf.flexpools.length === 0) {
+        console.log('No flexpools found for this Bedrijf.');
+      }
+      return bedrijf;
+    } else {
+      console.log('Bedrijf not found for Clerk ID:', clerkId);
+      throw new Error('Bedrijf not found');
+    }
+  } catch (error) {
+    console.error('Error fetching bedrijf details:', error);
+    throw error;
+    }
+
   };
 
 

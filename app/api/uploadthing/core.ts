@@ -3,7 +3,7 @@
 // We're changing a few things in the middleware and configs of the file upload i.e., "media", "maxFileCount"
 
 import { currentUser } from '@clerk/nextjs/server';
-import { createUploadthing, type FileRouter } from "uploadthing/next";
+import { createUploadthing, type FileRouter } from "uploadthing/next-legacy"
 
 const f = createUploadthing();
 

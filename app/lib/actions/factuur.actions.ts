@@ -6,10 +6,10 @@ import nodemailer from 'nodemailer';
 import { Options } from 'nodemailer/lib/mailer';
 import fs from 'fs';
 import path from 'path';
-import Checkout from '../models/checkout.model';
 import Factuur from '../models/factuur.model';
 import cron from 'node-cron';
 import { connectToDB } from '../mongoose';
+import Shift from '../models/shift.model';
 
 
 
@@ -20,10 +20,10 @@ interface FactuurParams {
 export async function maakFactuur({ shiftId }: FactuurParams) {
     try {
         // Fetch checkout information
-        const checkout = await Checkout.findOne({ shift: shiftId })
+        const checkout = await Shift.findOne({ shift: shiftId })
             .populate('opdrachtgever')
             .populate('opdrachtnemer')
-            .populate('shift');
+            
 
         if (!checkout) {
             throw new Error(`Checkout not found for shift ID: ${shiftId}`);
@@ -31,11 +31,11 @@ export async function maakFactuur({ shiftId }: FactuurParams) {
 
         const opdrachtgever = checkout.opdrachtgever;
         const opdrachtnemer = checkout.opdrachtnemer;
-        const shift = checkout.shift;
-
+        
+        if (opdrachtnemer && opdrachtgever) {
         // Calculate total amount to be paid
-        const workedHours = (new Date(checkout.eindtijd).getTime() - new Date(checkout.begintijd).getTime()) / (1000 * 60 * 60) - (checkout.pauze || 0) / 60;
-        const totalAmount = workedHours * shift.uurtarief * 1.21;
+        const workedHours = (new Date(checkout.eindtijd).getTime() - new Date(checkout.begintijd).getTime()) / (1000 * 60 * 60) - (/* checkout.pauze */  30 || 0) / 60;
+        const totalAmount = workedHours * checkout.uurtarief * 1.21;
 
         // Create a PDF document
         const doc = new PDFDocument();
@@ -49,24 +49,24 @@ export async function maakFactuur({ shiftId }: FactuurParams) {
 
         doc.moveDown();
         doc.fontSize(12).text(`Opdrachtgever:`);
-        doc.text(`Naam: ${opdrachtgever.naam}`);
-        doc.text(`Adres: ${opdrachtgever.adres}`);
+        doc.text(`Naam: ${opdrachtgever.displaynaam}`);
+        doc.text(`Adres: ${opdrachtgever.straatnaam} ${opdrachtgever.huisnummer}, ${opdrachtgever.stad}`);
         doc.text(`KVK Nummer: ${opdrachtgever.kvknr}`);
 
         doc.moveDown();
         doc.text(`Opdrachtnemer:`);
-        doc.text(`Naam: ${opdrachtnemer.naam}`);
-        doc.text(`Adres: ${opdrachtnemer.adres}`);
+        doc.text(`Naam: ${opdrachtnemer.voornaam} ${opdrachtnemer.achternaam}`);
+        doc.text(`Adres: ${opdrachtnemer.straat} ${opdrachtnemer.huisnummer}, ${opdrachtnemer.stad}`);
         doc.text(`IBAN: ${opdrachtnemer.iban}`);
-        doc.text(`BTW Nummer: ${opdrachtnemer.btwnr}`);
+        doc.text(`BTW Nummer: ${opdrachtnemer.btwid}`);
 
         doc.moveDown();
         doc.text(`Shift Details:`);
-        doc.text(`Titel: ${shift.titel}`);
+        doc.text(`Titel: ${checkout.titel}`);
         doc.text(`Begintijd: ${checkout.begintijd}`);
         doc.text(`Eindtijd: ${checkout.eindtijd}`);
         doc.text(`Pauze: ${checkout.pauze || 0} minuten`);
-        doc.text(`Uurtarief: ${checkout.tarief}`)
+        doc.text(`Uurtarief: ${checkout.uurtarief}`)
         doc.text("BTW-tarief: 21%")
 
         doc.moveDown();
@@ -76,10 +76,14 @@ export async function maakFactuur({ shiftId }: FactuurParams) {
         doc.end();
 
         console.log('Invoice created successfully.');
-    } catch (error: any) {
-        throw new Error(`Failed to create invoice: ${error.message}`);
-    }
+    }  else {
+        throw new Error('Opdrachtgever or opdrachtnemer is missing, cannot create invoice.');
+    } 
+} catch (error: any) {
+    throw new Error(`Failed to create invoice: ${error.message}`);
 }
+}
+
 
 
 // Define an interface representing the document in MongoDB
@@ -108,13 +112,13 @@ export async function maakFacturen() {
         const endDate = new Date(startDate);
         endDate.setDate(startDate.getDate() + 6);
 
-        const checkouts = await Checkout.find({
+        const checkouts = await Shift.find({
             status: false,
             datum: {
                 $gte: startDate,
                 $lte: endDate
             }
-        }).populate('opdrachtgever opdrachtnemer shift');
+        }).populate('opdrachtgever opdrachtnemer');
 
         const checkoutsByBusiness: Record<string, CheckoutDoc[]> = {};
         checkouts.forEach(checkout => {
@@ -122,7 +126,7 @@ export async function maakFacturen() {
             if (!checkoutsByBusiness[bedrijfID]) {
                 checkoutsByBusiness[bedrijfID] = [];
             }
-            checkoutsByBusiness[bedrijfID].push(checkout);
+            /* checkoutsByBusiness[bedrijfID].push(checkout) */;
         });
 
         for (const bedrijfID in checkoutsByBusiness) {
@@ -141,7 +145,7 @@ export async function maakFacturen() {
             const factuur = new Factuur(factuurData);
             await factuur.save();
 
-            await Checkout.updateMany(
+            await Shift.updateMany(
                 { _id: { $in: checkoutsForBusiness.map(checkout => checkout._id) } },
                 { $set: { status: true } }
             );
@@ -165,43 +169,33 @@ export async function haalFacturen() {
     }
 }
 
-export async function haalFactuur(checkoutId: string) {
-    try {
-        // Find the factura for the given checkout ID
-        const factura = await Factuur.findOne({ checkout: checkoutId }).populate('checkout'); // Assuming the factura schema has a reference to the checkout
-
-        if (!factura) {
-            throw new Error(`Factura not found for checkout ID: ${checkoutId}`);
-        }
-
-        return factura;
-    } catch (error:any) {
-        console.error('Error retrieving factura:', error);
-        throw new Error(`Failed to retrieve factura: ${error.message}`);
-    }
-}
 
 interface VerstuurFactuurParams {
     shiftId: string;
 }
 
 export async function verstuurFactuur({ shiftId }: VerstuurFactuurParams) {
+
+// Get today's date
+const today = new Date();
+// Check if today is Friday
+if (today.getDay() === 5) { // Friday is day number 5 (0 is Sunday, 1 is Monday, ..., 6 is Saturday)
     try {
         // Generate the invoice PDF
         const filePath = await maakFactuur({ shiftId });
 
         // Fetch checkout information
-        const checkout = await Checkout.findOne({ shift: shiftId })
+        const checkout = await Shift.findOne({ shift: shiftId })
             .populate('opdrachtgever')
             .populate('opdrachtnemer')
-            .populate('shift');
+            
 
         if (!checkout) {
             throw new Error(`Checkout not found for shift ID: ${shiftId}`);
         }
 
         const opdrachtnemer = checkout.opdrachtnemer;
-        const shift = checkout.shift;
+       
 
         // Create a transporter object using the default SMTP transport
         const transporter = nodemailer.createTransport({
@@ -214,11 +208,15 @@ export async function verstuurFactuur({ shiftId }: VerstuurFactuurParams) {
             }
         });
 
+
+        if (!opdrachtnemer) {
+            throw new Error('Opdrachtnemer is missing, cannot create invoice.');
+        }
         // Adjust the mailOptions object to ensure proper typing
-const mailOptions: Options = {
+    const mailOptions: Options = {
     from: '"Your Company" <your_email@example.com>', // Replace with your email
     to: opdrachtnemer.emailadres, // Freelancer's email
-    subject: `Invoice for Shift: ${shift.titel} on ${shift.datum}`,
+    subject: `Invoice for Shift: ${checkout.titel} on ${checkout.begindatum}`,
     text: 'Please find attached the invoice for your recent shift.',
     attachments: [
         {
@@ -236,26 +234,12 @@ const mailOptions: Options = {
     } catch (error: any) {
         throw new Error(`Failed to send invoice: ${error.message}`);
     }
+  }
 }
 
-/* export async function verstuurFacturenAutomatisch() {
-    // Get today's date
-    const today = new Date();
-    // Check if today is Friday
-    if (today.getDay() === 5) { // Friday is day number 5 (0 is Sunday, 1 is Monday, ..., 6 is Saturday)
-        try {
-            // Call the function to send invoices
-            // Add any necessary logic here to determine which invoices to send
-            await verstuurFactuur({shiftId}); // Call your function to send individual invoices
-            console.log('Invoices sent successfully.');
-        } catch (error) {
-            console.error('Failed to send invoices:', error);
-            // Handle error
-        }
-    }
-}
-cron.schedule('0 12 * * 5', async () => {
-    await verstuurFacturenAutomatisch();
+
+/* cron.schedule('0 12 * * 5', async () => {
+   
 }, {
     timezone: 'Your/Timezone' // Set your timezone here
 }); */

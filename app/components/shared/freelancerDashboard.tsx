@@ -8,7 +8,7 @@ import { ScrollArea } from "@/app/components/ui/scroll-area"
 import { useUser } from "@clerk/nextjs"
 import { haalShifts } from "@/app/lib/actions/shiftArray.actions"
 import { useEffect, useState } from "react"
-import {  haalFactuur } from "@/app/lib/actions/factuur.actions"
+import {  haalFacturen } from "@/app/lib/actions/factuur.actions"
 import { haalFlexpool } from "@/app/lib/actions/flexpool.actions"
 import { haalCheckouts } from "@/app/lib/actions/checkout.actions"
 import {

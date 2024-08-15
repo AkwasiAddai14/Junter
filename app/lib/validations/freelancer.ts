@@ -15,7 +15,7 @@ export const FreelancerValidation = z.object({
     voornaam: z.string().min(1, "Voornaam is vereist!"),
     tussenvoegsel: z.string().optional(),
     achternaam: z.string().min(1, "Achternaam is vereist!"),
-    geboortedatum: z.string(),
+    geboortedatum: z.date(),
     telefoonnummer: z.string().optional(),
     emailadres: z.string().optional(),
     korregeling: z.boolean().optional(),

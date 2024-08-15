@@ -71,7 +71,7 @@ function Calendar({
   return (
     <div>
       <label>
-        <strong>Geboortedatum: </strong>
+        <strong>Selecteer datum: </strong>
       </label>
       <input
         style={{ fontSize: "inherit" }}

@@ -9,6 +9,8 @@ import Shift from "../models/shift.model";
 import ShiftArray from "../models/shiftArray.model";
 import Pauze from "@/app/lib/models/pauze.model";
 import Category from "../models/categorie.model";
+import mongoose from "mongoose";
+
 
 export type voegAangepastParams = {
   Aangepast: string
@@ -37,17 +39,27 @@ interface Params {
     adres: string;
     begindatum: Date;
     einddatum: Date;
-    begintijd: string;
-    eindtijd: string;
+    begintijd: String;
+    eindtijd: String;
     pauze?: string;
     beschrijving: string;
     vaardigheden?: string[];
     kledingsvoorschriften?: string[];
     opdrachtnemers?: string[];
     flexpoolId?: string;
+    checkoutbegintijd: String;
+    checkouteindtijd: String;
+    checkoutpauze: String;
+    feedback: string;
+    shiftArrayId: string;
+    opmerking: string;
+    ratingFreelancer: number;
+    ratingBedrijf: number;
     path: string;
+    status: string // Ensure this is provided
   }
-  
+
+
   export async function maakShift({
     opdrachtgever,
     titel,
@@ -66,18 +78,29 @@ interface Params {
     kledingsvoorschriften,
     opdrachtnemers = [],
     flexpoolId,
-    path
+    path,
+    status, 
+    checkoutbegintijd,
+    checkouteindtijd,
+    checkoutpauze,
+    feedback,
+    shiftArrayId,
+    opmerking,
+    ratingFreelancer,
+    ratingBedrijf,
   }: Params) {
     try {
+
       await connectToDB();
-  
-      const shiftArrayData: any = {
-        opdrachtgever,
+
+      const opdrachtgeverId = new mongoose.Types.ObjectId(opdrachtgever);
+      const shift = new Shift({
+        opdrachtgever: opdrachtgeverId,
         titel,
         functie,
         afbeelding,
-        uurtarief,
-        plekken,
+        uurtarief: Number(uurtarief),
+        plekken: Number(plekken),
         adres,
         begindatum,
         einddatum,
@@ -87,74 +110,44 @@ interface Params {
         beschrijving,
         vaardigheden,
         kledingsvoorschriften,
-        shifts: []
-      };
+        opdrachtnemers,
+        status,
+        shiftArrayId: "0000", // Temporary value
+        checkoutbegintijd,
+        checkouteindtijd,
+        checkoutpauze,
+        feedback,
+        opmerking,
+        ratingFreelancer,
+        ratingBedrijf,
+      });
   
-      if (flexpoolId) {
-        const flexpool = await Flexpool.findById(flexpoolId);
-        if (flexpool) {
-          shiftArrayData.flexpool = flexpool._id;
-        } else {
-          throw new Error(`Flexpool with ID ${flexpoolId} not found`);
-        }
+       const savedShift = await shift.save();
+
+    // Update shiftArrayId to be the same as the _id
+    savedShift.shiftArrayId = savedShift._id.toString();
+    await savedShift.save();
+
+    if (flexpoolId) {
+      const flexpool = await Flexpool.findById(new mongoose.Types.ObjectId(flexpoolId)); // Convert flexpoolId to ObjectId
+      if (flexpool) {
+        flexpool.shifts.push(new mongoose.Types.ObjectId(savedShift._id) as unknown as mongoose.Schema.Types.ObjectId);
+        await flexpool.save();
+      } else {
+        throw new Error(`Flexpool with ID ${flexpoolId} not found`);
+      }
       }
   
-      const shiftArray = await ShiftArray.create(shiftArrayData);
-      let createdShift = null;
-
-      for (let i = 0; i < plekken; i++) {
-        const shiftData: any = {
-          opdrachtgever,
-          titel,
-          afbeelding,
-          uurtarief,
-          plekken: 1, // Each individual shift has only one place
-          adres,
-          begindatum,
-          einddatum,
-          begintijd,
-          eindtijd,
-          pauze,
-          beschrijving,
-          vaardigheden,
-          kledingsvoorschriften,
-          beschikbaar: true,
-          inFlexpool: flexpoolId ? true : false,
-          status: 'open', // Example status, adjust as needed
-          shiftArrayId: shiftArray._id // Include the shiftArrayId
-        };
-  
-        if (opdrachtnemers.length > 0) {
-          const freelancers = await Freelancer.find({ _id: { $in: opdrachtnemers } });
-          shiftData.opdrachtnemer = freelancers.map(freelancer => freelancer._id);
-        }
-  
-        const gemaakteShift = await Shift.create(shiftData);
-        shiftArray.shifts.push(gemaakteShift._id);
-        createdShift = gemaakteShift;
-
-        await Bedrijf.findByIdAndUpdate(opdrachtgever, {
-          $push: { shifts: gemaakteShift._id }
-        });
-  
-        if (flexpoolId) {
-          await Flexpool.findByIdAndUpdate(flexpoolId, {
-            $push: { shifts: gemaakteShift._id }
-          });
-        }
-      }
-  
-      await shiftArray.save();
-      revalidatePath(path);
-      return createdShift;
-     
-    } catch (error: any) {
-      throw new Error(`Failed to create shift: ${error.message}`);
+      return savedShift;
+    } catch (error) {
+      console.error('Error creating shift:', error);
+      throw new Error('Error creating shift');
     }
   }
 
 
-export async function updateShift({
+  
+  export async function updateShift({
     opdrachtgever,
     titel,
     afbeelding,
@@ -171,71 +164,92 @@ export async function updateShift({
     kledingsvoorschriften,
     opdrachtnemers = [],
     flexpoolId,
-    path
-}: Params) {
+    path,
+    status,
+    checkoutbegintijd,
+    checkouteindtijd,
+    checkoutpauze,
+    feedback,
+    opmerking,
+    ratingFreelancer,
+    ratingBedrijf,
+  }: Params) {
     try {
-        await connectToDB();
-
-        const shiftData: any = {
-            opdrachtgever,
-            titel,
-            afbeelding,
-            uurtarief,
-            plekken,
-            adres,
-            begindatum,
-            einddatum,
-            begintijd,
-            eindtijd,
-            pauze,
-            beschrijving,
-            vaardigheden,
-            kledingsvoorschriften,
-        };
-
-        // Check if the number of opdrachtnemers (freelancers) is equal to the number of plekken (spots)
-        if (opdrachtnemers.length === plekken) {
-            shiftData.beschikbaar = false;
+      await connectToDB();
+  
+      const shiftData: any = {
+        opdrachtgever: new mongoose.Types.ObjectId(opdrachtgever),
+        titel,
+        afbeelding,
+        uurtarief: Number(uurtarief),
+        plekken: Number(plekken),
+        adres,
+        begindatum,
+        einddatum,
+        begintijd,
+        eindtijd,
+        pauze,
+        beschrijving,
+        vaardigheden,
+        kledingsvoorschriften,
+        status,
+        checkoutbegintijd,
+        checkouteindtijd,
+        checkoutpauze,
+        feedback,
+        opmerking,
+        ratingFreelancer,
+        ratingBedrijf,
+      };
+  
+      // Check if the number of opdrachtnemers (freelancers) is equal to the number of plekken (spots)
+      if (opdrachtnemers.length === plekken) {
+        shiftData.beschikbaar = false;
+      }
+  
+      if (flexpoolId) {
+        const flexpool = await Flexpool.findById(flexpoolId);
+        if (flexpool) {
+          shiftData.flexpool = flexpool._id;
+        } else {
+          throw new Error(`Flexpool with ID ${flexpoolId} not found`);
         }
-
+      }
+  
+      if (opdrachtnemers.length > 0) {
+        const freelancers = await Freelancer.find({ _id: { $in: opdrachtnemers.map(id => new mongoose.Types.ObjectId(id)) } });
+        shiftData.opdrachtnemer = freelancers.map(freelancer => freelancer._id);
+      }
+  
+      const filter = { opdrachtgever: new mongoose.Types.ObjectId(opdrachtgever), titel, begindatum, begintijd, eindtijd }; // Define the criteria to find the existing shift
+      const options = { upsert: true, new: true }; // Create a new document if none is found, and return the new document
+  
+      const updatedShift = await Shift.findOneAndUpdate(filter, shiftData, options);
+  
+      if (!updatedShift) {
+        throw new Error('Failed to update or create shift: Shift not found or created.');
+      }
+  
+      if (updatedShift.isNew) {
+        // If a new shift was created, update the relevant Bedrijf and Flexpool
+        await Bedrijf.findByIdAndUpdate(opdrachtgever, {
+          $push: { shifts: updatedShift._id },
+        });
+  
         if (flexpoolId) {
-            const flexpool = await Flexpool.findById(flexpoolId);
-            if (flexpool) {
-                shiftData.flexpools = flexpool._id;
-            } else {
-                throw new Error(`Flexpool with ID ${flexpoolId} not found`);
-            }
+          await Flexpool.findByIdAndUpdate(flexpoolId, {
+            $push: { shifts: updatedShift._id },
+          });
         }
-
-        if (opdrachtnemers.length > 0) {
-            const freelancers = await Freelancer.find({ _id: { $in: opdrachtnemers } });
-            shiftData.opdrachtnemer = freelancers.map(freelancer => freelancer._id);
-        }
-
-        const filter = { opdrachtgever, titel, begindatum, begintijd, eindtijd }; // Define the criteria to find the existing shift
-        const options = { upsert: true, new: true }; // Create a new document if none is found, and return the new document
-
-        const updatedShift = await Shift.findOneAndUpdate(filter, shiftData, options);
-
-        if (updatedShift.isNew) {
-            // If a new shift was created, update the relevant Bedrijf and Flexpool
-            await Bedrijf.findByIdAndUpdate(opdrachtgever, {
-                $push: { shifts: updatedShift._id }
-            });
-
-            if (flexpoolId) {
-                await Flexpool.findByIdAndUpdate(flexpoolId, {
-                    $push: { shifts: updatedShift._id }
-                });
-            }
-        }
-
-        revalidatePath(path);
-        return updatedShift;
+      }
+  
+      revalidatePath(path);
+      return updatedShift;
     } catch (error: any) {
-        throw new Error(`Failed to update or create shift: ${error.message}`);
+      throw new Error(`Failed to update or create shift: ${error.message}`);
     }
-};
+  }
+  
 
 interface DeleteShiftArrayParams {
     shiftArrayId: string;
@@ -530,7 +544,8 @@ export async function afrondenShift({ shiftId} :afrondenShiftParams) {
         }
 
         const now = new Date();
-        if (now <= shift.eindtijd) {
+        const eindtijd = new Date(shift.eindtijd);
+        if (now <= eindtijd) {
             return { success: false, message: 'Shift has not ended yet' };
         }
 

@@ -3,9 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
-import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
-import { haalFreelancer } from '@/app/lib/actions/freelancer.actions';
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/app/components/ui/form";
 import { Controller, useForm } from 'react-hook-form';
 import { CheckoutValidation } from "@/app/lib/validations/checkout";
@@ -13,19 +11,20 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from 'zod';
 import { Textarea } from '../ui/textarea';
 import { maakCheckout, vulCheckout } from '@/app/lib/actions/checkout.actions';
-import Dropdown from '../shared/Dropdown';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker/TimePicker';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import ReactStars from "react-rating-stars-component";
+import DropdownPauze from '../shared/DropdownPauze';
 
 
 
 export default function CheckoutCard({isVisible, onClose, shiftId} : {isVisible: boolean, onClose: any, shiftId: string}) {
     if (!isVisible) return null;
     const { control } = useForm();
-    const [begintijd, setBegintijd] = useState<Date | null>(dayjs('T15:30').toDate());
-    const [eindtijd, setEindtijd] = useState<Date | null>(dayjs('T15:30').toDate());
+    const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T08:00'));
+    const [eindtijd, setEindtijd] = useState<Dayjs | null>(dayjs('2022-04-17T16:30'));
     const [checkout, setCheckout] = useState<any>(null);
+
 
   const DefaultValues = {
    beginttijd: "",
@@ -115,7 +114,7 @@ export default function CheckoutCard({isVisible, onClose, shiftId} : {isVisible:
                             render={({ field }) => (
                               <FormItem className="w-full">
                                <FormControl>
-                                <Dropdown onChangeHandler={field.onChange} value={field.value} />
+                               <DropdownPauze onChangeHandler={field.onChange} value={field.value} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -138,12 +137,9 @@ export default function CheckoutCard({isVisible, onClose, shiftId} : {isVisible:
                   />
                   <p className="ml-3 whitespace-nowrap text-grey-600">Begintijd:</p>
                   <TimePicker
-                    label="Begintijd"
-                    /* value={field.value ? dayjs(field.value).toDate() : null} */
-                    onChange={(newValue: Date | null) => {
-                      field.onChange(newValue ? dayjs(newValue).toISOString() : null);
-                      setBegintijd(newValue);
-                    }}
+                  label="Begintijd"
+                  value={begintijd}
+                  onChange={(newValue) => setBegintijd(newValue)}
                   />
                 </div>
               </div>
@@ -165,12 +161,9 @@ export default function CheckoutCard({isVisible, onClose, shiftId} : {isVisible:
                   />
                   <p className="ml-3 whitespace-nowrap text-grey-600">Eindtijd:</p>
                   <TimePicker
-                    label="Eindtijd"
-                    /* value={field.value ? dayjs(field.value).toDate() : null} */
-                    onChange={(newValue: Date | null) => {
-                      field.onChange(newValue ? dayjs(newValue).toISOString() : null);
-                      setEindtijd(newValue);
-                    }}
+                  label="Eindtijd"
+                  value={eindtijd}
+                  onChange={(newValue) => setEindtijd(newValue)}
                   />
                 </div>
               </div>

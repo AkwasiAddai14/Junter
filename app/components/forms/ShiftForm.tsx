@@ -1,44 +1,39 @@
-"use client"
+"use client";
 
-
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm, Controller } from 'react-hook-form';
-import { Button } from "@/app/components/ui/button"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form"
-import { Input } from "@/app/components/ui/input"
-import { ShiftValidation } from "@/app/lib/validations/shift"
-import * as z from 'zod'
-
-import { Textarea } from "@/app/components/ui/textarea"
-import { FileUploader } from "@/app/components/shared/FileUploader"
-import { useEffect, useState } from "react"
-import Image from "next/image"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, Controller } from "react-hook-form";
+import { Button } from "@/app/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
+import { Input } from "@/app/components/ui/input";
+import { ShiftValidation } from "@/app/lib/validations/shift";
+import * as z from "zod";
+import { Textarea } from "@/app/components/ui/textarea";
+import { FileUploader } from "@/app/components/shared/FileUploader";
+import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
-import { useUploadThing } from '@/app/lib/uploadthing'
-
-import dayjs, { Dayjs } from 'dayjs';
-import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { useUploadThing } from "@/app/lib/uploadthing";
+import dayjs, { Dayjs } from "dayjs";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { Checkbox } from "../ui/checkbox"
-import { useRouter } from "next/navigation"
-import { maakShift, updateShift } from "@/app/lib/actions/shift.actions"
-import Shift, { ShiftType } from "@/app/lib/models/shift.model"
-import Bedrijf from '@/app/lib/models/bedrijven.model';
-import * as React from 'react';
+import { Checkbox } from "../ui/checkbox";
+import { useRouter } from "next/navigation";
+import { maakShift, updateShift } from "@/app/lib/actions/shift.actions";
+import Shift, { ShiftType } from "@/app/lib/models/shift.model";
+import * as React from "react";
 import Dropdown from "../shared/Dropdown";
-import { fetchBedrijfDetails } from "@/app/lib/actions/bedrijven.actions";
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { CheckIcon } from '@radix-ui/react-icons';
-const [checked, setChecked] = React.useState(true);
-import ReactStars from 'react-stars'
+import DropdownPauze from "../shared/DropdownPauze";
+import { fetchBedrijfByClerkId } from "@/app/lib/actions/bedrijven.actions";
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import 'dayjs/locale/nl';
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider/LocalizationProvider";
 
 
-type shiftFormProps = {
-  userId: string
-  type: "maak" | "update"
-  shift?: ShiftType,
-  shiftId?: string
-}
+type ShiftFormProps = {
+  userId: string;
+  type: "maak" | "update";
+  shift?: ShiftType;
+  shiftId?: string;
+};
 
 const DefaultValues = {
   opdrachtgever: "",
@@ -62,114 +57,128 @@ const DefaultValues = {
   inFlexpool: false,
   flexpoolId: "",
   path: "",
+  shiftArrayId: "",
+  checkoutbegintijd:"",
+    checkouteindtijd: "",
+    checkoutpauze:"",
+    feedback:"",
+    opmerking:"",
+    ratingFreelancer: "",
+    ratingBedrijf: "",
 };
 
-
-
-const ShiftForm = ( { userId, type, shift, shiftId } : shiftFormProps) => {
-  const { control } = useForm();
+const ShiftForm = ({ userId, type, shift, shiftId }: ShiftFormProps) => {
   const [files, setFiles] = useState<File[]>([]);
-  const [begintijd, setBegintijd] = useState<Date | null>(dayjs('T15:30').toDate());
-  const [eindtijd, setEindtijd] = useState<Date | null>(dayjs('T15:30').toDate());
+  const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T08:30'));
+  const [eindtijd, setEindtijd] = useState<Dayjs | null>(dayjs('2022-04-17T15:30'));
   const [isInFlexpool, setIsInFlexpool] = useState(false);
   const [bedrijfDetails, setBedrijfDetails] = useState<any>(null);
+  const router = useRouter();
+  const { startUpload } = useUploadThing("media");
+  
+
 
   useEffect(() => {
-    if (type === 'update' && shift) {
-      fetchBedrijfDetails(shift.opdrachtgever.toString()).then(details => {
-        setBedrijfDetails(details);
-      }).catch(error => {
-        console.error(error);
-      });
-    }
+    
+    fetchBedrijfByClerkId(userId ) 
+        .then((details) => {
+          setBedrijfDetails(details);
+          console.log("Bedrijf retrieved.")
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    
   }, [type, shift]);
 
-  const initialValues = shift && type === 'update' 
-    ? { 
-      ...shift.toObject(),
-      opdrachtgever: bedrijfDetails.bedrijvenID ?? "",
-      afbeelding: bedrijfDetails.profielfoto ?? "",
-      adres: `${bedrijfDetails.stad}, ${bedrijfDetails.straat} ${bedrijfDetails.huisnummer}` ?? "",
-    begindatum: new Date(shift.begindatum),
-    einddatum: new Date(shift.einddatum), 
-    }
-    : DefaultValues;
-  const router = useRouter();
+  console.log('Details:', bedrijfDetails);
 
-  const { startUpload } = useUploadThing('media')
+
+  const initialValues =
+    shift && type === "update"
+      ? {
+          ...shift.toObject(),
+          opdrachtgever: bedrijfDetails?.bedrijvenID ?? "",
+          afbeelding: bedrijfDetails?.profielfoto ?? "",
+          adres: `${bedrijfDetails?.stad}, ${bedrijfDetails?.straat} ${bedrijfDetails?.huisnummer}` ?? "",
+          begindatum: new Date(shift.begindatum),
+          einddatum: new Date(shift.einddatum),
+        }
+      : DefaultValues;
 
   const form = useForm<z.infer<typeof ShiftValidation>>({
     resolver: zodResolver(ShiftValidation),
     defaultValues: initialValues,
-  })
+  });
 
-  /* useEffect(() => {
-    if (shift && shift.inFlexpool) {
-      setIsInFlexpool(shift.inFlexpool);
-    }
-  }, [shift]); */
- 
   async function onSubmit(values: z.infer<typeof ShiftValidation>) {
     let uploadedImageUrl = values.afbeelding;
 
-    if(files.length > 0) {
-      const uploadedImages = await startUpload(files)
+    if (files.length > 0) {
+      const uploadedImages = await startUpload(files);
 
-      if(!uploadedImages) {
-        return
+      if (!uploadedImages) {
+        return;
       }
 
-      uploadedImageUrl = uploadedImages[0].url
+      uploadedImageUrl = uploadedImages[0].url;
     }
-
-    if(type === 'maak') {
+    console.log(values, userId)
+    if (type === "maak") {
       try {
-        const newshift = await maakShift(
-          {
-          opdrachtgever: bedrijfDetails.bedrijvenID,
+        const newShift = await maakShift({
+          opdrachtgever: bedrijfDetails,
           titel: values.titel,
           functie: values.functie,
-          afbeelding: bedrijfDetails.profielfoto || values.afbeelding,
-          uurtarief: values.uurtarief,
-          plekken: values.plekken,
-          adres: `${bedrijfDetails.stad}, ${bedrijfDetails.straat}, ${bedrijfDetails.huisnummer}` || values.adres,
+          afbeelding: values.afbeelding,
+          uurtarief: Number(values.uurtarief),
+          plekken: Number(values.plekken), // Convert to number
+          adres:  values.adres,
           begindatum: values.begindatum,
           einddatum: values.einddatum,
           begintijd: values.begintijd,
           eindtijd: values.eindtijd,
           pauze: values.pauze,
           beschrijving: values.beschrijving,
-          vaardigheden: values.vaardigheden ? values.vaardigheden.split(',') : [],
-          kledingsvoorschriften: values.kledingsvoorschriften ? values.kledingsvoorschriften.split(',') : [],
+          vaardigheden: values.vaardigheden ? values.vaardigheden.split(", ") : [],
+          kledingsvoorschriften: values.kledingsvoorschriften ? values.kledingsvoorschriften.split(", ") : [],
           opdrachtnemers: [],
           flexpoolId: values.flexpoolId,
-          path: '/dashboard'
-        }
-          )
+          path: "/dashboard",
+          status: "beschikbaar",
+          checkoutbegintijd:  "00:00",  // Provide a default time if not available
+          checkouteindtijd:  "00:00",  
+          checkoutpauze: "",
+          feedback: "",
+          opmerking: "",
+          shiftArrayId: "0000",
+          ratingFreelancer: 5,
+          ratingBedrijf: 5,
+        });
 
-        if(newshift) {
+        if (newShift) {
           form.reset();
-          router.push(`/shift/${newshift._id}`)
+          router.push(`/shift/${newShift._id}`);
         }
       } catch (error) {
         console.log(error);
       }
     }
 
-    if(type === 'update') {
-      if(!shiftId) {
-        router.back()
+    if (type === "update") {
+      if (!shiftId) {
+        router.back();
         return;
       }
 
       try {
-        const updatedshift = await updateShift({
+        const updatedShift = await updateShift({
           opdrachtgever: bedrijfDetails.bedrijvenID,
           titel: values.titel,
           functie: values.functie,
           afbeelding: bedrijfDetails.profielfoto || values.afbeelding,
           uurtarief: values.uurtarief,
-          plekken: values.plekken,
+          plekken: Number(values.plekken), // Convert to number
           adres: `${bedrijfDetails.stad}, ${bedrijfDetails.straat}, ${bedrijfDetails.huisnummer}` || values.adres,
           begindatum: values.begindatum,
           einddatum: values.einddatum,
@@ -177,16 +186,25 @@ const ShiftForm = ( { userId, type, shift, shiftId } : shiftFormProps) => {
           eindtijd: values.eindtijd,
           pauze: values.pauze,
           beschrijving: values.beschrijving,
-          vaardigheden: values.vaardigheden ? values.vaardigheden.split(',') : [],
-          kledingsvoorschriften: ['Dress code'],
+          vaardigheden: values.vaardigheden ? values.vaardigheden.split(",") : [],
+          kledingsvoorschriften: ["Dress code"],
           opdrachtnemers: [],
           flexpoolId: values.flexpoolId,
-          path: '/dashboard'
-        })
+          path: "/dashboard",
+          status: "beschikbaar",
+          checkoutbegintijd: "",
+          checkouteindtijd: "",
+          checkoutpauze: "",
+          feedback: "",
+          opmerking: "",
+          shiftArrayId: "0000",
+          ratingFreelancer: 5,
+          ratingBedrijf: 5,
+        });
 
-        if(updatedshift) {
+        if (updatedShift) {
           form.reset();
-          router.push(`/shift/${updatedshift._id}`)
+          router.push(`/shift/${updatedShift._id}`);
         }
       } catch (error) {
         console.log(error);
@@ -195,6 +213,7 @@ const ShiftForm = ( { userId, type, shift, shiftId } : shiftFormProps) => {
   }
 
   return (
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="nl">
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5">
         <div className="flex flex-col gap-5 md:flex-row">
@@ -203,8 +222,9 @@ const ShiftForm = ( { userId, type, shift, shiftId } : shiftFormProps) => {
             name="titel"
             render={({ field }) => (
               <FormItem className="w-full">
+                 <FormLabel className="justify-end font-semibold">Titel</FormLabel>
                 <FormControl>
-                  <Input placeholder="titel van de shift" {...field} className="input-field" />
+                  <Input placeholder="enthousiaste horecatoppers gezocht" {...field} className="input-field" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -215,47 +235,155 @@ const ShiftForm = ( { userId, type, shift, shiftId } : shiftFormProps) => {
             name="functie"
             render={({ field }) => (
               <FormItem className="w-full">
+                <FormLabel>Functie</FormLabel>
                 <FormControl>
-                  <Input placeholder="bijv: Verzorgende IG, Heftruckchaufffeur" {...field} className="input-field" />
+                  <Input placeholder="restaurantmedewerker" {...field} className="input-field" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          
         </div>
 
         <div className="flex flex-col gap-5 md:flex-row">
           <FormField
-              control={form.control}
-              name="beschrijving"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormControl className="h-72">
-                    <Textarea placeholder="Description" {...field} className="textarea rounded-2xl" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            control={form.control}
+            name="beschrijving"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormControl className="h-72">
+                  <Textarea placeholder="beschrijving" {...field} className="textarea rounded-2xl" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
-              control={form.control}
-              name="afbeelding"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormControl className="h-72">
-                    <FileUploader 
-                      onFieldChange={field.onChange}
-                      imageUrl={field.value}
-                      setFiles={setFiles}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            control={form.control}
+            name="afbeelding"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormControl className="h-72">
+                  <FileUploader onFieldChange={field.onChange} imageUrl={field.value} setFiles={setFiles} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
+        <div className="flex flex-col gap-5 md:flex-row">
+          <FormField
+            control={form.control}
+            name="adres"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormControl>
+                  <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-gray-50 px-4 py-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
+                  <path fillRule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
+                  </svg>
+                    <Input placeholder="locatie" {...field} className="input-field" />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="flex flex-col gap-5 md:flex-row">
+          <FormField
+            control={form.control}
+            name="begindatum"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormControl>
+                  <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-gray-50 px-4 py-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
+                  </svg>
+                    <p className="whitespace-nowrap text-grey-600">Begindatum:</p>
+                    <DatePicker
+                      selected={field.value}
+                      onChange={(date: Date | null) => field.onChange(date)}
+                      dateFormat="dd/MM/yyyy"
+                      wrapperClassName="datePicker"
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="einddatum"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormControl>
+                  <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-gray-50 px-4 py-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 2.994v2.25m10.5-2.25v2.25m-14.252 13.5V7.491a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v11.251m-18 0a2.25 2.25 0 0 0 2.25 2.25h13.5a2.25 2.25 0 0 0 2.25-2.25m-18 0v-7.5a2.25 2.25 0 0 1 2.25-2.25h13.5a2.25 2.25 0 0 1 2.25 2.25v7.5m-6.75-6h2.25m-9 2.25h4.5m.002-2.25h.005v.006H12v-.006Zm-.001 4.5h.006v.006h-.006v-.005Zm-2.25.001h.005v.006H9.75v-.006Zm-2.25 0h.005v.005h-.006v-.005Zm6.75-2.247h.005v.005h-.005v-.005Zm0 2.247h.006v.006h-.006v-.006Zm2.25-2.248h.006V15H16.5v-.005Z" />
+                  </svg>
+
+                    <p className="whitespace-nowrap text-grey-600">Einddatum:</p>
+                    <DatePicker
+                      selected={field.value}
+                      onChange={(date: Date | null) => field.onChange(date)}
+                      dateFormat="dd/MM/yyyy"
+                      wrapperClassName="datePicker"
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="flex flex-col gap-5 md:flex-row">
+        <Controller
+  control={form.control}
+  name="begintijd"
+  render={({ field }) => (
+    <div className="w-full">
+      <TimePicker
+        label="Begintijd"
+        value={begintijd}
+        onChange={(newValue) => {
+          console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "08:00");
+          const formattedTime = newValue ? newValue.format("HH:mm") : "08:00";
+          setBegintijd(newValue); // Update local state for display
+          field.onChange(formattedTime); // Update form state
+        }}
+      />
+    </div>
+  )}
+/>
+
+          <Controller
+            control={form.control}
+            name="eindtijd"
+            render={({ field }) => (
+              <div className="w-full">
+                <div className="">
+                <TimePicker
+          label="Eindtijd"
+          value={eindtijd}
+          onChange={(newValue) => {
+            console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "08:00");
+            const formattedTime = newValue ? newValue.format("HH:mm") : "08:00";
+            setEindtijd(newValue);
+            field.onChange(formattedTime); // Convert to ISO string
+          }}
+        />
+                </div>
+              </div>
+            )}
+          />
+        </div>
 
         <div className="flex flex-col gap-5 md:flex-row">
         <FormField
@@ -263,213 +391,83 @@ const ShiftForm = ( { userId, type, shift, shiftId } : shiftFormProps) => {
             name="pauze"
             render={({ field }) => (
               <FormItem className="w-full">
+                <FormLabel>Pauze</FormLabel>
                 <FormControl>
-                <Dropdown onChangeHandler={field.onChange} value={field.value} />
+                <div className="flex-center  h-[54px] w-full overflow-hidden rounded-full bg-gray-50 px-4 py-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6 mr-3">
+                <path fillRule="evenodd" d="M7.5 5.25a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v.205c.933.085 1.857.197 2.774.334 1.454.218 2.476 1.483 2.476 2.917v3.033c0 1.211-.734 2.352-1.936 2.752A24.726 24.726 0 0 1 12 15.75c-2.73 0-5.357-.442-7.814-1.259-1.202-.4-1.936-1.541-1.936-2.752V8.706c0-1.434 1.022-2.7 2.476-2.917A48.814 48.814 0 0 1 7.5 5.455V5.25Zm7.5 0v.09a49.488 49.488 0 0 0-6 0v-.09a1.5 1.5 0 0 1 1.5-1.5h3a1.5 1.5 0 0 1 1.5 1.5Zm-3 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clipRule="evenodd" />
+                <path d="M3 18.4v-2.796a4.3 4.3 0 0 0 .713.31A26.226 26.226 0 0 0 12 17.25c2.892 0 5.68-.468 8.287-1.335.252-.084.49-.189.713-.311V18.4c0 1.452-1.047 2.728-2.523 2.923-2.12.282-4.282.427-6.477.427a49.19 49.19 0 0 1-6.477-.427C4.047 21.128 3 19.852 3 18.4Z" />
+               </svg>
+               <DropdownPauze onChangeHandler={field.onChange} value={field.value} />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          </div>
-
-        <div className="flex flex-col gap-5 md:flex-row">
           <FormField
-              control={form.control}
-              name="adres"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormControl>
-                    <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-grey-50 px-4 py-2">
-                      <Image
-                        src="/assets/icons/location-grey.svg"
-                        alt="calendar"
-                        width={24}
-                        height={24}
-                      />
-
-                      <Input placeholder="locatie" {...field} className="input-field" />
-                    </div>
-
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-        </div>
-
-        <div className="flex flex-col gap-5 md:flex-row">
-          <FormField
-              control={form.control}
-              name="begindatum"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormControl>
-                    <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-grey-50 px-4 py-2">
-                      <Image
-                        src="/assets/icons/calendar.svg"
-                        alt="calendar"
-                        width={24}
-                        height={24}
-                        className="filter-grey"
-                      />
-                      <p className="ml-3 whitespace-nowrap text-grey-600">Begindatum:</p>
-                      <DatePicker 
-                        selected={field.value} 
-                        onChange={(date: Date | null) => field.onChange(date)} 
-                        showTimeSelect
-                        timeInputLabel="begintijd:"
-                        dateFormat="dd/MM/yyyy hh:mm "
-                        wrapperClassName="datePicker"
-                      />
-                    </div>
-
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-        
-          <FormField
-              control={form.control}
-              name="einddatum"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormControl>
-                    <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-grey-50 px-4 py-2">
-                      <Image
-                        src="/assets/icons/calendar.svg"
-                        alt="calendar"
-                        width={24}
-                        height={24}
-                        className="filter-grey"
-                      />
-                      <p className="ml-3 whitespace-nowrap text-grey-600">Einddatum:</p>
-                      <DatePicker 
-                        selected={field.value} 
-                        onChange={(date: Date | null) => field.onChange(date)} 
-                        dateFormat="dd/MM/yyyy"
-                        wrapperClassName="datePicker"
-                      />
-                    </div>
-
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-        </div>
-
-
-        <div className="flex flex-col gap-5 md:flex-row">
-        <Controller
-            control={control}
-            name="begintijd"
+            control={form.control}
+            name="uurtarief"
             render={({ field }) => (
-              <div className="w-full">
-                <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-grey-50 px-4 py-2">
-                  <Image
-                    src="/assets/icons/calendar.svg"
-                    alt="calendar"
-                    width={24}
-                    height={24}
-                    className="filter-grey"
-                  />
-                  <p className="ml-3 whitespace-nowrap text-grey-600">Begintijd:</p>
-                  <TimePicker
-                    label="Begintijd"
-                    /* value={field.value ? dayjs(field.value).toDate() : null} */
-                    onChange={(newValue: Date | null) => {
-                      field.onChange(newValue ? dayjs(newValue).toISOString() : null);
-                      setBegintijd(newValue);
-                    }}
-                  />
-                </div>
-              </div>
+              <FormItem className="w-full">
+                <FormLabel>uurtarief</FormLabel>
+                <FormControl>
+                  <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-gray-50 px-4 py-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6 mr-3">
+                  <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.902 7.098a3.75 3.75 0 0 1 3.903-.884.75.75 0 1 0 .498-1.415A5.25 5.25 0 0 0 8.005 9.75H7.5a.75.75 0 0 0 0 1.5h.054a5.281 5.281 0 0 0 0 1.5H7.5a.75.75 0 0 0 0 1.5h.505a5.25 5.25 0 0 0 6.494 2.701.75.75 0 1 0-.498-1.415 3.75 3.75 0 0 1-4.252-1.286h3.001a.75.75 0 0 0 0-1.5H9.075a3.77 3.77 0 0 1 0-1.5h3.675a.75.75 0 0 0 0-1.5h-3c.105-.14.221-.274.348-.402Z" clipRule="evenodd" />
+                  </svg>
+                    <Input
+                      type="number"
+                      placeholder="uurtarief"
+                      {...field}
+                      className="p-regular-16 border-0 bg-grey-50 outline-offset-0 focus:border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
-        
-        <Controller
-            control={control}
-            name="eindtijd"
+          <FormField
+            control={form.control}
+            name="plekken"
             render={({ field }) => (
-              <div className="w-full">
-                <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-grey-50 px-4 py-2">
-                  <Image
-                    src="/assets/icons/calendar.svg"
-                    alt="calendar"
-                    width={24}
-                    height={24}
-                    className="filter-grey"
-                  />
-                  <p className="ml-3 whitespace-nowrap text-grey-600">Eindtijd:</p>
-                  <TimePicker
-                    label="Eindtijd"
-                    /* value={field.value ? dayjs(field.value).toDate() : null} */
-                    onChange={(newValue: Date | null) => {
-                      field.onChange(newValue ? dayjs(newValue).toISOString() : null);
-                      setEindtijd(newValue);
-                    }}
-                  />
-                </div>
-              </div>
+              <FormItem className="w-full">
+                <FormLabel>Plekken</FormLabel>
+                <FormControl>
+                  <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-gray-50 px-4 py-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6 mr-3">
+                  <path d="M5.25 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM2.25 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM18.75 7.5a.75.75 0 0 0-1.5 0v2.25H15a.75.75 0 0 0 0 1.5h2.25v2.25a.75.75 0 0 0 1.5 0v-2.25H21a.75.75 0 0 0 0-1.5h-2.25V7.5Z" />
+                  </svg>
+                    <Input
+                      type="number"
+                      placeholder="Plekken"
+                      {...field}
+                      className="p-regular-16 border-0 bg-grey-50 outline-offset-0 focus:border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
           />
         </div>
 
         <div className="flex flex-col gap-5 md:flex-row">
-            <FormField
-              control={form.control}
-              name="uurtarief"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormControl>
-                    <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-grey-50 px-4 py-2">
-                      <Image
-                        src="/assets/icons/dollar.svg"
-                        alt="dollar"
-                        width={24}
-                        height={24}
-                        className="filter-grey"
-                      />
-                      <Input type="number" placeholder="uurtarief" {...field} className="p-regular-16 border-0 bg-grey-50 outline-offset-0 focus:border-0 focus-visible:ring-0 focus-visible:ring-offset-0" />
-                      </div>
-
-                      </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-              /> 
-                      <FormField
-              control={form.control}
-              name="plekken"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormControl>
-                    <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-grey-50 px-4 py-2">
-                      <Image
-                        src="/assets/icons/dollar.svg"
-                        alt="dollar"
-                        width={24}
-                        height={24}
-                        className="filter-grey"
-                      />
-                      <Input type="number" placeholder="Price" {...field} className="p-regular-16 border-0 bg-grey-50 outline-offset-0 focus:border-0 focus-visible:ring-0 focus-visible:ring-offset-0" />  
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            /> 
-            </div>  
-
-            <div className="flex flex-col gap-5 md:flex-row">
           <FormField
             control={form.control}
             name="vaardigheden"
             render={({ field }) => (
-              <FormItem className="w-full">
+              <FormItem className="w-full justify-end">
+                 <FormLabel className="justify-end font-semibold">Vaardigheden </FormLabel>
                 <FormControl>
-                  <Input placeholder="bijv: Nederlands, Engels, met 3 borden lopen, dienblad lopen, wijn presenteren, wijn inschenken, bestellingen opnemen" {...field} className="input-field" />
+                  <Input
+                    placeholder="nederlands, engels, met 3 borden lopen, dienblad lopen, wijn presenteren, wijn inschenken, bestellingen opnemen"
+                    {...field}
+                    className="input-field"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -480,18 +478,22 @@ const ShiftForm = ( { userId, type, shift, shiftId } : shiftFormProps) => {
             name="kledingsvoorschriften"
             render={({ field }) => (
               <FormItem className="w-full">
+                <FormLabel>Kledingsvoorschriften </FormLabel>
                 <FormControl>
-                  <Input placeholder="bijv: zwarte schoenen, zwarte broek/pantalon, wit overhemd" {...field} className="input-field" />
+                  <Input
+                    placeholder="zwarte schoenen, zwarte broek/pantalon, wit overhemd"
+                    {...field}
+                    className="input-field"
+                  />
                 </FormControl>
                 <FormMessage />
+               
               </FormItem>
             )}
           />
-          
         </div>
-        
 
-        <div className="flex flex-col gap-5 md:flex-row"> 
+        <div className="flex flex-col gap-5 md:flex-row">
           <FormField
             control={form.control}
             name="inFlexpool"
@@ -504,7 +506,7 @@ const ShiftForm = ( { userId, type, shift, shiftId } : shiftFormProps) => {
                     </label>
                     <Checkbox
                       onCheckedChange={(checked) => {
-                        if (typeof checked === 'boolean') {
+                        if (typeof checked === "boolean") {
                           field.onChange(checked);
                           setIsInFlexpool(checked);
                         }
@@ -518,7 +520,7 @@ const ShiftForm = ( { userId, type, shift, shiftId } : shiftFormProps) => {
                 <FormMessage />
               </FormItem>
             )}
-          />  
+          />
           {isInFlexpool && (
             <FormField
               control={form.control}
@@ -526,22 +528,12 @@ const ShiftForm = ( { userId, type, shift, shiftId } : shiftFormProps) => {
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormControl>
-                    <DropdownMenu.Root>
-                      <DropdownMenu.Trigger className="px-4 py-2 bg-gray-200 rounded">Select Flexpool</DropdownMenu.Trigger>
-                      <DropdownMenu.Portal>
-                        <DropdownMenu.Content className="bg-white shadow-lg">
-                          {bedrijfDetails?.flexpools.map((flexpool: any) => (
-                            <DropdownMenu.Item
-                              key={flexpool._id}
-                              onSelect={() => field.onChange(flexpool._id)}
-                              className={`${field.value === flexpool._id ? 'bg-gray-200' : ''} px-4 py-2 cursor-pointer`}
-                            >
-                              {flexpool.name}
-                            </DropdownMenu.Item>
-                          ))}
-                        </DropdownMenu.Content>
-                      </DropdownMenu.Portal>
-                    </DropdownMenu.Root>
+                  <Dropdown
+                    onChangeHandler={field.onChange}
+                    value={field.value}
+                    flexpools={bedrijfDetails?.flexpools || []} // Pass an array of objects
+                    userId={userId}
+                  />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -550,19 +542,12 @@ const ShiftForm = ( { userId, type, shift, shiftId } : shiftFormProps) => {
           )}
         </div>
 
-
-        <Button 
-          type="submit"
-          size="lg"
-          disabled={form.formState.isSubmitting}
-          className="button col-span-2 w-full"
-        >
-          {form.formState.isSubmitting ? (
-            'Submitting...'
-          ): `${type} shift `}
-          </Button>
+        <Button type="submit" size="lg" disabled={form.formState.isSubmitting} className="button col-span-2 w-full">
+          {form.formState.isSubmitting ? "Shift plaatsen..." : `${type} shift `}
+        </Button>
       </form>
     </Form>
+    </LocalizationProvider>
   )
 }
 

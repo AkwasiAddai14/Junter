@@ -1,24 +1,31 @@
-import mongoose from 'mongoose';
+import mongoose, { Document, Model, Schema } from 'mongoose';
 
-const flexpoolSchema = new mongoose.Schema ({
-    titel: {type: String, required: true},
-    bedrijf: 
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Bedrijven'
-        },
-    freelancers: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref:'Freelancer'
-    }],
-    shifts: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Shift'
-        }
-    ]
-})
+export interface IFlexpool extends Document {
+  _id: mongoose.Schema.Types.ObjectId;
+  titel: string;
+  bedrijf: mongoose.Schema.Types.ObjectId;
+  freelancers: mongoose.Schema.Types.ObjectId[];
+  shifts: mongoose.Schema.Types.ObjectId[];
+}
 
+const flexpoolSchema: Schema<IFlexpool> = new mongoose.Schema({
+  titel: { type: String, required: true },
+  bedrijf: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Bedrijf',
+    required: true,
+  },
+  freelancers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Freelancer',
+    default: []
+  }],
+  shifts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Shift',
+    default: []
+  }]
+});
 
-const Flexpool = mongoose.models.Flexpool || mongoose.model('Flexpool', flexpoolSchema);
+const Flexpool: Model<IFlexpool> = mongoose.models.Flexpool || mongoose.model<IFlexpool>('Flexpool', flexpoolSchema);
 export default Flexpool;

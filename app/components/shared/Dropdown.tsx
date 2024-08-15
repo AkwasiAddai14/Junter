@@ -1,12 +1,14 @@
-import React, { startTransition, useState } from 'react'
+"use client"
+
+import React, { useEffect, useState } from 'react';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-  } from "@/app/components/ui/select"
-  import {
+} from "@/app/components/ui/select";
+import {
     AlertDialog,
     AlertDialogAction,
     AlertDialogCancel,
@@ -16,74 +18,94 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-  } from "@/app/components/ui/alert-dialog"
-  import type { IPauze } from '@/app/lib/models/pauze.model'
-import { Input } from '@headlessui/react'
-import { voegAangepast } from '@/app/lib/actions/shift.actions'
+} from "@/app/components/ui/alert-dialog";
+import { Input } from '@headlessui/react';
+import { maakFlexpool, haalFlexpools } from '@/app/lib/actions/flexpool.actions';
+import { IFlexpool } from '@/app/lib/models/flexpool.model';
+import { useUser } from "@clerk/nextjs";
+import { fetchBedrijfByClerkId } from '@/app/lib/actions/bedrijven.actions';
+import mongoose from 'mongoose';
 
-  type DropdownProps = {
-    value?: string,
-    onChangeHandler? : () => void
-  }
+type Flexpool = {
+  _id: string;
+  titel: string;
+};
 
+type DropdownProps = {
+  value?: string;
+  onChangeHandler?: (value: string) => void;
+  flexpools: Flexpool[];
+  userId: string;
+};
 
-const Dropdown = ({value, onChangeHandler}: DropdownProps) => {
-     const [pauze, setPauze] = useState<IPauze[]>([])
-     const [aangepast, setAangepast] = useState('');
+const Dropdown = ({ value, onChangeHandler, flexpools, userId }: DropdownProps) => {
 
-     const voegPauzeToe = () => {
-        voegAangepast({
-          Aangepast: aangepast.trim()
-        })
-          .then((pauze) => {
-            setPauze((prevState) => [...prevState, pauze])
-          })
+    const [newFlexpoolTitle, setNewFlexpoolTitle] = useState('');
+    console.log("Flexpools:", flexpools);
+
+  
+    const voegFlexpoolToe = async () => {
+      try {
+        if (!userId) {
+          console.error("BedrijfId is not available");
+          return;
+        }
+  
+        const newFlexpool = await maakFlexpool({
+          titel: newFlexpoolTitle.trim(),
+          bedrijfId: new mongoose.Types.ObjectId(userId),
+        });
+  
+        // You should manage the flexpools state in the parent component and update it here
+        setNewFlexpoolTitle("");
+      } catch (error) {
+        console.error("Error creating flexpool:", error);
       }
+    };
 
-  return (
-    <div>
-        <Select onValueChange={onChangeHandler} defaultValue={value}>
-    <SelectTrigger className="w-[180px]">
-      <SelectValue placeholder="Pauze" />
-    </SelectTrigger>
-    <SelectContent>
+    return (
+        <div>
+            <Select onValueChange={onChangeHandler} defaultValue={value}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="flexpool" />
+                </SelectTrigger>
+                <SelectContent>
+                  
+                      {flexpools.length > 0 ? (
+                        flexpools.map((flexpool) => (
+                          <SelectItem
+                            key={flexpool._id.toString()}
+                            value={flexpool._id.toString()}
+                            className="select-item p-regular-14"
+                          >
+                            {flexpool.titel.toString()}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className='ml-8 items-center justify-center text-sm'>geen flexpools</div>
+                      )}
 
-
-      <SelectItem value="0">Geen pauze</SelectItem>
-      <SelectItem value="15">15 minuten pauze</SelectItem>
-      <SelectItem value="30">30 minuten pauze</SelectItem>
-      <SelectItem value="45">45 minuten pauze</SelectItem>
-      <SelectItem value="60">60 minuten pauze</SelectItem>
-      <SelectItem value="90">90 minuten pauze</SelectItem>
-      <SelectItem value="120">120 minuten pauze</SelectItem>
-
-      {pauze.length > 0 && pauze.map((pauze) => (
-          <SelectItem key={pauze._id} value={pauze._id} className="select-item p-regular-14">
-            {pauze.name}
-          </SelectItem>
-        ))}
-
-
-      <AlertDialog>
-          <AlertDialogTrigger className="p-medium-14 flex w-full rounded-sm py-3 pl-8 text-primary-500 hover:bg-primary-50 focus:text-primary-500">Add new category</AlertDialogTrigger>
-          <AlertDialogContent className="bg-white">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Aangepast</AlertDialogTitle>
-              <AlertDialogDescription>
-                <Input type="text" placeholder="Category name" className="input-field mt-3" onChange={(e) => setAangepast(e.target.value)} />
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Annuleer</AlertDialogCancel>
-              <AlertDialogAction onClick={() => startTransition(voegPauzeToe)}>Toevoegen</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-    </SelectContent>
-  </Select>
-  </div>
-  )
+                    <AlertDialog>
+                        <AlertDialogTrigger className="p-medium-14 flex w-full rounded-sm py-3 pl-8 text-primary-500 hover:bg-primary-50 focus:text-primary-500">
+                            Maak flexpool
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-white">
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Flexpool</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    <Input type="text" placeholder="flexpool toevoegen" className="input-field mt-3" onChange={(e) => setNewFlexpoolTitle(e.target.value)} />
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Annuleer</AlertDialogCancel>
+                                <AlertDialogAction onClick={voegFlexpoolToe}>Toevoegen</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </SelectContent>
+            </Select>
+        </div>
+    )
 }
 
-export default Dropdown
+export default Dropdown;

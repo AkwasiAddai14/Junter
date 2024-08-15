@@ -12,6 +12,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import { DatePickerForm } from '../shared/DatePicker';
+import "react-datepicker/dist/react-datepicker.css";
+import { FileUploader } from '../shared/FileUploader';
+import { useUploadThing } from '@/app/lib/uploadthing';
+import DatePicker from 'react-datepicker';
 
 
 const steps = [
@@ -30,7 +34,7 @@ interface Props {
     voornaam: string;
     tussenvoegsel: string;
     achternaam: string;
-    geboortedatum: string;
+    geboortedatum: Date;
     emailadres: string;
     straat: string;
     stad: string;
@@ -43,12 +47,14 @@ interface Props {
 }
 
 const Page: React.FC<Props> = ({ freelancer }) => {
-  const pathname = usePathname();
+  const [files, setFiles] = useState<File[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [previousStep, setPreviousStep] = useState(0);
   const [street, setStreet] = useState('');
   const [city, setCity] = useState('');
   const router = useRouter();
+  const { startUpload } = useUploadThing("media");
+  const pathname = usePathname();
   const {user, isLoaded} = useUser()
 
   const fetchAddressData = async (postcode: string, huisnummer: string) => {
@@ -120,7 +126,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       voornaam: freelancer?.voornaam || user?.firstName || user?.fullName || "",
       tussenvoegsel: freelancer?.tussenvoegsel || "",
       achternaam: freelancer?.achternaam || user?.lastName ||"",
-      geboortedatum: freelancer?.geboortedatum || "",
+      geboortedatum: freelancer?.geboortedatum || new Date("01/01/2000"),
       emailadres: freelancer?.emailadres || user?.emailAddresses[0].emailAddress || "" ,
       telefoonnummer: freelancer?.telefoonnummer || getUserPhoneNumber(user) || "",
       btwid: freelancer?.btwid || "",
@@ -142,9 +148,21 @@ const Page: React.FC<Props> = ({ freelancer }) => {
     fetchDetails();
   }, [watch('postcode'), watch('huisnummer')]);
 
-  const selectedDate = watch('geboortedatum');
+  const selectedDate = watch('geboortedatum') as Date | undefined;
 
   const processForm: SubmitHandler<Inputs> = async (data) => {
+
+    let uploadedImageUrl = data.profielfoto;
+
+    if (files.length > 0) {
+      const uploadedImages = await startUpload(files);
+
+      if (!uploadedImages) {
+        return;
+      }
+
+      uploadedImageUrl = uploadedImages[0].url;
+    }
 
     console.log("Form is submitting", data);
 
@@ -155,7 +173,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       voornaam: data.voornaam || user?.firstName || user?.fullName ||"",
       tussenvoegsel: data.tussenvoegsel || "",
       achternaam: data.achternaam || user?.lastName || "",
-      geboortedatum: data.geboortedatum || "01/01/2000",
+      geboortedatum: data.geboortedatum || new Date("01/01/2000"),
       emailadres: data.emailadres ||  user?.emailAddresses[0].emailAddress || "",
       telefoonnummer: data.telefoonnummer || getUserPhoneNumber(user) || "",
       postcode: data.postcode || "",
@@ -287,10 +305,12 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                       Geboortedatum
                     </label>
                     <div className="mt-2 sm:col-span-2 sm:mt-0">
-                        <DatePickerForm
-                          selectedDate={selectedDate}
-                          onDateChange={(date) => setValue('geboortedatum', date, { shouldDirty: true, shouldValidate: true })}
-                        />
+                    <DatePicker
+                        selected={selectedDate || null} // Assign selectedDate or null to the selected attribute
+                        onChange={(date: Date | null) => setValue('geboortedatum', date as Date, { shouldValidate: true })} // Update the form state
+                        dateFormat="dd/MM/yyyy"
+                        wrapperClassName="datePicker"
+                      />
                       {errors.geboortedatum && <p className="mt-2 text-sm text-red-600">{errors.geboortedatum.message}</p>}
                     </div>
                   </div> 
@@ -415,6 +435,22 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                   <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">
                     Jouw visitekaartje naar opdrachtgevers toe. 😁👋
                   </p>
+
+                  <div className="mt-10 space-y-8  pb-12 sm:space-y-0 sm:divide-y sm:divide-gray-900/10 sm:border-t sm:pb-0">
+                    <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+                      <label htmlFor="profielfoto" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
+                        Profielfoto
+                      </label>
+                      <div className="mt-2 sm:col-span-2 sm:mt-0">
+                      <FileUploader
+                          onFieldChange={(files) => setValue('profielfoto', files, { shouldValidate: true })}
+                          imageUrl={watch('profielfoto') || ''}
+                          setFiles={setFiles}
+                        />
+                        {errors.profielfoto && <p className="mt-2 text-sm text-red-600">{errors.profielfoto.message}</p>}
+                      </div>
+                    </div>
+                  </div>
 
                   <div className="mt-10 space-y-8  pb-12 sm:space-y-0 sm:divide-y sm:divide-gray-900/10 sm:border-t sm:pb-0">
                     <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">

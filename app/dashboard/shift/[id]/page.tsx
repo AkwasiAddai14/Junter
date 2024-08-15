@@ -1,9 +1,12 @@
+"use client"
+
 import AanmeldButton from '@/app/components/shared/AanmeldButton';
 import { AanmeldingenSectie } from '@/app/components/shared/AanmeldingenSectie';
 import Collection from '@/app/components/shared/Collection';
 import { haalShiftMetId, haalGerelateerdShiftsMetCategorie } from '@/app/lib/actions/shift.actions'
 import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
+import { currentUser } from '@clerk/nextjs/server';
 
 export type SearchParamProps = {
   params: { id: string }
@@ -35,11 +38,9 @@ const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
           height={1000}
           className="h-full min-h-[300px] object-cover object-center"
         />
-
         <div className="flex w-full flex-col gap-8 p-5 md:p-10">
           <div className="flex flex-col gap-6">
             <h2 className='h2-bold'>{shift.titel}</h2>
-
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="flex gap-3">
                 <p className="p-medium-16 rounded-full bg-grey-500/10 px-4 py-2.5 text-grey-500">
@@ -97,7 +98,7 @@ const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
     {!isOpdrachtgever ? ( <section className="wrapper my-8 flex flex-col gap-8 md:gap-12">
       <h2 className="h2-bold">Gerelateerde shifts</h2>
 
-      <Collection 
+      {/* <Collection 
           data={relatedEvents?.data}
           emptyTitle="Geen relevante shifts gevonden"
           emptyStateSubtext="Kom later nog eens terug"
@@ -105,14 +106,13 @@ const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
           limit={3}
           page={searchParams.page as string}
           totalPages={relatedEvents?.totalPages}
-        />
+        /> */}
     </section>
     ) : 
     (
     <AanmeldingenSectie shiftId={shift._id}/>
     )
   }
-    
     </>
   )
 }

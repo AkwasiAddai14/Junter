@@ -5,12 +5,21 @@ import React from 'react';
 import { DeleteConfirmation } from '@/app/components/shared/DeleteConfirmation';
 import { ShiftType } from '@/app/lib/models/shift.model';
 import { formatDateTimeF } from '@/app/lib/utils';
+import { IFlexpool } from '@/app/lib/models/flexpool.model';
+import Factuur from '@/app/lib/models/factuur.model';
+import  Checkout  from '@/app/lib/models/checkout.model';
+
 
 type CardProps = {
-  shift: ShiftType
-}
 
-const Card = ({ shift }: CardProps) => {
+  shift: ShiftType 
+  /* flexpool: IFlexpool |
+  factuur: Factuur |
+  checkout: Checkout;  */
+
+}
+/* | Checkout | Factuur | | Flexpool*/
+const Card = ({ shift,/*  flexpool, factuur, checkout  */}: CardProps) => {
   const { user } = useUser();
   const userId = user?.id as string;
   const isEventCreator = userId === shift.opdrachtgever._id.toString();

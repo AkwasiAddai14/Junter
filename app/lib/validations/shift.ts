@@ -1,9 +1,7 @@
 import * as z from 'zod';
 
 export const ShiftValidation = z.object({
-    opdrachtgever: z.string(),
-    opdrachtnemers: z.string(),
-    afbeelding: z.string().url(),
+    afbeelding: z.string(),
     titel: z.string(),
     functie: z.string(),
     uurtarief: z.number().gt(13),
@@ -17,9 +15,6 @@ export const ShiftValidation = z.object({
     beschrijving: z.string(),
     vaardigheden: z.string(),
     kledingsvoorschriften: z.string(),
-    beschikbaar: z.boolean().default(true),
-    geplubliceerd: z.boolean().default(false),
     inFlexpool: z.boolean(),
     flexpoolId: z.string(),
-    path: z.string(),
 })

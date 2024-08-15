@@ -26,7 +26,7 @@ type Werkervaring = {
     voornaam: string;
     tussenvoegsel?: string;
     achternaam: string;
-    geboortedatum: string;
+    geboortedatum: Date;
     emailadres?: string;
     telefoonnummer?: string;
     postcode: string;

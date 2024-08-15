@@ -12,6 +12,8 @@ import { useOrganizationList } from "@clerk/nextjs";
 import { maakBedrijf } from '@/app/lib/actions/bedrijven.actions';
 import { useUser } from '@clerk/nextjs';
 import { CheckIcon, UserCircleIcon } from 'lucide-react';
+import { useUploadThing } from "@/app/lib/uploadthing";
+import { FileUploader } from "@/app/components/shared/FileUploader";
 
 type Inputs = z.infer<typeof BedrijfValidation>;
 
@@ -56,6 +58,8 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
     const pathname = usePathname();
     const [kvkNummer, setKvkNummer] = useState('');
     const { isLoaded, user } = useUser();
+    const [files, setFiles] = useState<File[]>([]);
+    const { startUpload } = useUploadThing("media");
 
     const haalBedrijfsData = async (kvkNummer: string) => {
         try {
@@ -127,6 +131,19 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
     }, [kvkNummer, setValue]);
 
     const processForm: SubmitHandler<Inputs> = async (data) => {
+
+        let uploadedImageUrl = data.profielfoto;
+
+         if (files.length > 0) {
+            const uploadedImages = await startUpload(files);
+
+         if (!uploadedImages) {
+             return;
+             }
+
+      uploadedImageUrl = uploadedImages[0].url;
+    }
+
         
             console.log("Function invoked")
             console.log(data)
@@ -462,7 +479,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                 </p>
 
                                  <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                                 <div className="sm:col-span-4">
+                                 <div className="col-span-full sm:col-span-4">
                                         <label htmlFor="displaynaam" className="block text-sm font-medium leading-6 text-gray-900">
                                             Displaynaam
                                         </label>
@@ -478,25 +495,21 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                         )}
                                     </div>
 
-                                    {/* <div className="col-span-full">
-                                        <label htmlFor="profielfoto" className="block text-sm font-medium leading-6 text-gray-900">
-                                            Omslagfoto
-                                        </label>
-                                        <div className="mt-2 flex items-center">
-                                            <span className="h-12 w-12 overflow-hidden rounded-full bg-gray-100">
-                                                <UserCircleIcon className="h-full w-full text-gray-300" />
-                                            </span>
-                                            <input
-                                                id="profielfoto"
-                                                {...register('profielfoto')}
-                                                type="file"
-                                                className="ml-4 rounded-md bg-white py-2 px-3 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-                                            />
-                                            {errors.profielfoto && (
-                                                <p className="text-red-500 text-sm">{"errors.profielfoto.message"}</p>
-                                            )}
-                                        </div>
-                                    </div> */}
+                                         <div className="mt-10 space-y-8 col-span-full pb-12 sm:space-y-0 sm:divide-y sm:divide-gray-900/10 sm:border-t sm:pb-0">
+                                            <div className="sm:grid sm:grid-cols-1 sm:items-start sm:gap-4 sm:py-6">
+                                              <label htmlFor="profielfoto" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
+                                               Profielfoto
+                                              </label>
+                                              <div className="mt-2 sm:col-span-2 sm:mt-0">
+                                              <FileUploader
+                                                  onFieldChange={(files) => setValue('profielfoto', files, { shouldValidate: true })}
+                                                  imageUrl={watch('profielfoto') || ''}
+                                                  setFiles={setFiles}
+                                                />
+                                                {errors.profielfoto && <p className="mt-2 text-sm text-red-600">{errors.profielfoto.message}</p>}
+                                              </div>
+                                            </div>
+                                         </div>        
 
                                     <div className="col-span-full">
                                         <label htmlFor="bio" className="block text-sm font-medium leading-6 text-gray-900">
@@ -509,7 +522,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                                             <textarea
                                                 id="bio"
                                                 {...register('bio')}
-                                                rows={3}
+                                                rows={14}
                                                 className="block px-3 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                             ></textarea>
                                             {errors.bio && (

@@ -12,7 +12,7 @@ const factuurSchema = new mongoose.Schema({
     },
     opdrachtnemer: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Bedrijven"
+        ref: "Bedrijf"
     },
     datum: {type: Date, default: Date.now},
     tijd: {type: String, required: true},
