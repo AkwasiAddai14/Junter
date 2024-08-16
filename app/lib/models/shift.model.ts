@@ -47,9 +47,20 @@ const shiftSchema = new mongoose.Schema({
   status: { type: String, required: true }
 });
 
+interface FreelancerDetails {
+  iban: string;
+  btwid: string;
+  huisnummer: string;
+  straat: string;
+  stad: string;
+  voornaam: string;
+  achternaam: string;
+  emailadres: string;
+}
+
 export type ShiftType = Document & {
   opdrachtgever: mongoose.Types.ObjectId & { displaynaam: string; stad: string; straatnaam: string; huisnummer: string; kvknr: string; emailadres: string };
-  opdrachtnemer?: mongoose.Types.ObjectId & { iban: string; btwid: string; huisnummer: string; straat: string; stad: string; voornaam: string; achternaam: string; emailadres: string};
+  opdrachtnemer?: mongoose.Types.ObjectId | (mongoose.Types.ObjectId & FreelancerDetails);
   flexpools?: (mongoose.Types.ObjectId & { titel: string })[];
   vervangers?: mongoose.Types.ObjectId[];
   _id: string;

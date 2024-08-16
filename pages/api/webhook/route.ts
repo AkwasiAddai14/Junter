@@ -212,7 +212,7 @@ export async function POST(req: Request) {
     voornaam: string;
     achternaam: string;
     tussenvoegsel?: string;
-    geboortedatum: string;
+    geboortedatum: Date;
     kvknr?: string;
     btwid?: string;
     postcode: string;

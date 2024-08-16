@@ -7,7 +7,7 @@ import { ShiftType } from '@/app/lib/models/shift.model';
 import { formatDateTimeF } from '@/app/lib/utils';
 import { IFlexpool } from '@/app/lib/models/flexpool.model';
 import Factuur from '@/app/lib/models/factuur.model';
-import  Checkout  from '@/app/lib/models/checkout.model';
+
 
 
 type CardProps = {

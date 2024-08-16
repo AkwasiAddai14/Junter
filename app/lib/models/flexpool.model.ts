@@ -1,7 +1,6 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface IFlexpool extends Document {
-  _id: mongoose.Schema.Types.ObjectId;
   titel: string;
   bedrijf: mongoose.Schema.Types.ObjectId;
   freelancers: mongoose.Schema.Types.ObjectId[];
@@ -29,3 +28,4 @@ const flexpoolSchema: Schema<IFlexpool> = new mongoose.Schema({
 
 const Flexpool: Model<IFlexpool> = mongoose.models.Flexpool || mongoose.model<IFlexpool>('Flexpool', flexpoolSchema);
 export default Flexpool;
+

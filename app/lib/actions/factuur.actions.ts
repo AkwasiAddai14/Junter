@@ -53,12 +53,17 @@ export async function maakFactuur({ shiftId }: FactuurParams) {
         doc.text(`Adres: ${opdrachtgever.straatnaam} ${opdrachtgever.huisnummer}, ${opdrachtgever.stad}`);
         doc.text(`KVK Nummer: ${opdrachtgever.kvknr}`);
 
-        doc.moveDown();
-        doc.text(`Opdrachtnemer:`);
-        doc.text(`Naam: ${opdrachtnemer.voornaam} ${opdrachtnemer.achternaam}`);
-        doc.text(`Adres: ${opdrachtnemer.straat} ${opdrachtnemer.huisnummer}, ${opdrachtnemer.stad}`);
-        doc.text(`IBAN: ${opdrachtnemer.iban}`);
-        doc.text(`BTW Nummer: ${opdrachtnemer.btwid}`);
+        if (opdrachtnemer && 'btwid' in opdrachtnemer) {
+            doc.moveDown();
+            doc.text(`Opdrachtnemer:`);
+            doc.text(`Naam: ${opdrachtnemer.voornaam} ${opdrachtnemer.achternaam}`);
+            doc.text(`Adres: ${opdrachtnemer.straat} ${opdrachtnemer.huisnummer}, ${opdrachtnemer.stad}`);
+            doc.text(`IBAN: ${opdrachtnemer.iban}`);
+            doc.text(`BTW Nummer: ${opdrachtnemer.btwid}`);
+        } else {
+            // Handle the case where opdrachtnemer is just an ObjectId or is undefined
+            doc.text(`Opdrachtnemer information is not fully populated.`);
+        }
 
         doc.moveDown();
         doc.text(`Shift Details:`);
@@ -209,37 +214,40 @@ if (today.getDay() === 5) { // Friday is day number 5 (0 is Sunday, 1 is Monday,
         });
 
 
-        if (!opdrachtnemer) {
+        if (!opdrachtnemer ) {
             throw new Error('Opdrachtnemer is missing, cannot create invoice.');
         }
         // Adjust the mailOptions object to ensure proper typing
-    const mailOptions: Options = {
-    from: '"Your Company" <your_email@example.com>', // Replace with your email
-    to: opdrachtnemer.emailadres, // Freelancer's email
-    subject: `Invoice for Shift: ${checkout.titel} on ${checkout.begindatum}`,
-    text: 'Please find attached the invoice for your recent shift.',
-    attachments: [
-        {
-            filename: `invoice-${shiftId}.pdf`,
-            path: filePath as unknown as string, // Ensure filePath is a string
-            contentType: 'application/pdf'
-        }
-    ]
-};
+        if ('emailadres' in opdrachtnemer) {
+            // Adjust the mailOptions object to ensure proper typing
+            const mailOptions: Options = {
+                from: '"Your Company" <your_email@example.com>', // Replace with your email
+                to: opdrachtnemer.emailadres, // Freelancer's email
+                subject: `Invoice for Shift: ${checkout.titel} on ${checkout.begindatum}`,
+                text: 'Please find attached the invoice for your recent shift.',
+                attachments: [
+                    {
+                        filename: `invoice-${shiftId}.pdf`,
+                        path: filePath as unknown as string, // Ensure filePath is a string
+                        contentType: 'application/pdf'
+                    }
+                ]
+            };
 
         // Send email
         await transporter.sendMail(mailOptions);
 
         console.log('Invoice sent successfully.');
-    } catch (error: any) {
-        throw new Error(`Failed to send invoice: ${error.message}`);
+    } else {
+        throw new Error('Opdrachtnemer details are incomplete, cannot create invoice.');
     }
-  }
+} catch (error: any){
+    console.log(error)
 }
-
 
 /* cron.schedule('0 12 * * 5', async () => {
    
 }, {
     timezone: 'Your/Timezone' // Set your timezone here
 }); */
+}}

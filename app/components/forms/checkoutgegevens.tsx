@@ -13,7 +13,7 @@ import { Textarea } from '../ui/textarea';
 import { accepteerCheckout, noShowCheckout, } from '@/app/lib/actions/checkout.actions';
 import Dropdown from '../shared/Dropdown';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker/TimePicker';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import ReactStars from "react-rating-stars-component";
 
 
@@ -21,8 +21,8 @@ import ReactStars from "react-rating-stars-component";
 export default function checkoutgegevens({isVisible, onClose, shiftId} : {isVisible: boolean, onClose: any, shiftId: string}) {
     if (!isVisible) return null;
     const { control } = useForm();
-    const [begintijd, setBegintijd] = useState<Date | null>(dayjs('T15:30').toDate());
-    const [eindtijd, setEindtijd] = useState<Date | null>(dayjs('T15:30').toDate());
+    const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T15:30'));
+    const [eindtijd, setEindtijd] = useState<Dayjs | null>(dayjs('2022-04-17T15:30'));
     const [checkout, setCheckout] = useState<any>(null);
     const [accepteer, setAccepteer] = useState(true);
 
@@ -123,7 +123,7 @@ export default function checkoutgegevens({isVisible, onClose, shiftId} : {isVisi
                     render={({ field }) => (
                       <FormItem className="w-full">
                         <FormControl>
-                          <Dropdown onChangeHandler={field.onChange} value={field.value} />
+                          <Dropdown onChangeHandler={field.onChange} value={field.value} flexpools={[]} userId={''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -143,12 +143,15 @@ export default function checkoutgegevens({isVisible, onClose, shiftId} : {isVisi
                               className="filter-grey" />
                             <p className="ml-3 whitespace-nowrap text-grey-600">Begintijd:</p>
                             <TimePicker
-                              label="Begintijd"
-                              /* value={field.value ? dayjs(field.value).toDate() : null} */
-                              onChange={(newValue: Date | null) => {
-                                field.onChange(newValue ? dayjs(newValue).toISOString() : null);
-                                setBegintijd(newValue);
-                              } } />
+                               label="Begintijd"
+                               value={begintijd}
+                               onChange={(newValue) => {
+                                 console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "08:00");
+                                 const formattedTime = newValue ? newValue.format("HH:mm") : "08:00";
+                                 setBegintijd(newValue); // Update local state for display
+                                 field.onChange(formattedTime); // Update form state
+                               }}
+                              />
                           </div>
                         </div>
                       )} />
@@ -167,12 +170,15 @@ export default function checkoutgegevens({isVisible, onClose, shiftId} : {isVisi
                               className="filter-grey" />
                             <p className="ml-3 whitespace-nowrap text-grey-600">Eindtijd:</p>
                             <TimePicker
-                              label="Eindtijd"
-                              /* value={field.value ? dayjs(field.value).toDate() : null} */
-                              onChange={(newValue: Date | null) => {
-                                field.onChange(newValue ? dayjs(newValue).toISOString() : null);
-                                setEindtijd(newValue);
-                              } } />
+                               label="Eindtijd"
+                               value={eindtijd}
+                               onChange={(newValue) => {
+                                 console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "08:00");
+                                 const formattedTime = newValue ? newValue.format("HH:mm") : "08:00";
+                                 setEindtijd(newValue);
+                                 field.onChange(formattedTime); // Convert to ISO string
+                               }}
+                             />
                           </div>
                         </div>
                       )} />

@@ -1,9 +1,8 @@
 "use server"
 
 import { connectToDB} from "../mongoose";
-import Bedrijf from "../models/bedrijven.model";
-import Flexpool from "../models/flexpool.model";
 import mongoose from "mongoose";
+import Bedrijf from "../models/bedrijven.model";
 
 
 type bedrijf = {
@@ -148,8 +147,12 @@ export const fetchBedrijfDetails = async (bedrijvenID: string) => {
 
   export const fetchBedrijfByClerkId = async (clerkId: string) => {
     try {
-       
-      const bedrijf = await Bedrijf.findOne({ clerkId }).populate([{ path: 'flexpools' }, { path: 'shifts' }, { path: 'facturen' }]);  // Ensure flexpools are populated
+        console.log(mongoose.modelNames());
+        const bedrijf = await Bedrijf.findOne({ clerkId }).populate([
+            { path: 'flexpools' },
+            { path: 'shifts' },
+            { path: 'facturen' }
+          ]);  // Ensure flexpools are populated
     if (bedrijf) {
       console.log('Found Bedrijf: ', JSON.stringify(bedrijf, null, 2));  // Log the entire bedrijf object
       if (!bedrijf.flexpools || bedrijf.flexpools.length === 0) {
@@ -164,7 +167,6 @@ export const fetchBedrijfDetails = async (bedrijvenID: string) => {
     console.error('Error fetching bedrijf details:', error);
     throw error;
     }
-
   };
 
 
