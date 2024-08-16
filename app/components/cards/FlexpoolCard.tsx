@@ -1,12 +1,12 @@
 import { useUser } from '@clerk/nextjs';
 import React, { useEffect, useState } from 'react';
 import { DeleteConfirmation } from '@/app/components/shared/DeleteConfirmation';
-import { IFlexpool } from '@/app/lib/models/flexpool.model';
 import { fetchBedrijfDetails } from '@/app/lib/actions/bedrijven.actions';
+import { IFlexpool } from '@/app/lib/models/flexpool.model';
 
 
 type CardProps = {
-  flexpool: IFlexpool 
+  flexpool:  IFlexpool 
 }
 
 const Card = ({ flexpool }: CardProps) => {
