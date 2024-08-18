@@ -11,10 +11,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from 'zod';
 import { Textarea } from '../ui/textarea';
 import { accepteerCheckout, noShowCheckout, } from '@/app/lib/actions/checkout.actions';
-import Dropdown from '../shared/Dropdown';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker/TimePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import ReactStars from "react-rating-stars-component";
+import DropdownPauze from '../shared/DropdownPauze';
 
 
 
@@ -123,7 +123,7 @@ export default function checkoutgegevens({isVisible, onClose, shiftId} : {isVisi
                     render={({ field }) => (
                       <FormItem className="w-full">
                         <FormControl>
-                          <Dropdown onChangeHandler={field.onChange} value={field.value} flexpools={[]} userId={''} />
+                        <DropdownPauze onChangeHandler={field.onChange} value={field.value} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
