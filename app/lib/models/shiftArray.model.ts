@@ -5,7 +5,7 @@ export interface IShiftArray extends Document {
     opdrachtgever: mongoose.Types.ObjectId;
     aanmeldingen: mongoose.Types.ObjectId[];
     flexpools: mongoose.Types.ObjectId[];
-    shifts: (mongoose.Types.ObjectId[] | ShiftType);
+    shifts: mongoose.Types.ObjectId[] ;
     titel: string;
     functie: string;
     afbeelding: string;

@@ -2,7 +2,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { connectToDB } from '@/app/lib/mongoose';
 import { useUser } from "@clerk/nextjs"
 import { haalCheckouts } from '@/app/lib/actions/checkout.actions';
-import { useEffect } from 'react';
 
 
 

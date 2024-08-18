@@ -20,28 +20,36 @@ import {
     AlertDialogTrigger,
 } from "@/app/components/ui/alert-dialog";
 import { Input } from '@headlessui/react';
-import { maakFlexpool, haalFlexpools } from '@/app/lib/actions/flexpool.actions';
+import { haalAlleFlexpools, maakFlexpool } from '@/app/lib/actions/flexpool.actions';
 import { IFlexpool } from '@/app/lib/models/flexpool.model';
-import { useUser } from "@clerk/nextjs";
-import { fetchBedrijfByClerkId } from '@/app/lib/actions/bedrijven.actions';
 import mongoose from 'mongoose';
-
-type Flexpool = {
-  _id: string;
-  titel: string;
-};
 
 type DropdownProps = {
   value?: string;
   onChangeHandler?: (value: string) => void;
-  flexpools: Flexpool[];
+  flexpoolsList: string[];
   userId: string;
 };
 
-const Dropdown = ({ value, onChangeHandler, flexpools, userId }: DropdownProps) => {
-
+const Dropdown = ({ value, onChangeHandler, flexpoolsList, userId }: DropdownProps) => {
+    const [flexpools, setFlexpools] = useState<IFlexpool[]>([])
     const [newFlexpoolTitle, setNewFlexpoolTitle] = useState('');
     console.log("Flexpools:", flexpools);
+
+    useEffect(() => {
+      const fetchFlexpools = async () => {
+        try {
+          const fetchedFlexpools = await haalAlleFlexpools(flexpoolsList);
+          setFlexpools(fetchedFlexpools);
+        } catch (error) {
+          console.error("Error fetching flexpools:", error);
+        }
+      };
+  
+      if (flexpoolsList.length > 0) {
+        fetchFlexpools();
+      }
+    }, [flexpoolsList, userId]); 
 
   
     const voegFlexpoolToe = async () => {
@@ -50,12 +58,10 @@ const Dropdown = ({ value, onChangeHandler, flexpools, userId }: DropdownProps) 
           console.error("BedrijfId is not available");
           return;
         }
-  
-        const newFlexpool = await maakFlexpool({
+        await maakFlexpool({
           titel: newFlexpoolTitle.trim(),
           bedrijfId: new mongoose.Types.ObjectId(userId),
         });
-  
         // You should manage the flexpools state in the parent component and update it here
         setNewFlexpoolTitle("");
       } catch (error) {

@@ -131,12 +131,12 @@ export async function zoekBedrijf({
     }
 }
 
-export const fetchBedrijfDetails = async (bedrijvenID: string) => {
+export const fetchBedrijfDetails = async (clerkId: string) => {
     try {
-        
-      const bedrijf = await Bedrijf.findById(bedrijvenID);
+      connectToDB();
+      const bedrijf = await Bedrijf.findOne({ clerkId }).exec();
       if (bedrijf) {
-        return bedrijf;
+        return bedrijf.toObject();
       }
       throw new Error('Bedrijf not found');
     } catch (error) {
@@ -151,7 +151,7 @@ export const fetchBedrijfDetails = async (bedrijvenID: string) => {
         const bedrijf = await Bedrijf.findOne({ clerkId }).populate([
             { path: 'flexpools' },
             { path: 'shifts' },
-            { path: 'facturen' }
+            { path: 'facturen' },
           ]);  // Ensure flexpools are populated
     if (bedrijf) {
       console.log('Found Bedrijf: ', JSON.stringify(bedrijf, null, 2));  // Log the entire bedrijf object

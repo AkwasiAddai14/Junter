@@ -31,92 +31,116 @@ export const voegAangepast = async ({ Aangepast }: voegAangepastParams) => {
 
 
 interface Params {
-    opdrachtgever: string;
-    titel: string;
-    functie: string;
-    afbeelding: string;
-    uurtarief: number;
-    plekken: number;
-    adres: string;
-    begindatum: Date;
-    einddatum: Date;
-    begintijd: String;
-    eindtijd: String;
-    pauze?: string;
-    beschrijving: string;
-    vaardigheden?: string[];
-    kledingsvoorschriften?: string[];
-    opdrachtnemers?: string[];
-    flexpoolId?: string;
-    checkoutbegintijd: String;
-    checkouteindtijd: String;
-    checkoutpauze: String;
-    feedback: string;
-    shiftArrayId: string;
-    opmerking: string;
-    ratingFreelancer: number;
-    ratingBedrijf: number;
-    path: string;
-    status: string // Ensure this is provided
-  }
+  opdrachtgever: string;
+  titel: string;
+  functie: string;
+  afbeelding: string;
+  uurtarief: number;
+  plekken: number;
+  adres: string;
+  begindatum: Date;
+  einddatum: Date;
+  begintijd: String;
+  eindtijd: String;
+  pauze?: string;
+  beschrijving: string;
+  vaardigheden?: string[];
+  kledingsvoorschriften?: string[];
+  opdrachtnemers?: string[];
+  flexpoolId?: string;
+  checkoutbegintijd: String;
+  checkouteindtijd: String;
+  checkoutpauze: String;
+  feedback: string;
+  shiftArrayId: string;
+  opmerking: string;
+  ratingFreelancer: number;
+  ratingBedrijf: number;
+  path: string;
+  status: string; // Ensure this is provided
+}
 
+export async function maakShift({
+  opdrachtgever,
+  titel,
+  functie,
+  afbeelding,
+  uurtarief,
+  plekken,
+  adres,
+  begindatum,
+  einddatum,
+  begintijd,
+  eindtijd,
+  pauze,
+  beschrijving,
+  vaardigheden,
+  kledingsvoorschriften,
+  opdrachtnemers = [],
+  flexpoolId,
+  path,
+  status,
+  checkoutbegintijd,
+  checkouteindtijd,
+  checkoutpauze,
+  feedback,
+  shiftArrayId,
+  opmerking,
+  ratingFreelancer,
+  ratingBedrijf,
+}: Params) {
+  try {
+    await connectToDB();
 
-  export async function maakShift({
-    opdrachtgever,
-    titel,
-    functie,
-    afbeelding,
-    uurtarief,
-    plekken,
-    adres,
-    begindatum,
-    einddatum,
-    begintijd,
-    eindtijd,
-    pauze,
-    beschrijving,
-    vaardigheden,
-    kledingsvoorschriften,
-    opdrachtnemers = [],
-    flexpoolId,
-    path,
-    status, 
-    checkoutbegintijd,
-    checkouteindtijd,
-    checkoutpauze,
-    feedback,
-    shiftArrayId,
-    opmerking,
-    ratingFreelancer,
-    ratingBedrijf,
-  }: Params) {
-    try {
-      await connectToDB();
-  
-      const opdrachtgeverId = new mongoose.Types.ObjectId(opdrachtgever);
-  
-      // Generate dates between begindatum and einddatum
-      const start = dayjs(begindatum);
-      const end = dayjs(einddatum);
-      const dateRange: dayjs.Dayjs[] = [];
-      
-      for (let date = start; date.isBefore(end) || date.isSame(end, 'day'); date = date.add(1, 'day')) {
-        dateRange.push(date);
-      }
-  
-      let firstShift: ShiftType | null = null; 
+    const opdrachtgeverId = new mongoose.Types.ObjectId(opdrachtgever);
 
-      for (const date of dateRange) {
-        const dateString = date.toDate();
-  
-        // Create ShiftArray for the specific date
-        const shiftArray = new ShiftArray({
+    // Generate dates between begindatum and einddatum
+    const start = dayjs(begindatum);
+    const end = dayjs(einddatum);
+    const dateRange: dayjs.Dayjs[] = [];
+
+    for (let date = start; date.isBefore(end) || date.isSame(end, 'day'); date = date.add(1, 'day')) {
+      dateRange.push(date);
+    }
+
+    let firstShift: ShiftType | null = null;
+
+    for (const date of dateRange) {
+      const dateString = date.toDate();
+
+      // Create ShiftArray for the specific date
+      const shiftArray = new ShiftArray({
+        opdrachtgever: opdrachtgeverId,
+        titel,
+        functie,
+        afbeelding,
+        uurtarief: Number(uurtarief),
+        plekken: Number(plekken),
+        adres,
+        begindatum: dateString,
+        einddatum: dateString,
+        begintijd,
+        eindtijd,
+        pauze,
+        beschrijving,
+        vaardigheden,
+        kledingsvoorschriften,
+        opdrachtnemers,
+        status,
+        inFlexpool: !!flexpoolId,
+      });
+
+      const savedShiftArray = await shiftArray.save();
+
+      // Create 'plekken' number of Shifts for the ShiftArray and push them to the shiftArray's shifts array
+      for (let i = 0; i < plekken; i++) {
+        const shift = new Shift({
           opdrachtgever: opdrachtgeverId,
           titel,
           functie,
           afbeelding,
           uurtarief: Number(uurtarief),
-          plekken: Number(plekken),
+          plekken: 1, // Each shift has only one spot
           adres,
           begindatum: dateString,
           einddatum: dateString,
@@ -128,66 +152,50 @@ interface Params {
           kledingsvoorschriften,
           opdrachtnemers,
           status,
-          inFlexpool: !!flexpoolId,
+          shiftArrayId: savedShiftArray._id as mongoose.Types.ObjectId,
+          checkoutbegintijd,
+          checkouteindtijd,
+          checkoutpauze,
+          feedback,
+          opmerking,
+          ratingFreelancer,
+          ratingBedrijf,
         });
-  
-        const savedShiftArray = await shiftArray.save();
-  
-        // Create 'plekken' number of Shifts for the ShiftArray
-        for (let i = 0; i < plekken; i++) {
-          const shift = new Shift({
-            opdrachtgever: opdrachtgeverId,
-            titel,
-            functie,
-            afbeelding,
-            uurtarief: Number(uurtarief),
-            plekken: 1, // Each shift has only one spot
-            adres,
-            begindatum: dateString,
-            einddatum: dateString,
-            begintijd,
-            eindtijd,
-            pauze,
-            beschrijving,
-            vaardigheden,
-            kledingsvoorschriften,
-            opdrachtnemers,
-            status,
-            shiftArrayId: savedShiftArray._id as mongoose.Types.ObjectId,
-            checkoutbegintijd,
-            checkouteindtijd,
-            checkoutpauze,
-            feedback,
-            opmerking,
-            ratingFreelancer,
-            ratingBedrijf,
-          });
-  
-          const savedShift = await shift.save();
 
-          if (!firstShift) {
-            firstShift = savedShift;
-          }
-        }
-  
-        // If a flexpoolId is provided, add the ShiftArray to the Flexpool
-        if (flexpoolId) {
-          const flexpool = await Flexpool.findById(new mongoose.Types.ObjectId(flexpoolId));
-          if (flexpool) {
-            flexpool.shifts.push(savedShiftArray._id as Schema.Types.ObjectId);
-            await flexpool.save();
-          } else {
-            throw new Error(`Flexpool with ID ${flexpoolId} not found`);
-          }
+        const savedShift = await shift.save();
+        savedShiftArray.shifts.push(savedShift._id as unknown as mongoose.Types.ObjectId);
+
+        if (!firstShift) {
+          firstShift = savedShift;
         }
       }
-      return firstShift;
-      
-    } catch (error) {
-      console.error('Error creating shift:', error);
-      throw new Error('Error creating shift');
+
+      await savedShiftArray.save();
+
+      // Push the saved ShiftArray into the Bedrijf's shifts array
+      await Bedrijf.findByIdAndUpdate(opdrachtgeverId, {
+        $push: { shifts: savedShiftArray._id },
+      });
+
+      // If a flexpoolId is provided, add the ShiftArray to the Flexpool
+      if (flexpoolId) {
+        const flexpool = await Flexpool.findById(new mongoose.Types.ObjectId(flexpoolId));
+        if (flexpool) {
+          // Ensure correct typing
+          flexpool.shifts.push(savedShiftArray._id as mongoose.Schema.Types.ObjectId);
+          await flexpool.save();
+        } else {
+          throw new Error(`Flexpool with ID ${flexpoolId} not found`);
+        }
+      }
     }
+
+    return true; // Return the first shift created
+  } catch (error) {
+    console.error('Error creating shift:', error);
+    throw new Error('Error creating shift');
   }
+}
 
 
   
