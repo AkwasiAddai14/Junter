@@ -47,8 +47,8 @@ const DefaultValues = {
   begindatum: new Date(),
   einddatum: new Date(),
   adres: "",
-  begintijd: "",
-  eindtijd: "",
+  begintijd: "08:00",  // Ensure initial state is passed as default
+  eindtijd: "16:30",
   pauze: "",
   plekken: 1,
   beschrijving: "",
@@ -71,51 +71,48 @@ const DefaultValues = {
 
 const ShiftForm = ({ userId, type, shift, shiftId }: ShiftFormProps) => {
   const [files, setFiles] = useState<File[]>([]);
-  const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T08:30'));
-  const [eindtijd, setEindtijd] = useState<Dayjs | null>(dayjs('2022-04-17T15:30'));
+  const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T08:00'));
+  const [eindtijd, setEindtijd] = useState<Dayjs | null>(dayjs('2022-04-17T16:30'));
   const [flexpools, setFlexpools] = useState<IFlexpool[]>([]);
   const [isInFlexpool, setIsInFlexpool] = useState(false);
   const [bedrijfDetails, setBedrijfDetails] = useState<any>(null);
   const router = useRouter();
   const { startUpload } = useUploadThing("media");
   
-
-
+  
   useEffect(() => {
-    fetchBedrijfDetails(userId ) 
-        .then((details) => {
-          setBedrijfDetails(details);
-          console.log("Bedrijf retrieved.")
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-  }, [type, shift]);
+    fetchBedrijfDetails(userId)
+      .then((details) => {
+        setBedrijfDetails(details);
+        console.log("Bedrijf retrieved.");
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, [userId, type, shift]);
 
   useEffect(() => {
     const getFlexpools = async () => {
-        if (userId) {
-            try {
-                const fetchedFlexpools = await haalFlexpools(userId);
-                setFlexpools(fetchedFlexpools);
-            } catch (error) {
-                console.error('Error fetching flexpools:', error);
-            }
+      if (bedrijfDetails && bedrijfDetails._id) {
+        try {
+          const fetchedFlexpools = await haalFlexpools(bedrijfDetails._id);
+          setFlexpools(fetchedFlexpools);
+        } catch (error) {
+          console.error("Error fetching flexpools:", error);
         }
+      }
     };
 
     getFlexpools();
-}, [userId]);
+  }, [bedrijfDetails]);
 
-  console.log('Details:', bedrijfDetails);
-  console.log("Flexpools: ", flexpools);
-  console.log("Flexpools: ", bedrijfDetails.flexpools)
+  
 
   const initialValues =
     shift && type === "update"
       ? {
           ...shift.toObject(),
-          opdrachtgever: bedrijfDetails?.bedrijvenID ?? "",
+          opdrachtgever: bedrijfDetails?._id ?? "",
           afbeelding: bedrijfDetails?.profielfoto ?? "",
           adres: `${bedrijfDetails?.stad}, ${bedrijfDetails?.straat} ${bedrijfDetails?.huisnummer}` ?? "",
           begindatum: new Date(shift.begindatum),
@@ -144,7 +141,7 @@ const ShiftForm = ({ userId, type, shift, shiftId }: ShiftFormProps) => {
     if (type === "maak") {
       try {
         const newShift = await maakShift({
-          opdrachtgever: bedrijfDetails,
+          opdrachtgever: bedrijfDetails._id,
           titel: values.titel,
           functie: values.functie,
           afbeelding: values.afbeelding,
@@ -190,7 +187,7 @@ const ShiftForm = ({ userId, type, shift, shiftId }: ShiftFormProps) => {
 
       try {
         const updatedShift = await updateShift({
-          opdrachtgever: bedrijfDetails.bedrijvenID,
+          opdrachtgever: bedrijfDetails._id,
           titel: values.titel,
           functie: values.functie,
           afbeelding: bedrijfDetails.profielfoto || values.afbeelding,
@@ -228,8 +225,10 @@ const ShiftForm = ({ userId, type, shift, shiftId }: ShiftFormProps) => {
       }
     }
   }
-  const adres = `${bedrijfDetails.straat} ${bedrijfDetails.huisnummer}, ${bedrijfDetails.stad}` || "locatie"
 
+  const adres = bedrijfDetails
+  ? `${bedrijfDetails.straat || ""} ${bedrijfDetails.huisnummer || ""}, ${bedrijfDetails.stad || ""}`
+  : "locatie";
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="nl">
@@ -254,9 +253,9 @@ const ShiftForm = ({ userId, type, shift, shiftId }: ShiftFormProps) => {
             name="functie"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormLabel>Functie</FormLabel>
+                <FormLabel>Categorie</FormLabel>
                 <FormControl>
-                  <Input placeholder="restaurantmedewerker" {...field} className="input-field" />
+                  <Input placeholder="Bediening" {...field} className="input-field" />
                 </FormControl>
                 <FormMessage />
               </FormItem>

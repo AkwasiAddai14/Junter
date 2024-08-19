@@ -4,6 +4,7 @@ import { connectToDB } from "../mongoose";
 import Shift from '../models/shift.model';
 import Bedrijf from "../models/bedrijven.model";
 import Freelancer from "../models/freelancer.model";
+import mongoose from "mongoose";
 
 export const maakCheckout = async ({shiftId} : {shiftId: string}) => {
   try {
@@ -176,12 +177,14 @@ export const noShowCheckout = async ({ shiftId }: { shiftId: string }) =>{
     }
 };
 
-export const haalCheckouts = async (freelancerId: string) => {
+export const haalCheckouts = async (userId: string) => {
     try {
         await connectToDB();
-
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            throw new Error('Invalid freelancer ID');
+          }
         // Vind de checkouts voor de specifieke freelancer
-        const checkouts = await Shift.find({ opdrachtnemer: freelancerId })
+        const checkouts = await Shift.find({ opdrachtnemer: userId })
             .populate('opdrachtgever')
             .populate('shift');
 

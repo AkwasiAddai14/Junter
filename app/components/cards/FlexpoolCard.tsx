@@ -36,7 +36,7 @@ const Card = ({ flexpool }: CardProps) => {
      />
       
       {isEventCreator && (
-          <DeleteConfirmation shiftId={flexpool._id.toString()} /> //**** */
+          <DeleteConfirmation shiftId={flexpool._id as string} /> //**** */
       )}
 
       <div className="flex min-h-[230px] flex-col gap-3 p-5 md:gap-4">

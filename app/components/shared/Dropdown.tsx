@@ -34,7 +34,6 @@ type DropdownProps = {
 const Dropdown = ({ value, onChangeHandler, flexpoolsList, userId }: DropdownProps) => {
     const [flexpools, setFlexpools] = useState<IFlexpool[]>([])
     const [newFlexpoolTitle, setNewFlexpoolTitle] = useState('');
-    console.log("Flexpools:", flexpools);
 
     useEffect(() => {
       const fetchFlexpools = async () => {
@@ -78,10 +77,10 @@ const Dropdown = ({ value, onChangeHandler, flexpoolsList, userId }: DropdownPro
                 <SelectContent>
                   
                       {flexpools.length > 0 ? (
-                        flexpools.map((flexpool) => (
+                        flexpools.map((flexpool: IFlexpool) => (
                           <SelectItem
-                            key={flexpool._id.toString()}
-                            value={flexpool._id.toString()}
+                            key={flexpool._id as string}
+                            value={flexpool._id as string}
                             className="select-item p-regular-14"
                           >
                             {flexpool.titel.toString()}

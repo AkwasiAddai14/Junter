@@ -14,20 +14,20 @@ type bedrijf = {
     btwnr: string,
     postcode: string,
     huisnummer: string,
+    stad: string,
+    straat: string,
     emailadres: string,
     telefoonnummer: string,
     iban: string,
     path: string
 };
 
-connectToDB();
-console.log('Connected to DB');
+
+
 
 export async function maakBedrijf(organization: bedrijf) {
     try {
-
-       
-
+        await connectToDB();
         if (mongoose.connection.readyState === 1) {
             console.log("Connected to db");
         } else {
@@ -53,8 +53,7 @@ export async function updateBedrijf( organization: bedrijf)
 
 
     try {
-
-        connectToDB();
+        await connectToDB();
         const newBedrijf = await Bedrijf.create(organization);
         return JSON.parse(JSON.stringify(newBedrijf))
         } 
@@ -65,7 +64,7 @@ export async function updateBedrijf( organization: bedrijf)
 
 export async function verwijderBedrijf(organization: bedrijf) {
     try {
-        connectToDB();
+        await connectToDB();
         const deletedBedrijf = await Bedrijf.findOneAndDelete(organization);
 
         if (!deletedBedrijf) {
@@ -94,6 +93,7 @@ export async function zoekBedrijf({
 }) {
     try {
         // Build the query object
+        await connectToDB()
         const query: any = { clerkId };
 
         if (searchString) {
@@ -133,7 +133,7 @@ export async function zoekBedrijf({
 
 export const fetchBedrijfDetails = async (clerkId: string) => {
     try {
-      connectToDB();
+      await connectToDB();
       const bedrijf = await Bedrijf.findOne({ clerkId }).exec();
       if (bedrijf) {
         return bedrijf.toObject();
@@ -147,6 +147,7 @@ export const fetchBedrijfDetails = async (clerkId: string) => {
 
   export const fetchBedrijfByClerkId = async (clerkId: string) => {
     try {
+        await connectToDB()
         console.log(mongoose.modelNames());
         const bedrijf = await Bedrijf.findOne({ clerkId }).populate([
             { path: 'flexpools' },

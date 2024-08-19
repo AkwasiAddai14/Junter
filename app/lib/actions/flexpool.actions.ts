@@ -7,7 +7,7 @@ import Freelancer from "../models/freelancer.model";
 import mongoose from "mongoose";
 
 
-connectToDB();
+
 
 export async function maakFlexpool({
   bedrijfId,
@@ -22,6 +22,7 @@ export async function maakFlexpool({
 }) {
   try {
     // Create a new Flexpool instance
+    await connectToDB();
     const newFlexpool = new Flexpool({
       titel,
       bedrijf: bedrijfId,
@@ -56,7 +57,7 @@ export async function voegAanFlexpool({
     freelancerId: mongoose.Types.ObjectId
 }){
     try {
-
+      await connectToDB()
         const flexpool = await Flexpool.findById(flexpoolId);
     if (!flexpool) {
       throw new Error("Flexpool not found");
@@ -92,7 +93,7 @@ export const verwijderUitFlexpool = async ({
     freelancerId: mongoose.Types.ObjectId;
   }) => {
     try {
-     
+     await connectToDB()
       // Find the Flexpool to ensure it exists
       const flexpool = await Flexpool.findById(flexpoolId);
       if (!flexpool) {
@@ -117,7 +118,7 @@ export const verwijderUitFlexpool = async ({
 
 export const verwijderFlexpool = async (flexpoolId: mongoose.Types.ObjectId) => {
     try {
-       
+       await connectToDB()
         // Find the flexpool
         const flexpool = await Flexpool.findById(flexpoolId);
         if (!flexpool) {
@@ -135,9 +136,9 @@ export const verwijderFlexpool = async (flexpoolId: mongoose.Types.ObjectId) => 
     }
 };
 
-/* export const haalFlexpool = async (freelancerId: string) => {
+export const haalFlexpool = async (freelancerId: string) => {
     try {
-      
+      await connectToDB();
         // Zoek de freelancer op basis van het gegeven ID
         const freelancer = await Freelancer.findById(freelancerId).populate('flexpools');
 
@@ -151,7 +152,7 @@ export const verwijderFlexpool = async (flexpoolId: mongoose.Types.ObjectId) => 
         console.error('Error fetching flexpools:', error);
         throw new Error('Failed to fetch flexpools');
     }
-}; */
+};
 
 
 export const haalFlexpools = async (clerkId: string): Promise<IFlexpool[]> => {
@@ -178,7 +179,7 @@ export const haalFlexpools = async (clerkId: string): Promise<IFlexpool[]> => {
   }
 };
 
-export const haalFlexpool = async (userId: string) => {
+/* export const haalFlexpool = async (userId: string) => {
   try {
       const response = await fetch(`/api/flexpool/${userId}`);
       const data = await response.json();
@@ -188,12 +189,11 @@ export const haalFlexpool = async (userId: string) => {
       console.error("Error in haalFlexpool:", error);
       throw error;
   }
-};
+}; */
 
 export const haalAlleFlexpools = async (objectIds: string[]): Promise<IFlexpool[]> => {
   try {
-    console.log("Flexpool IDs: ", objectIds);
-
+    await connectToDB()
     // Fetch all Flexpools matching the given array of IDs
     const flexpools: IFlexpool[] = await Flexpool.find({ _id: { $in: objectIds } });
 

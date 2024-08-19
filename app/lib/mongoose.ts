@@ -1,5 +1,11 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import Freelancer from './models/freelancer.model';
+import Shift from './models/shift.model';
+import Factuur from './models/factuur.model';
+import ShiftArray from './models/shiftArray.model';
+import Flexpool from './models/flexpool.model';
+
 
 // Load environment variables from .env file
 dotenv.config();

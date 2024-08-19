@@ -66,6 +66,8 @@ function Page() {
               btwnr: '',
               postcode: '',
               huisnummer: '',
+              straat: '',
+              stad: '',
               telefoonnummer: '',
               emailadres: '',
               iban: '',

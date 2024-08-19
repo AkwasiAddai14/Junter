@@ -17,14 +17,21 @@ import React from 'react';
 import Image from 'next/image';
 import Calender from './Calender';
 import UitlogModal from './UitlogModal';
-import ShiftCard from '../cards/ShiftCard';
+import Shift from '@/app/lib/models/shift.model';
+import Factuur from '@/app/lib/models/factuur.model';
+import Freelancer from '@/app/lib/models/freelancer.model';
+import ShiftArray from '@/app/lib/models/shiftArray.model';
+import Flexpool from '@/app/lib/models/flexpool.model';
+import { fetchBedrijfByClerkId } from "@/app/lib/actions/bedrijven.actions";
+import { IShiftArray } from '@/app/lib/models/shiftArray.model';
 import { haalCheckouts } from '@/app/lib/actions/checkout.actions';
 import { haalFlexpools } from "@/app/lib/actions/flexpool.actions";
-import   { IFlexpool }   from "@/app/lib/models/flexpool.model";
-import { fetchBedrijfByClerkId } from "@/app/lib/actions/bedrijven.actions";
-import { haalShifts } from '@/app/lib/actions/shiftArray.actions';
+import { haalGeplaatsteShifts } from '@/app/lib/actions/shiftArray.actions';
+import ShiftCard from '../cards/ShiftCard';
 import FlexpoolCard from '../cards/FlexpoolCard';
 import CheckoutCard from '../cards/CheckoutCard';
+import { ShiftType } from '@/app/lib/models/shift.model';
+import { haalFacturen } from '@/app/lib/actions/factuur.actions';
 
 
 
@@ -45,14 +52,15 @@ function classNames(...classes: string[]) {
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { isLoaded, user } = useUser();
-  const [position, setPosition] = React.useState("Dashboard");
+  const [position, setPosition] = useState("Dashboard");
   const [shift, setShift] = useState<any[]>([])
   const [factuur, setFactuur] = useState<any[]>([])
   const [checkout, setCheckout] = useState<any[]>([])
+  const [flexpool, setFlexpool] = useState<any[]>([])
   const [profilePhoto, setProfilePhoto] = useState("");
   const [fullName, setFullName] = useState<string | null>(null);
   const [showLogOut, setShowLogOut] = useState(false);
-  const [flexpools, setFlexpools] = useState<IFlexpool[]>([]);
+  const [bedrijfiD, setBedrijfiD] = useState<string>("")
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -62,56 +70,68 @@ const Dashboard = () => {
   }, [isLoaded, user]);
 
 
-/*    useEffect(() => {
-    const fetchShift = async () => {
-      try {
-        const fetchedShift = await haalShifts();
-        setShift(fetchedShift);
-      } catch (error) {
-        console.error('Error fetching shifts:', error);
+useEffect(() => {
+  const getBedrijfId = async () => {
+    try {
+      const bedrijf = await fetchBedrijfByClerkId(user!.id);
+      if (bedrijf && bedrijf._id) {
+        setBedrijfiD(bedrijf._id.toString())
+        const fetchedFlexpools = await haalFlexpools(bedrijfiD);
+        setFlexpool(fetchedFlexpools);
       }
-    };
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+  getBedrijfId();
+}, [user]);    
 
-    fetchShift();
-  }, []); */
+  
+useEffect(() => {
+  const fetchShift = async (bedrijfId: string) => {
+    try {
+      const fetchedShift = await haalGeplaatsteShifts({ bedrijfId });
 
-   useEffect(() => {
-    const getBedrijfId = async () => {
-      try {
-        const bedrijf = await fetchBedrijfByClerkId(user!.id);
-        if (bedrijf && bedrijf._id) {
-          const fetchedFlexpools = await haalFlexpools(bedrijf._id.toString());
-          setFlexpools(fetchedFlexpools);
-        }
-      } catch (error) {
-        console.error("Error:", error);
+      if (fetchedShift) {
+        setShift([fetchedShift]); // Wrap the single shift in an array
+        console.log(shift)
+      } else {
+        setShift([]); // Set to an empty array if no shift is found
       }
-    };
-    getBedrijfId();
-  }, [user]);    
+    } catch (error) {
+      console.error('Error fetching shifts:', error);
+      setShift([]); // Handle error by setting to an empty array
+    }
+  };
 
-/*   useEffect(() => {
-    const fetchCheckout = async () => {
-      try {
-        if (user?.id) {
-          const fetchedCheckout = await haalCheckouts(user.id);
-          setCheckout(fetchedCheckout);
-      }
-      } catch (error) {
-        console.error('Error fetching shifts:', error);
-      }
-    };
+  if (bedrijfiD) {
+    fetchShift(bedrijfiD); // Pass bedrijfId to fetchShift
+  }
+}, [bedrijfiD]); // Add bedrijfId to the dependency array
 
-    fetchCheckout();
-  }, []);  */ 
-/* 
+useEffect(() => {
+  const fetchCheckout = async () => {
+    try {
+      if (bedrijfiD) {
+        const fetchedCheckout = await haalCheckouts(bedrijfiD);
+        setCheckout(fetchedCheckout); // Set the fetched checkouts to state
+        console.log(checkout)
+      }
+    } catch (error) {
+      console.error('Error fetching checkouts:', error);
+    }
+  };
+
+  fetchCheckout();
+}, [bedrijfiD]); // Add user.id to the dependency array  
+
    useEffect(() => {
     const fetchFactuur = async () => {
         try {
             if (checkout && checkout.length > 0) {
-                // Voorbeeld: Haal de factuur op voor de eerste checkout in de lijst
-                const fetchedFactuur = await haalFactuur(checkout[0].id);
+                const fetchedFactuur = await haalFacturen();
                 setFactuur(fetchedFactuur);
+                console.log(factuur)
             }
         } catch (error) {
             console.error('Error fetching factuur:', error);
@@ -119,7 +139,7 @@ const Dashboard = () => {
     };
 
     fetchFactuur();
-}, [checkout]); // Voeg `checkout` toe aan de dependency array  */ 
+}, [checkout]); // Voeg `checkout` toe aan de dependency array  
 
 
   return (
@@ -322,16 +342,16 @@ const Dashboard = () => {
 
 
               {position === 'Flexpools' ?
-              flexpools.length > 0 ? (
+              flexpool.length > 0 ? (
                 <ScrollArea>
                   <div className="grid grid-cols-3 gap-4">
-                    {flexpools.slice(0, 9).map((flexpoolItem, index) => (
+                    {flexpool.slice(0, 9).map((flexpoolItem, index) => (
                       <FlexpoolCard key={index} flexpool={flexpoolItem} />
                     ))}
                   </div>
                 </ScrollArea>
               ) : (
-                <div className="lg:pl-96 h-full overflow-hidden"> Geen flexpools </div>
+                <div className="lg:pl-96 h-full overflow-hidden"> Geen flexpools beschikbaar </div>
               ): null 
               }
               </div>
@@ -348,7 +368,7 @@ const Dashboard = () => {
                   {shift.map((shiftItem, index) => (
                     <li key={index} className="col-span-1 flex rounded-md shadow-sm">
                       <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white">
-                        {shiftItem.datum}, {shiftItem.begintijd} - {shiftItem.eindtijd}
+                        {shiftItem.begindatum.toLocaleDateString()}, {shiftItem.begintijd} - {shiftItem.eindtijd}
                       </div>
                       <div className="flex flex-1 items-center justify-between truncate rounded-r-md border-b border-r border-t border-gray-200 bg-white">
                         <div className="flex-1 truncate px-4 py-2 text-sm">
@@ -390,7 +410,7 @@ const Dashboard = () => {
               </div>
               <div className="flex-grow overflow-hidden">
                 <ScrollArea>
-                  {flexpools.map((flexpoolItem, index) => (
+                  {flexpool.map((flexpoolItem, index) => (
                     <li key={index} className="col-span-1 flex rounded-md shadow-sm">
                       <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white">
                         {flexpoolItem.freelancers?.length} freelancer
@@ -413,5 +433,6 @@ const Dashboard = () => {
     </Fragment>
   )
 }
+
 
 export default Dashboard

@@ -66,6 +66,8 @@ export async function POST(req: Request) {
     btwnr: string | "",
     postcode: string | "",
     huisnummer: string | "",
+    stad: string | "",
+    straat: string | "",
     emailadres: string | "",
     telefoonnummer: string | "",
     iban: string | "",
@@ -75,7 +77,7 @@ export async function POST(req: Request) {
   const eventType = evt.type;
 
   if(eventType === 'organization.created'){
-    const { id, profielfoto, naam, kvknr, btwnr, postcode, huisnummer, emailadres, telefoonnummer, displaynaam, iban, path} = evt.data as Bedrijf
+    const { id, profielfoto, naam, kvknr, btwnr, postcode, huisnummer, stad, straat, emailadres, telefoonnummer, displaynaam, iban, path} = evt.data as Bedrijf
     const organization = {
         clerkId: id,
         profielfoto: profielfoto,
@@ -85,6 +87,8 @@ export async function POST(req: Request) {
         btwnr: btwnr,
         postcode: postcode,
         huisnummer: huisnummer,
+        stad: stad,
+        straat: straat,
         emailadres: emailadres,
         telefoonnummer: telefoonnummer,
         iban: iban,
@@ -101,6 +105,8 @@ export async function POST(req: Request) {
                 telefoonnummer,
                 postcode,
                 huisnummer,
+                stad,
+                straat,
                 btwnr,
                 kvknr,
                 iban,
@@ -114,7 +120,7 @@ export async function POST(req: Request) {
 
 
   if(eventType === 'organization.updated'){
-    const { id, profielfoto, naam, kvknr, btwnr, postcode, huisnummer, emailadres, telefoonnummer, displaynaam, iban, path} = evt.data as Bedrijf
+    const { id, profielfoto, naam, kvknr, btwnr, postcode, huisnummer, straat, stad, emailadres, telefoonnummer, displaynaam, iban, path} = evt.data as Bedrijf
     const organization = {
         clerkId: id,
         profielfoto: profielfoto,
@@ -124,6 +130,8 @@ export async function POST(req: Request) {
         displaynaam: displaynaam,
         postcode: postcode,
         huisnummer: huisnummer,
+        stad: stad,
+        straat: straat,
         emailadres: emailadres,
         telefoonnummer: telefoonnummer,
         iban: iban,
@@ -140,6 +148,8 @@ export async function POST(req: Request) {
                 telefoonnummer,
                 postcode,
                 huisnummer,
+                stad,
+                straat,
                 btwnr,
                 kvknr,
                 iban,
@@ -153,7 +163,7 @@ export async function POST(req: Request) {
 
 
   if(eventType === 'organization.deleted'){
-    const { id, profielfoto, naam, kvknr, btwnr, postcode, huisnummer, emailadres, displaynaam, telefoonnummer, iban, path} = evt.data as unknown as Bedrijf
+    const { id, profielfoto, naam, kvknr, btwnr, postcode, huisnummer, stad, straat, emailadres, displaynaam, telefoonnummer, iban, path} = evt.data as unknown as Bedrijf
     const organization = {
         clerkId: id,
         profielfoto: profielfoto,
@@ -163,6 +173,8 @@ export async function POST(req: Request) {
         btwnr: btwnr,
         postcode: postcode,
         huisnummer: huisnummer,
+        straat: straat,
+        stad: stad,
         emailadres: emailadres,
         telefoonnummer: telefoonnummer,
         iban: iban,

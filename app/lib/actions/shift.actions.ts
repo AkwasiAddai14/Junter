@@ -92,7 +92,20 @@ export async function maakShift({
   try {
     await connectToDB();
 
+    // Validate and convert opdrachtgever to ObjectId
+    if (!opdrachtgever || !mongoose.Types.ObjectId.isValid(opdrachtgever)) {
+      throw new Error('Invalid opdrachtgever ID');
+    }
     const opdrachtgeverId = new mongoose.Types.ObjectId(opdrachtgever);
+
+    // Validate flexpoolId if provided
+    let flexpoolObjectId: mongoose.Types.ObjectId | undefined;
+    if (flexpoolId) {
+      if (!mongoose.Types.ObjectId.isValid(flexpoolId)) {
+        throw new Error('Invalid flexpool ID');
+      }
+      flexpoolObjectId = new mongoose.Types.ObjectId(flexpoolId);
+    }
 
     // Generate dates between begindatum and einddatum
     const start = dayjs(begindatum);
@@ -178,10 +191,9 @@ export async function maakShift({
       });
 
       // If a flexpoolId is provided, add the ShiftArray to the Flexpool
-      if (flexpoolId) {
-        const flexpool = await Flexpool.findById(new mongoose.Types.ObjectId(flexpoolId));
+      if (flexpoolObjectId) {
+        const flexpool = await Flexpool.findById(flexpoolObjectId);
         if (flexpool) {
-          // Ensure correct typing
           flexpool.shifts.push(savedShiftArray._id as mongoose.Schema.Types.ObjectId);
           await flexpool.save();
         } else {
@@ -190,7 +202,7 @@ export async function maakShift({
       }
     }
 
-    return true; // Return the first shift created
+    return true; // Return true if successful
   } catch (error) {
     console.error('Error creating shift:', error);
     throw new Error('Error creating shift');

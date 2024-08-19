@@ -3,23 +3,18 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 import { DeleteConfirmation } from '@/app/components/shared/DeleteConfirmation';
-import { ShiftType } from '@/app/lib/models/shift.model';
 import { formatDateTimeF } from '@/app/lib/utils';
-import { IFlexpool } from '@/app/lib/models/flexpool.model';
-import Factuur from '@/app/lib/models/factuur.model';
+import { IShiftArray } from '@/app/lib/models/shiftArray.model';
+import { ShiftType } from '@/app/lib/models/shift.model';
 
 
 
 type CardProps = {
-
   shift: ShiftType 
-  /* flexpool: IFlexpool |
-  factuur: Factuur |
-  checkout: Checkout;  */
-
 }
-/* | Checkout | Factuur | | Flexpool*/
-const Card = ({ shift,/*  flexpool, factuur, checkout  */}: CardProps) => {
+
+
+const Card = ({ shift }: CardProps) => {
   const { user } = useUser();
   const userId = user?.id as string;
   const isEventCreator = userId === shift.opdrachtgever._id.toString();

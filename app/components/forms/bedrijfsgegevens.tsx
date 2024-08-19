@@ -44,6 +44,8 @@ interface Props {
         btwnr: string;
         postcode: string;
         huisnummer: string;
+        stad: string;
+        straat: string;
         telefoonnummer: string;
         emailadres: string;
         iban: string;
@@ -103,6 +105,8 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
             btwnr: bedrijven?.btwnr || '',
             postcode: bedrijven?.postcode || '',
             huisnummer: bedrijven?.huisnummer || '',
+            stad: bedrijven?.stad || '',
+            straat: bedrijven?.straat || '',
             emailadres: bedrijven?.emailadres ||  user?.emailAddresses[0].emailAddress || "",
             telefoonnummer: bedrijven?.telefoonnummer || getUserPhoneNumber(user) || "",
             iban: bedrijven?.iban || '',
@@ -157,6 +161,8 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                     btwnr: data.btwnr,
                     postcode: data.postcode,
                     huisnummer: data.huisnummer,
+                    stad: data.stad,
+                    straat: data.straat,
                     emailadres: data.emailadres ||  user?.emailAddresses[0].emailAddress || "",
                     telefoonnummer: data.telefoonnummer || getUserPhoneNumber(user) || "",
                     iban: data.iban,

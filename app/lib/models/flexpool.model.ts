@@ -1,7 +1,6 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface IFlexpool extends Document {
-  _id: mongoose.Types.ObjectId;
   titel: string;
   bedrijf: mongoose.Schema.Types.ObjectId;
   freelancers: mongoose.Schema.Types.ObjectId[];
