@@ -2,7 +2,7 @@
 
 import { connectToDB} from "../mongoose";
 import mongoose from "mongoose";
-import Bedrijf from "../models/bedrijven.model";
+import Bedrijf from "../models/bedrijf.model";
 
 
 type bedrijf = {
@@ -149,17 +149,10 @@ export const fetchBedrijfDetails = async (clerkId: string) => {
     try {
         await connectToDB()
         console.log(mongoose.modelNames());
-        const bedrijf = await Bedrijf.findOne({ clerkId }).populate([
-            { path: 'flexpools' },
-            { path: 'shifts' },
-            { path: 'facturen' },
-          ]);  // Ensure flexpools are populated
+        const bedrijf = await Bedrijf.findOne({ clerkId })
     if (bedrijf) {
       console.log('Found Bedrijf: ', JSON.stringify(bedrijf, null, 2));  // Log the entire bedrijf object
-      if (!bedrijf.flexpools || bedrijf.flexpools.length === 0) {
-        console.log('No flexpools found for this Bedrijf.');
-      }
-      return bedrijf;
+      return bedrijf.toObject();
     } else {
       console.log('Bedrijf not found for Clerk ID:', clerkId);
       throw new Error('Bedrijf not found');

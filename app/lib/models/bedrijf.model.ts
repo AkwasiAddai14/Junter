@@ -24,7 +24,7 @@ export interface IBedrijf extends Document {
   shifts: mongoose.Types.ObjectId[];
 }
 
-const bedrijvenSchema: Schema<IBedrijf> = new mongoose.Schema({
+const bedrijfSchema: Schema<IBedrijf> = new mongoose.Schema({
   clerkId: { type: String, required: true },
   naam: { type: String, required: true },
   displaynaam: { type: String, required: false },
@@ -60,5 +60,5 @@ const bedrijvenSchema: Schema<IBedrijf> = new mongoose.Schema({
   }]
 });
 
-const Bedrijf: Model<IBedrijf> = mongoose.models.Bedrijven || mongoose.model<IBedrijf>('Bedrijven', bedrijvenSchema);
+const Bedrijf: Model<IBedrijf> = mongoose.models.Bedrijf || mongoose.model<IBedrijf>('Bedrijf', bedrijfSchema);
 export default Bedrijf;

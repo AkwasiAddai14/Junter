@@ -2,7 +2,7 @@
 
 import { connectToDB} from "../mongoose";
 import Flexpool, { IFlexpool } from "../models/flexpool.model";
-import Bedrijf, { IBedrijf } from "../models/bedrijven.model";
+import Bedrijf, { IBedrijf } from "../models/bedrijf.model";
 import Freelancer from "../models/freelancer.model";
 import mongoose from "mongoose";
 
@@ -155,12 +155,11 @@ export const haalFlexpool = async (freelancerId: string) => {
 };
 
 
-export const haalFlexpools = async (clerkId: string): Promise<IFlexpool[]> => {
+export const haalFlexpools = async (bedrijfId: string): Promise<IFlexpool[]> => {
   try {
-    console.log('Fetching flexpools for Bedrijf ID:', clerkId);
-
+    console.log('Fetching flexpools for Bedrijf ID:', bedrijfId);
     // Fetch the Bedrijf document and populate the flexpools
-    const bedrijf: IBedrijf | null = await Bedrijf.findById(clerkId)
+    const bedrijf: IBedrijf | null = await Bedrijf.findById(bedrijfId)
       .populate('flexpools') // Populate the flexpools field
       .exec();
     if (bedrijf && bedrijf.flexpools && bedrijf.flexpools.length > 0) {
@@ -196,9 +195,7 @@ export const haalAlleFlexpools = async (objectIds: string[]): Promise<IFlexpool[
     await connectToDB()
     // Fetch all Flexpools matching the given array of IDs
     const flexpools: IFlexpool[] = await Flexpool.find({ _id: { $in: objectIds } });
-
     if (flexpools.length > 0) {
-      console.log('Found flexpools:', flexpools);
       return flexpools;
     } else {
       console.log('No flexpools found for the provided IDs.');

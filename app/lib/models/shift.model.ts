@@ -22,6 +22,7 @@ const shiftSchema = new mongoose.Schema({
   }],
   shiftArrayId: { type: String },
   titel: { type: String, required: true },
+  opdrachtgeverNaam: { type:  String, required: true},
   functie: { type: String, required: true },
   afbeelding: { type: String, required: true },
   uurtarief: { type: Number, required: true },
@@ -64,6 +65,7 @@ export type ShiftType = Document & {
   flexpools?: (mongoose.Types.ObjectId & { titel: string })[];
   vervangers?: mongoose.Types.ObjectId[];
   _id: string;
+  opdrachtgeverNaam: string;
   shiftArrayId: string;
   titel: string;
   functie: string;

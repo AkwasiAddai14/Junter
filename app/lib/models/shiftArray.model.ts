@@ -6,6 +6,7 @@ export interface IShiftArray extends Document {
     aanmeldingen: mongoose.Types.ObjectId[];
     flexpools: mongoose.Types.ObjectId[];
     shifts: mongoose.Types.ObjectId[] ;
+    opdrachtgeverNaam: string,
     titel: string;
     functie: string;
     afbeelding: string;
@@ -47,6 +48,7 @@ const shiftArraySchema: Schema<IShiftArray> = new mongoose.Schema({
         ref: 'Shift'
     }],
     titel: { type: String, required: true },
+    opdrachtgeverNaam: { type:  String, required: true},
     functie: { type: String, required: true },
     afbeelding: { type: String, required: true },
     uurtarief: { type: Number, required: true },

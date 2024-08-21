@@ -2,7 +2,7 @@
 
 import { connectToDB } from "../mongoose";
 import Shift from '../models/shift.model';
-import Bedrijf from "../models/bedrijven.model";
+import Bedrijf from "../models/bedrijf.model";
 import Freelancer from "../models/freelancer.model";
 import mongoose from "mongoose";
 

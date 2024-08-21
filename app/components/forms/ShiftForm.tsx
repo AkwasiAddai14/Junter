@@ -39,6 +39,7 @@ type ShiftFormProps = {
 
 const DefaultValues = {
   opdrachtgever: "",
+  opdrachtgeverNaam: " ",
   opdrachtnemers: "",
   afbeelding: "",
   titel: "",
@@ -81,15 +82,17 @@ const ShiftForm = ({ userId, type, shift, shiftId }: ShiftFormProps) => {
   
   
   useEffect(() => {
-    fetchBedrijfDetails(userId)
-      .then((details) => {
-        setBedrijfDetails(details);
-        console.log("Bedrijf retrieved.");
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  }, [userId, type, shift]);
+    if (userId) {
+      fetchBedrijfDetails(userId)
+        .then((details) => {
+          setBedrijfDetails(details);
+          console.log("Bedrijf retrieved.");
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
+  }, [userId]);
 
   useEffect(() => {
     const getFlexpools = async () => {
@@ -126,22 +129,38 @@ const ShiftForm = ({ userId, type, shift, shiftId }: ShiftFormProps) => {
   });
 
   async function onSubmit(values: z.infer<typeof ShiftValidation>) {
+    if (!bedrijfDetails || !bedrijfDetails._id || !bedrijfDetails.displaynaam) {
+      console.error("Bedrijf details are not properly loaded.");
+      return;
+    }
     let uploadedImageUrl = values.afbeelding;
 
-    if (files.length > 0) {
-      const uploadedImages = await startUpload(files);
+// Check if there are files to upload
+if (files.length > 0) {
+  try {
+    // Start the upload and wait for the response
+    const uploadedImages = await startUpload(files);
 
-      if (!uploadedImages) {
-        return;
-      }
-
-      uploadedImageUrl = uploadedImages[0].url;
+    // Check if the upload was successful
+    if (!uploadedImages || uploadedImages.length === 0) {
+      console.error('Failed to upload images');
+      return;
     }
+
+    // Use the URL provided by the upload service
+    uploadedImageUrl = uploadedImages[0].url;
+    console.log("Final URL:", uploadedImageUrl);
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    return;
+  }
+}
     console.log(values, userId)
     if (type === "maak") {
       try {
         const newShift = await maakShift({
           opdrachtgever: bedrijfDetails._id,
+          opdrachtgeverNaam: bedrijfDetails.displaynaam,
           titel: values.titel,
           functie: values.functie,
           afbeelding: values.afbeelding,
@@ -188,6 +207,7 @@ const ShiftForm = ({ userId, type, shift, shiftId }: ShiftFormProps) => {
       try {
         const updatedShift = await updateShift({
           opdrachtgever: bedrijfDetails._id,
+          opdrachtgeverNaam: bedrijfDetails.displaynaam,
           titel: values.titel,
           functie: values.functie,
           afbeelding: bedrijfDetails.profielfoto || values.afbeelding,
@@ -201,7 +221,7 @@ const ShiftForm = ({ userId, type, shift, shiftId }: ShiftFormProps) => {
           pauze: values.pauze,
           beschrijving: values.beschrijving,
           vaardigheden: values.vaardigheden ? values.vaardigheden.split(",") : [],
-          kledingsvoorschriften: ["Dress code"],
+          kledingsvoorschriften: values.kledingsvoorschriften ? values.kledingsvoorschriften.split(", ") : [],
           opdrachtnemers: [],
           flexpoolId: values.flexpoolId,
           path: "/dashboard",
@@ -550,7 +570,7 @@ const ShiftForm = ({ userId, type, shift, shiftId }: ShiftFormProps) => {
                     onChangeHandler={field.onChange}
                     value={field.value}
                     flexpoolsList={ bedrijfDetails?.flexpools || flexpools } // Pass an array of objects
-                    userId={userId}
+                    userId={bedrijfDetails._id}
                   />
                   </FormControl>
                   <FormMessage />

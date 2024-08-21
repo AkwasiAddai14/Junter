@@ -57,12 +57,13 @@ const Dropdown = ({ value, onChangeHandler, flexpoolsList, userId }: DropdownPro
           console.error("BedrijfId is not available");
           return;
         }
-        await maakFlexpool({
+       const niewFlexpool =  await maakFlexpool({
           titel: newFlexpoolTitle.trim(),
-          bedrijfId: new mongoose.Types.ObjectId(userId),
+          bedrijfId: userId as unknown as mongoose.Types.ObjectId,
         });
         // You should manage the flexpools state in the parent component and update it here
         setNewFlexpoolTitle("");
+        setFlexpools((prevFlexpools) => [...prevFlexpools, niewFlexpool]);
       } catch (error) {
         console.error("Error creating flexpool:", error);
       }

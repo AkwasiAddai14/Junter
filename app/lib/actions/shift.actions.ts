@@ -4,7 +4,7 @@ import mongoose, { Schema, Document, ObjectId }  from "mongoose";
 import { connectToDB } from "../mongoose";
 import { revalidatePath } from "next/cache";
 import Freelancer from "../models/freelancer.model";
-import Bedrijf from "../models/bedrijven.model";
+import Bedrijf from "../models/bedrijf.model";
 import Flexpool from "../models/flexpool.model";
 import Shift, { ShiftType } from "../models/shift.model";
 import ShiftArray from "../models/shiftArray.model";
@@ -32,6 +32,7 @@ export const voegAangepast = async ({ Aangepast }: voegAangepastParams) => {
 
 interface Params {
   opdrachtgever: string;
+  opdrachtgeverNaam: string;
   titel: string;
   functie: string;
   afbeelding: string;
@@ -62,6 +63,7 @@ interface Params {
 
 export async function maakShift({
   opdrachtgever,
+  opdrachtgeverNaam,
   titel,
   functie,
   afbeelding,
@@ -97,6 +99,7 @@ export async function maakShift({
       throw new Error('Invalid opdrachtgever ID');
     }
     const opdrachtgeverId = new mongoose.Types.ObjectId(opdrachtgever);
+    const opdrachtgevernaam = opdrachtgeverNaam || "Junter"
 
     // Validate flexpoolId if provided
     let flexpoolObjectId: mongoose.Types.ObjectId | undefined;
@@ -124,6 +127,7 @@ export async function maakShift({
       // Create ShiftArray for the specific date
       const shiftArray = new ShiftArray({
         opdrachtgever: opdrachtgeverId,
+        opdrachtgeverNaam: opdrachtgevernaam,
         titel,
         functie,
         afbeelding,
@@ -149,6 +153,7 @@ export async function maakShift({
       for (let i = 0; i < plekken; i++) {
         const shift = new Shift({
           opdrachtgever: opdrachtgeverId,
+          opdrachtgeverNaam,
           titel,
           functie,
           afbeelding,
@@ -213,6 +218,7 @@ export async function maakShift({
   
   export async function updateShift({
     opdrachtgever,
+    opdrachtgeverNaam,
     titel,
     afbeelding,
     uurtarief,
@@ -243,6 +249,7 @@ export async function maakShift({
   
       const shiftData: any = {
         opdrachtgever: new mongoose.Types.ObjectId(opdrachtgever),
+        opdrachtgeverNaam,
         titel,
         afbeelding,
         uurtarief: Number(uurtarief),

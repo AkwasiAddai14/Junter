@@ -17,21 +17,14 @@ import React from 'react';
 import Image from 'next/image';
 import Calender from './Calender';
 import UitlogModal from './UitlogModal';
-import Shift from '@/app/lib/models/shift.model';
-import Factuur from '@/app/lib/models/factuur.model';
-import Freelancer from '@/app/lib/models/freelancer.model';
-import ShiftArray from '@/app/lib/models/shiftArray.model';
-import Flexpool from '@/app/lib/models/flexpool.model';
 import { fetchBedrijfByClerkId } from "@/app/lib/actions/bedrijven.actions";
-import { IShiftArray } from '@/app/lib/models/shiftArray.model';
 import { haalCheckouts } from '@/app/lib/actions/checkout.actions';
 import { haalFlexpools } from "@/app/lib/actions/flexpool.actions";
-import { haalGeplaatsteShifts } from '@/app/lib/actions/shiftArray.actions';
+import { haalGeplaatsteShifts, haalShift, haalShifts } from '@/app/lib/actions/shiftArray.actions';
 import ShiftCard from '../cards/ShiftCard';
 import FlexpoolCard from '../cards/FlexpoolCard';
-import CheckoutCard from '../cards/CheckoutCard';
-import { ShiftType } from '@/app/lib/models/shift.model';
 import { haalFacturen } from '@/app/lib/actions/factuur.actions';
+import { IBedrijf } from '@/app/lib/models/bedrijf.model';
 
 
 
@@ -53,7 +46,7 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { isLoaded, user } = useUser();
   const [position, setPosition] = useState("Dashboard");
-  const [shift, setShift] = useState<any[]>([])
+  const [shift, setShift] = useState<any[]>([]);
   const [factuur, setFactuur] = useState<any[]>([])
   const [checkout, setCheckout] = useState<any[]>([])
   const [flexpool, setFlexpool] = useState<any[]>([])
@@ -70,45 +63,44 @@ const Dashboard = () => {
   }, [isLoaded, user]);
 
 
-useEffect(() => {
-  const getBedrijfId = async () => {
-    try {
-      const bedrijf = await fetchBedrijfByClerkId(user!.id);
-      if (bedrijf && bedrijf._id) {
-        setBedrijfiD(bedrijf._id.toString())
-        const fetchedFlexpools = await haalFlexpools(bedrijfiD);
-        setFlexpool(fetchedFlexpools);
+  useEffect(() => {
+    const getBedrijfId = async () => {
+      try {
+        const bedrijf = await fetchBedrijfByClerkId(user!.id);
+        if (bedrijf && bedrijf._id) {
+          setBedrijfiD(bedrijf._id.toString())
+        }
+      } catch (error) {
+        console.error("Error fetching bedrijf by Clerk ID:", error);
       }
-    } catch (error) {
-      console.error("Error:", error);
+    };
+  
+    if (user && !bedrijfiD) {  // Only fetch if user exists and bedrijfiD is not already set
+      getBedrijfId();
     }
-  };
-  getBedrijfId();
-}, [user]);    
+  }, [user]); // Remove bedrijfiD from the dependency array
 
   
-useEffect(() => {
-  const fetchShift = async (bedrijfId: string) => {
-    try {
-      const fetchedShift = await haalGeplaatsteShifts({ bedrijfId });
-
-      if (fetchedShift) {
-        setShift([fetchedShift]); // Wrap the single shift in an array
-        console.log(shift)
-      } else {
-        setShift([]); // Set to an empty array if no shift is found
+  useEffect(() => {
+    const fetchShift = async () => {
+      try {
+        if (bedrijfiD) {
+          const fetchedShifts = await haalGeplaatsteShifts({ bedrijfId: bedrijfiD });
+          // Sanitize the fetched data before setting state
+          const sanitizeObject = (obj: any) => {
+            return JSON.parse(JSON.stringify(obj)); // Removes complex properties like functions, etc.
+          };
+          setShift(fetchedShifts ? fetchedShifts.map(sanitizeObject) : []);
+        }
+      } catch (error) {
+        console.error('Error fetching shifts:', error);
+        setShift([]); // Prevent triggering a re-fetch
       }
-    } catch (error) {
-      console.error('Error fetching shifts:', error);
-      setShift([]); // Handle error by setting to an empty array
-    }
-  };
-
-  if (bedrijfiD) {
-    fetchShift(bedrijfiD); // Pass bedrijfId to fetchShift
-  }
-}, [bedrijfiD]); // Add bedrijfId to the dependency array
-
+    };
+  
+    fetchShift();
+  }, [bedrijfiD]); // Only run this when `bedrijfiD` changes
+  
 useEffect(() => {
   const fetchCheckout = async () => {
     try {
@@ -125,22 +117,37 @@ useEffect(() => {
   fetchCheckout();
 }, [bedrijfiD]); // Add user.id to the dependency array  
 
-   useEffect(() => {
-    const fetchFactuur = async () => {
-        try {
-            if (checkout && checkout.length > 0) {
-                const fetchedFactuur = await haalFacturen();
-                setFactuur(fetchedFactuur);
-                console.log(factuur)
-            }
-        } catch (error) {
-            console.error('Error fetching factuur:', error);
-        }
-    };
+useEffect(() => {
+  const fetchFactuur = async () => {
+    try {
+      if (checkout.length > 0) {
+        const fetchedFactuur = await haalFacturen();
+        setFactuur(fetchedFactuur || []);
+      }
+    } catch (error) {
+      console.error('Error fetching facturen:', error);
+    }
+  };
 
-    fetchFactuur();
+  fetchFactuur();
 }, [checkout]); // Voeg `checkout` toe aan de dependency array  
 
+useEffect(() => {
+  const fetchFlexpool = async () => {
+    try {
+      if (bedrijfiD) {
+        const fetchedFlexpools = await haalFlexpools(bedrijfiD);
+        setFlexpool(fetchedFlexpools || []); // Set state without triggering re-renders
+      }
+    } catch (error) {
+      console.error('Error fetching flexpools:', error);
+    }
+  };
+
+  fetchFlexpool();
+}, [bedrijfiD]); // Trigger fetch when bedrijfId is updated
+
+console.log(shift, flexpool)
 
   return (
     <Fragment>
@@ -295,12 +302,12 @@ useEffect(() => {
             {position === 'Dashboard' && ( <Calender/> )}
             </div>
 
-            <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-6">
-                  { position === 'Shifts' ? (
+            <div className="lg:pl-96 ml-6 h-full overflow-hidden px-4 py-10 sm:px-6 lg:px-8 lg:py-6">
+            { position === 'Shifts' ? (
                     shift.length > 0 ? (
                       <ScrollArea>
                         <div className="grid grid-cols-3 gap-4">
-                          {shift.slice(0, 9).map((shiftItem, index) => (
+                          {shift.slice(0, shift.length).map((shiftItem, index) => (
                             <ShiftCard key={index} shift={shiftItem} />
                           ))}
                         </div>
@@ -309,7 +316,7 @@ useEffect(() => {
       <div className="lg:pl-96 h-full overflow-hidden">Geen shifts beschikbaar</div>
                     )
                   ) : null
-                }
+                } 
 
               {position === 'Checkouts' ? 
               checkout.length > 0 ? (
@@ -357,75 +364,86 @@ useEffect(() => {
               </div>
         </main>
 
-        <aside className="fixed inset-y-0 left-20 w-full sm:w-96 sm:block hidden overflow-y-hidden border-r border-gray-200 px-4 py-6 sm:px-6 lg:px-8">
-          <div className="h-full py-2 px-2 items-stretch rounded-lg border-2 border-b flex flex-col">
-            <div className="h-1/3 border-2 rounded-lg flex flex-col">
-              <div className="w-full border-b-2 h-10">
-                <p className="italic font-mono text-lg font-semibold text-center">Shifts</p>
-              </div>
-              <div className="flex-grow overflow-hidden">
-                <ScrollArea>
-                  {shift.map((shiftItem, index) => (
-                    <li key={index} className="col-span-1 flex rounded-md shadow-sm">
-                      <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white">
-                        {shiftItem.begindatum.toLocaleDateString()}, {shiftItem.begintijd} - {shiftItem.eindtijd}
-                      </div>
-                      <div className="flex flex-1 items-center justify-between truncate rounded-r-md border-b border-r border-t border-gray-200 bg-white">
-                        <div className="flex-1 truncate px-4 py-2 text-sm">
-                          <a href="#" className="font-medium text-gray-900 hover:text-gray-600">
-                            {shiftItem.titel}
-                          </a>
-                          <p className="text-gray-500">{shiftItem.aanmeldingen?.length} Aanmeldingen</p>
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ScrollArea>
-              </div>
-            </div>
 
-            <div className="h-1/3 border-2 rounded-lg flex flex-col mt-2">
-              <div className="w-full border-b-2 h-10">
-                <p className="italic font-mono text-lg font-semibold text-center">Checkouts</p>
-              </div>
-              <div className="flex-grow overflow-hidden">
-                <ScrollArea>
-                  {checkout.map((checkoutItem, index) => (
-                    <li key={index} className="col-span-1 flex rounded-md shadow-sm">
-                      <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white">
-                        {checkoutItem?.datum ? new Date(checkoutItem.datum).toLocaleDateString() : 'Datum'}, {checkoutItem?.begintijd ? new Date(checkoutItem.begintijd).toLocaleTimeString() : 'Begintijd'} - {checkoutItem?.eindtijd ? new Date(checkoutItem.eindtijd).toLocaleTimeString() : 'Eindtijd'}
-                      </div>
-                      <div className="flex flex-1 items-center justify-between truncate rounded-r-md border-b border-r border-t border-gray-200 bg-white">
-                        <p className="text-gray-500">{checkoutItem?.opdrachtnemer?.voornaam} {checkoutItem?.opdrachtnemer?.achternaam}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ScrollArea>
-              </div>
+        {sidebarOpen || (
+        <aside className="fixed inset-y-0 left-20 hidden lg:block lg:w-96 overflow-hidden border-r border-gray-200 px-4 py-6  lg:px-8">
+        <div className="h-full py-2 px-2 items-stretch rounded-lg border-2 border-b flex flex-col">
+          <div className="h-1/3 border-2 rounded-lg flex flex-col">
+            <div className="w-full border-b-2 h-10">
+              <p className="italic font-mono text-lg font-semibold text-center mt-2">Shifts</p>
             </div>
-
-            <div className="h-1/3 border-2 rounded-lg flex flex-col mt-2">
-              <div className="w-full border-b-2 h-10">
-                <p className="italic font-mono text-lg font-semibold text-center">Flexpools</p>
-              </div>
-              <div className="flex-grow overflow-hidden">
-                <ScrollArea>
-                  {flexpool.map((flexpoolItem, index) => (
-                    <li key={index} className="col-span-1 flex rounded-md shadow-sm">
-                      <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white">
-                        {flexpoolItem.freelancers?.length} freelancer
+            <div className="flex-grow overflow-hidden">
+              <ScrollArea>
+                {shift.map((shiftItem, index) => (
+                  <li key={index} className="col-span-1 flex rounded-md shadow-sm">
+                    
+                    <div className="flex flex-1 items-center justify-between truncate border-b border-gray-200 bg-white">
+                      <div className="flex-1 truncate px-4 py-2 text-sm">
+                        <a href="#" className="font-medium text-gray-900 hover:text-gray-600">
+                          {shiftItem.titel}
+                        </a>
+                        <p className="text-gray-500">{new Date(shiftItem.begindatum).toLocaleDateString('nl-NL')}</p>
+                        <p className="text-gray-500">{shiftItem.aanmeldingen?.length} Aanmeldingen</p>
                       </div>
-                      <div className="flex flex-1 items-center justify-between truncate rounded-r-md border-b border-r border-t border-gray-200 bg-white">
-                        <p className="text-gray-500">{flexpoolItem.shifts?.length} shifts</p>
-                      </div>
-                    </li>
-                  ))}
-                </ScrollArea>
-              </div>
+                    </div>
+      
+                    <div className="flex w-8 flex-shrink-0 items-center justify-center rounded-full">
+                      <Image
+                      src={shiftItem.afbeelding}
+                      width={6}
+                      height={6}
+                      alt={shiftItem.titel}
+                      />
+                    </div> 
+      
+                  </li>
+                ))}
+              </ScrollArea>
             </div>
           </div>
-        </aside>
-
+      
+          <div className="h-1/3 border-2 rounded-lg flex flex-col mt-2">
+            <div className="w-full border-b-2 h-10">
+              <p className="mt-2 italic font-mono text-lg font-semibold text-center">Checkouts</p>
+            </div>
+            <div className="flex-grow overflow-hidden">
+              <ScrollArea>
+                {checkout.map((checkoutItem, index) => (
+                  <li key={index} className="col-span-1 flex rounded-md shadow-sm">
+                    <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white">
+                      {checkoutItem?.datum ? new Date(checkoutItem.datum).toLocaleDateString() : 'Datum'}, {checkoutItem?.begintijd ? new Date(checkoutItem.begintijd).toLocaleTimeString() : 'Begintijd'} - {checkoutItem?.eindtijd ? new Date(checkoutItem.eindtijd).toLocaleTimeString() : 'Eindtijd'}
+                    </div>
+                    <div className="flex flex-1 items-center justify-between truncate rounded-r-md border-b border-r border-t border-gray-200 bg-white">
+                      <p className="text-gray-500">{checkoutItem?.opdrachtnemer?.voornaam} {checkoutItem?.opdrachtnemer?.achternaam}</p>
+                    </div>
+                  </li>
+                ))}
+              </ScrollArea>
+            </div>
+          </div>
+      
+          <div className="h-1/3 border-2 rounded-lg flex flex-col mt-2">
+            <div className="w-full border-b-2 h-10">
+              <p className="mt-2 italic font-mono text-lg font-semibold text-center">Flexpools</p>
+            </div>
+            <div className="flex-grow overflow-hidden">
+              <ScrollArea>
+                {flexpool.map((flexpoolItem, index) => (
+                  <li key={index} className="col-span-1 flex rounded-md shadow-sm">
+                    <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white">
+                      {flexpoolItem.freelancers?.length} freelancer
+                    </div>
+                    <div className="flex flex-1 items-center justify-between truncate rounded-r-md border-b border-r border-t border-gray-200 bg-white">
+                      <p className="text-gray-500">{flexpoolItem.shifts?.length} shifts</p>
+                    </div>
+                  </li>
+                ))}
+              </ScrollArea>
+            </div>
+          </div>
+        </div>
+      </aside>
+      )}
 
     </div>
   </>
