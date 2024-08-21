@@ -2,9 +2,10 @@ import { ShiftType } from '@/app/lib/models/shift.model'
 import React from 'react'
 import Card from '@/app/components/cards/ShiftCard'
 import Pagination from '@/app/components/shared/Pagination'
+import { IShiftArray } from '@/app/lib/models/shiftArray.model'
 
 type CollectionProps = {
-  data: ShiftType[],
+  data: IShiftArray[],
   emptyTitle: string,
   emptyStateSubtext: string,
   limit: number,
@@ -33,7 +34,7 @@ const Collection = ({
               const hidePrice = collectionType === 'My_Tickets';
 
               return (
-                <li key={shift._id.toString()} className="flex justify-center">
+                <li key={shift._id as string} className="flex justify-center">
                   <Card shift={shift} />
                 </li>
               )
