@@ -17,9 +17,12 @@ import ReactStars from "react-rating-stars-component";
 import DropdownPauze from '@/app/components/shared/DropdownPauze';
 import { useRouter } from 'next/navigation';
 
+export type SearchParamProps = {
+  params: { id: string }
+  searchParams: { [key: string]: string | string[] | undefined }
+}
 
-
-export default function Checkoutgegevens(shiftId: string) {
+export default function Checkoutgegevens({ params: { id }, searchParams }: SearchParamProps) {
     const router = useRouter()
     const { control } = useForm();
     const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T15:30'));
@@ -30,7 +33,7 @@ export default function Checkoutgegevens(shiftId: string) {
     useEffect(() => {
       const fetchCheckout = async () => {
           try {
-              const data = await checkout({ shiftId });
+              const data = await checkout({ id });
               setCheckout(data);
           } catch (error) {
               console.error('Failed to fetch checkout data:', error);
@@ -38,7 +41,7 @@ export default function Checkoutgegevens(shiftId: string) {
       };
 
       fetchCheckout();
-  }, [shiftId]);
+  }, [id]);
 
 
   const DefaultValues = {
@@ -71,7 +74,7 @@ export default function Checkoutgegevens(shiftId: string) {
       try{
         await accepteerCheckout(
           {
-            shiftId, 
+            shiftId: id, 
             rating: values.rating,
             feedback: values.feedback
           }
@@ -222,7 +225,7 @@ export default function Checkoutgegevens(shiftId: string) {
               )}
             />
 
-                        <Button className="bg-red-500 text-white border-2 border-red-500 hover:text-black" onClick={() => handleNoShow(shiftId)}>
+                        <Button className="bg-red-500 text-white border-2 border-red-500 hover:text-black" onClick={() => handleNoShow(id)}>
                             No show
                         </Button>
 
