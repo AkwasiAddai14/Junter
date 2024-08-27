@@ -15,11 +15,14 @@ import { TimePicker } from '@mui/x-date-pickers/TimePicker/TimePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import ReactStars from "react-rating-stars-component";
 import DropdownPauze from '@/app/components/shared/DropdownPauze';
+import { useRouter } from 'next/navigation'
+export type SearchParamProps = {
+  params: { id: string }
+  searchParams: { [key: string]: string | string[] | undefined }
+}
 
-
-
-export default function CheckoutCard({isVisible, onClose, shiftId} : {isVisible: boolean, onClose: any, shiftId: string}) {
-    if (!isVisible) return null;
+export default function CheckoutCard({ params: { id }, searchParams }: SearchParamProps) {
+    const router = useRouter();
     const { control } = useForm();
     const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T08:00'));
     const [eindtijd, setEindtijd] = useState<Dayjs | null>(dayjs('2022-04-17T16:30'));
@@ -43,7 +46,7 @@ export default function CheckoutCard({isVisible, onClose, shiftId} : {isVisible:
     useEffect(() => {
         const fetchCheckout = async () => {
             try {
-                const data = await maakCheckout({ shiftId });
+                const data = await maakCheckout({shiftId: id});
                 setCheckout(data);
             } catch (error) {
                 console.error('Failed to fetch checkout data:', error);
@@ -51,12 +54,12 @@ export default function CheckoutCard({isVisible, onClose, shiftId} : {isVisible:
         };
 
         fetchCheckout();
-    }, [shiftId]);
+    }, [id]);
 
     async function onSubmit(values: z.infer<typeof CheckoutValidation>) {
         try {
             await vulCheckout({
-                shiftId,
+                shiftId : id,
                 rating: values.rating || 5,
                 begintijd: values.begintijd || checkout?.begintijd,
                 eindtijd: values.eindtijd || checkout?.eindtijd,
@@ -194,7 +197,7 @@ export default function CheckoutCard({isVisible, onClose, shiftId} : {isVisible:
               )}
             />
             <div className="border-t border-gray-900/5 px-6 py-6 flex justify-center items-center">
-            <Button className="bg-red-500 text-white border-2 border-red-500 hover:text-black" onClick={() => onClose()}>
+            <Button className="bg-red-500 text-white border-2 border-red-500 hover:text-black" onClick={() => router.back()}>
                 Niet gewerkt
             </Button>
             </div>
@@ -212,7 +215,7 @@ export default function CheckoutCard({isVisible, onClose, shiftId} : {isVisible:
             />
         </div>
                     <div className="border-t border-gray-900/5 px-6 py-6 flex justify-between">
-                        <Button className="bg-white text-black border-2 border-black hover:text-white" onClick={() => onClose()}>
+                        <Button className="bg-white text-black border-2 border-black hover:text-white" onClick={() => router.back()}>
                             Annuleren
                         </Button>
                         <Button 
