@@ -4,8 +4,8 @@ import Collection from '@/app/components/shared/Collection';
 import { haalShiftMetId, haalGerelateerdShiftsMetCategorie } from '@/app/lib/actions/shift.actions'
 import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
-import calendar from '/Users/georgeaddai/Desktop/thejunter/app/assets/images/logos/calendar.svg';
-import location from '/Users/georgeaddai/Desktop/thejunter/app/assets/images/logos/location-grey.svg'
+import calendar from '@/app/assets/images/logos/calendar.svg';
+import location from '@/app/assets/images/logos/location-grey.svg'
 import { UserIcon } from '@heroicons/react/20/solid';
 
 
