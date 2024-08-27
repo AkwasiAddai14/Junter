@@ -10,8 +10,12 @@ import { ScrollArea } from '@radix-ui/react-scroll-area'
 import ShiftCard from '@/app/components/cards/ShiftCard'
 import { StarIcon } from 'lucide-react'
 
+export type SearchParamProps = {
+  params: { id: string }
+  searchParams: { [key: string]: string | string[] | undefined }
+}
 
-export default async function FlexpoolPage({id} : {id: string}) {
+export default async function FlexpoolPage({ params: { id }, searchParams }: SearchParamProps) {
     const [query, setQuery] = useState('')
     const [selectedPerson, setSelectedPerson] = useState(null)
     const [shift, setShifts] = useState<any[]>([]);
