@@ -19,7 +19,7 @@ import { useRouter } from 'next/navigation';
 
 
 
-export default function Checkoutgegevens({ shiftId} : {shiftId: string}) {
+export default function Checkoutgegevens(shiftId: string) {
     const router = useRouter()
     const { control } = useForm();
     const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T15:30'));
