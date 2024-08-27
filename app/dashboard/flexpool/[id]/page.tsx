@@ -35,7 +35,8 @@ export default async function FlexpoolPage({ params: { id }, searchParams }: Sea
     }, [flexpool]);
     
     const filteredPeople = opdrachtnemers.filter((opdrachtnemer) => {
-      return opdrachtnemer.naam.toLowerCase().includes(query.toLowerCase());
+      let naam = `${opdrachtnemer.voornaam.toLowerCase().includes(query.toLowerCase())} ${opdrachtnemer.achternaam.toLowerCase().includes(query.toLowerCase())}`;
+      return naam;
   });
 
   interface Freelancer {
@@ -71,13 +72,13 @@ export default async function FlexpoolPage({ params: { id }, searchParams }: Sea
           <ComboboxOptions className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
             {filteredPeople.map((person) => (
               <ComboboxOption
-                key={person.naam}
+                key={person.achternaam}
                 value={person}
                 className="group relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 data-[focus]:bg-indigo-600 data-[focus]:text-white"
               >
                 <div className="flex items-center">
                   <img src={person.profielfoto} alt="" className="h-6 w-6 flex-shrink-0 rounded-full" />
-                  <span className="ml-3 truncate group-data-[selected]:font-semibold">{person.naam}</span>
+                  <span className="ml-3 truncate group-data-[selected]:font-semibold">{person.voornaam} {person.achternaam}</span>
                 </div>
 
                 <span className="absolute inset-y-0 right-0 hidden items-center pr-4 text-indigo-600 group-data-[selected]:flex group-data-[focus]:text-white">

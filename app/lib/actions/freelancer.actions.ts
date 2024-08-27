@@ -25,7 +25,6 @@ type Werkervaring = {
   };
   
   type Freelancer = {
-    naam: any;
     clerkId: string;
     voornaam: string;
     tussenvoegsel?: string;
@@ -55,7 +54,6 @@ type Werkervaring = {
 
 export const maakFreelancer = async (user:Freelancer) => {
     try {
-        
         const newFreelancer = await Freelancer.create(user);
         await Freelancer.findOneAndUpdate({clerkId: user.clerkId}, {
             onboarded:true
@@ -193,7 +191,6 @@ export const haalAlleFreelancers = async (): Promise<Freelancer[]> => {
         const opdrachtnemers = await Freelancer.find();
         const freelancersWithNaam = opdrachtnemers.map(opdrachtnemer => ({
             ...opdrachtnemer.toObject(), // Convert the Mongoose document to a plain object
-            naam: `${opdrachtnemer.voornaam} ${opdrachtnemer.achternaam}`.trim(), // Combine voornaam and achternaam
         }));
 
         return freelancersWithNaam || []; // Return an array with 'naam' property
