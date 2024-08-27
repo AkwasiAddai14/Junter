@@ -53,7 +53,7 @@ const freelancerSchema = new mongoose.Schema({
     flexpools: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "Flexpools"
+            ref: "Flexpool"
         }
     ],
     facturen: [

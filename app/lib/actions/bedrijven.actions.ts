@@ -149,7 +149,7 @@ export const fetchBedrijfDetails = async (clerkId: string) => {
     try {
         await connectToDB()
         console.log(mongoose.modelNames());
-        const bedrijf = await Bedrijf.findOne({ clerkId })
+        const bedrijf = await Bedrijf.findOne({ clerkId });
     if (bedrijf) {
       console.log('Found Bedrijf: ', JSON.stringify(bedrijf, null, 2));  // Log the entire bedrijf object
       return bedrijf.toObject();

@@ -9,7 +9,7 @@ import { useUser } from "@clerk/nextjs"
 import { haalShifts } from "@/app/lib/actions/shiftArray.actions"
 import { useEffect, useState } from "react"
 import {  haalFacturen } from "@/app/lib/actions/factuur.actions"
-import { haalFlexpool } from "@/app/lib/actions/flexpool.actions"
+import { haalFlexpoolFreelancer } from "@/app/lib/actions/flexpool.actions"
 import { haalCheckouts } from "@/app/lib/actions/checkout.actions"
 import {
   Bars3Icon,
@@ -31,6 +31,7 @@ import Image from 'next/image';
 import axios from "axios"
 import { Calendar } from "../ui/calendar"
 import { Dialog, Menu, MenuButton, MenuItems, } from '@headlessui/react'
+import { haalFreelancer } from "@/app/lib/actions/freelancer.actions"
 
 
 
@@ -73,6 +74,7 @@ export default function Example() {
   const [uurtarief, setUurtarief] = useState<[number, number]>([0, 100]);
   const [afstand, setAfstand] = useState<[number, number]>([0, 100]);
   const [filteredShifts, setFilteredShifts] = useState<any[]>([]);
+  const [freelancerId, setFreelancerId] = useState<String>("")
   
   
   
@@ -82,12 +84,29 @@ export default function Example() {
       setFullName(user.fullName);
     }
   }, [isLoaded, user]);
+
+  useEffect(() => {
+    const getFreelancerId = async () => {
+      try {
+        const freelancer = await haalFreelancer(user!.id);
+        if (freelancer && freelancer._id) {
+          setFreelancerId(freelancer._id.toString())
+        }
+      } catch (error) {
+        console.error("Error fetching bedrijf by Clerk ID:", error);
+      }
+    };
   
-  /*   useEffect(() => {
+    if (user && !freelancerId) {  // Only fetch if user exists and bedrijfiD is not already set
+      getFreelancerId();
+    }
+  }, [user]);
+  
+    useEffect(() => {
     const fetchShifts = async () => {
       try {
-        const response = await axios.get('/api/shifts');
-        setShift(response.data);
+        const response = await haalShifts();
+        setShift(response || []);
       } catch (error) {
         console.error('Error fetching shifts:', error);
       }
@@ -99,8 +118,8 @@ export default function Example() {
   useEffect(() => {
     const fetchFactuur = async () => {
       try {
-        const response = await axios.get('/api/factuur');
-        setFactuur(response.data);
+        const response = await haalFacturen();
+        setFactuur(response || []);
       } catch (error) {
         console.error('Error fetching factuur:', error);
       }
@@ -112,8 +131,8 @@ export default function Example() {
   useEffect(() => {
     const fetchCheckout = async () => {
       try {
-        const response = await axios.get('/api/checkouts');
-        setCheckout(response.data);
+        const response = await haalCheckouts('66ae8f9f559045c255ceadf5');
+        setCheckout(response || []);
       } catch (error) {
         console.error('Error fetching checkouts:', error);
       }
@@ -125,8 +144,8 @@ export default function Example() {
   useEffect(() => {
     const fetchFlexpool = async () => {
       try {
-        const response = await axios.get('/api/flexpool');
-        setFlexpool(response.data);
+        const response = await haalFlexpoolFreelancer('66ae8f9f559045c255ceadf5');
+        setFlexpool(response.data || []);
       } catch (error) {
         console.error('Error fetching flexpool:', error);
       }
@@ -151,7 +170,7 @@ export default function Example() {
     });
     
     setFilteredShifts(filtered);
-  }; */
+  };
   
   return (
     <Fragment>
@@ -309,7 +328,7 @@ export default function Example() {
 
           <main className="xl:pl-96">
             <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-6">{/* Main area */}
-          {/*   {position === 'Shifts' ?
+            {position === 'Shifts' ?
             shift.length > 0 ? (
               <ScrollArea>
               <div className="grid grid-cols-3 gap-4">
@@ -318,13 +337,13 @@ export default function Example() {
                 ))}
                 </div>
                 </ScrollArea>
-              ) : ( */}
+              ) : ( 
                 <div>Geen shifts beschikbaar</div>
-                            {/*   )
+                               )
                              : null
                             }
-                          */}
-            {/*   {position === 'Aanmeldingen' && (
+                         
+              {position === 'Aanmeldingen' && (
               <ScrollArea>
               <div className="grid grid-cols-3 gap-4">
               {shift.slice(0, 9).map((shiftItem, index) => (
@@ -332,8 +351,8 @@ export default function Example() {
                 ))}
                 </div>
                 </ScrollArea>
-              )} */}
-              {/* {position === 'Geaccepteerde shifts' && (
+              )} 
+               {position === 'Geaccepteerde shifts' && (
                 <ScrollArea>
                 <div className="grid grid-cols-3 gap-4">
                 {shift.slice(0, 9).map((shiftItem, index) => (
@@ -341,8 +360,8 @@ export default function Example() {
                   ))}
                   </div>
                   </ScrollArea>
-                )} */}
-              {/* {position === 'Checkouts' ?
+                )} 
+               {position === 'Checkouts' ?
               checkout.length > 0 ?  (
                 <ScrollArea>
                 <div className="grid grid-cols-3 gap-4">
@@ -351,13 +370,13 @@ export default function Example() {
                   ))}
                   </div>
                   </ScrollArea>
-                ) : ( */}
-                <div>Geen shifts beschikbaar</div>
-                            {/*   )
+                ) : ( 
+                <div>Geen checkouts gevonden</div>
+                               )
                              : null
                             }
-                          */}
-             {/*  {position === 'Facturen' ?
+                          
+               {position === 'Facturen' ?
               factuur.length > 0 ? (
                 <ScrollArea>
                 <div className="grid grid-cols-3 gap-4">
@@ -366,12 +385,12 @@ export default function Example() {
                   ))}
                   </div>
                   </ScrollArea>
-                ) : ( */}
-                <div>Geen shifts beschikbaar</div>
-                              {/* )
+                ) : ( 
+                <div>Nog geen facturen</div>
+                               )
                              : null
-                            } */}
-              {/* {position === 'Flexpool' ?
+                            } 
+               {position === 'Flexpool' ?
               flexpool.length > 0 ? (
                 <ScrollArea>
                 <div className="grid grid-cols-3 gap-4">
@@ -380,11 +399,11 @@ export default function Example() {
                   ))}
                   </div>
                   </ScrollArea>
-                ) : ( */}
-                <div>Geen shifts beschikbaar</div>
-                            {/*   )
+                ) : ( 
+                <div>Geen flexpools gevonden</div>
+                               )
                              : null
-                            } */}
+                            } 
             </div>
           </main>
             </div>

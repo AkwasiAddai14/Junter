@@ -18,16 +18,17 @@ import "react-datepicker/dist/react-datepicker.css";
 import { Checkbox } from "../ui/checkbox";
 import { useRouter } from "next/navigation";
 import { maakShift, updateShift } from "@/app/lib/actions/shift.actions";
-import Shift, { ShiftType } from "@/app/lib/models/shift.model";
+import { ShiftType } from "@/app/lib/models/shift.model";
 import * as React from "react";
 import Dropdown from "../shared/Dropdown";
 import DropdownPauze from "../shared/DropdownPauze";
-import { fetchBedrijfByClerkId, fetchBedrijfDetails } from "@/app/lib/actions/bedrijven.actions";
+import { fetchBedrijfDetails } from "@/app/lib/actions/bedrijven.actions";
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import 'dayjs/locale/nl';
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider/LocalizationProvider";
 import { IFlexpool } from "@/app/lib/models/flexpool.model";
 import { haalFlexpools } from "@/app/lib/actions/flexpool.actions";
+import DropdownCategorie from "../shared/DropdownCategorie";
 
 
 type ShiftFormProps = {
@@ -275,7 +276,7 @@ if (files.length > 0) {
               <FormItem className="w-full">
                 <FormLabel>Categorie</FormLabel>
                 <FormControl>
-                  <Input placeholder="Bediening" {...field} className="input-field" />
+                <DropdownCategorie onChangeHandler={field.onChange} value={field.value} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

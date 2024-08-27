@@ -2,19 +2,19 @@
 
 
 import { useEffect, useState } from 'react';
-import { Button } from '../ui/button';
+import { Button } from '@/app/components/ui/button';
 import Image from 'next/image';
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/app/components/ui/form";
 import { Controller, useForm } from 'react-hook-form';
 import { CheckoutValidation } from "@/app/lib/validations/checkout";
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from 'zod';
-import { Textarea } from '../ui/textarea';
+import { Textarea } from '@/app/components/ui/textarea';
 import { accepteerCheckout, noShowCheckout, } from '@/app/lib/actions/checkout.actions';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker/TimePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import ReactStars from "react-rating-stars-component";
-import DropdownPauze from '../shared/DropdownPauze';
+import DropdownPauze from '@/app/components/shared/DropdownPauze';
 
 
 

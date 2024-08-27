@@ -748,7 +748,7 @@ export async function haalShiftMetId(shiftId: string) {
   try {
     await connectToDB();
 
-    const shift = await populateShift(Shift.findById(shiftId)).exec();
+    const shift = await populateShift(ShiftArray.findById(shiftId)).exec();
 
     if (!shift) throw new Error('Shift not found');
 
@@ -810,3 +810,14 @@ export const haalShiftMetIdCard = async (id: string) => {
     throw error;
   }
 };
+
+export const getAllCategories = async () =>{
+  try{
+    await connectToDB();
+
+    const categories = await Category.find();
+    return JSON.parse(JSON.stringify(categories));
+  } catch (error){
+    console.log("No categories found", error)
+  }
+}

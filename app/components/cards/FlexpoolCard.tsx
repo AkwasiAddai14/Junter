@@ -26,31 +26,29 @@ const Card = ({ flexpool }: CardProps) => {
 
     getBedrijfDetails();
   }, [userId]);
-  const isEventCreator = userId === bedrijfDetails.clerkId;
-
+  const isEventCreator = true;
+  const afbeelding = "https://utfs.io/f/3099f047-3b08-4bbd-aa77-4cefe769c68f-pfqko0.webp"
   return (
     <div className="group relative flex min-h-[380px] w-full max-w-[400px] flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all hover:shadow-lg md:min-h-[438px]">
-      <a href=""
-        style={{backgroundImage: `url(${bedrijfDetails.afbeelding})`}}
+      <a href={`/dashboard/flexpool/${flexpool._id}`}
+        style={{backgroundImage: `url(${afbeelding})`}}
         className="flex-center flex-grow bg-gray-50 bg-cover bg-center text-grey-500"
      />
-      
-      {isEventCreator && (
-          <DeleteConfirmation shiftId={flexpool._id as string} /> //**** */
-      )}
 
       <div className="flex min-h-[230px] flex-col gap-3 p-5 md:gap-4">
         <div className="flex gap-2">
-          <p className="p-semibold-14 w-min rounded-full bg-grey-500/10 px-4 py-1 text-grey-500 line-clamp-1">
+          <p className="p-semibold-14 w-full py-1 text-grey-500 line-clamp-2">
             {flexpool.freelancers.length} freelancers
           </p>
-          <p className="p-semibold-14 w-min rounded-full bg-grey-500/10 px-4 py-1 text-grey-500 line-clamp-1">
+        </div>
+        <div>
+        <p className="p-semibold-14 w-full py-1 text-grey-500 line-clamp-2">
             {flexpool.shifts.length} shift
           </p>
-        </div>
+          </div>
         <div className="flex-between w-full">
           <p className="p-medium-14 md:p-medium-16 text-grey-600">
-            {bedrijfDetails.displaynaam}
+            {flexpool.titel}
           </p>
         </div>
       </div>

@@ -10,40 +10,41 @@ import Freelancer from '@/app/lib/models/freelancer.model';
 
 
 
-export const haalShifts = async () => {
+export const haalShifts = async (): Promise<IShiftArray[] | ShiftType[] | null> => {
   try {
-      // Find all shiftArrays
-      await connectToDB()
-      const shiftArrays = await ShiftArray.find();
+    // Connect to the database
+    await connectToDB();
+    const shiftArrays = await ShiftArray.find().populate('shifts'); // Ensure shifts are populated with full details
+    // Filter out any shiftArrays that have empty shifts arrays
+    const nonEmptyShiftArrays = shiftArrays.filter((shiftArray) => 
+      Array.isArray(shiftArray.shifts) && shiftArray.shifts.length > 0
+    );
 
-      // Iterate through each shiftArray
-      for (const shiftArray of shiftArrays) {
-          // Check if the shifts array is not empty
-          const populatedShifts = shiftArray.shifts as (ShiftType | mongoose.Types.ObjectId)[];
-          
-          if (Array.isArray(populatedShifts) && populatedShifts.length > 0) {
-              // Return the first shift in the shifts array
-              return populatedShifts[0];
-          }
-      }
-      // If no non-empty shifts array found, return null
-      return null;
+    // If we find non-empty shift arrays, return them
+    if (nonEmptyShiftArrays.length > 0) {
+      return nonEmptyShiftArrays as IShiftArray[] | ShiftType[]; // Cast to IShiftArray[]
+    }
+
+    // If no non-empty shifts array found, return an empty array
+    return [];
   } catch (error) {
-      console.error('Error fetching shifts:', error);
-      throw new Error('Failed to fetch shifts');
+    console.error('Error fetching shifts:', error);
+    throw new Error('Failed to fetch shifts');
   }
 };
+
+
 
 export const haalShift = async () => {
   try {
       // Find all shiftArrays
       await connectToDB()
-      const shifts = await Shift.find();
+      const shiftArray = await ShiftArray.find();
 
       // Iterate through each shiftArray
-          if (shifts) {
+          if (shiftArray) {
               // Return the first shift in the shifts array
-              return shifts;
+              return shiftArray;
           }
 
       // If no non-empty shifts array found, return null
@@ -55,28 +56,26 @@ export const haalShift = async () => {
 };
 
 
-export const haalGeplaatsteShifts = async ({ bedrijfId }: { bedrijfId: string }): Promise<any[] | null> => {
+export const haalGeplaatsteShifts = async ({ bedrijfId }: { bedrijfId: string }) => {
   try {
-    await connectToDB();
+    const bedrijf = await Bedrijf.findById(bedrijfId);
 
-    // Find the bedrijf and populate the shifts array with ShiftArray documents
-    const bedrijf = await Bedrijf.findById(bedrijfId).populate({
-      path: 'shifts',          // Populating the ShiftArray documents
-    });
-
-    if (!bedrijf || !bedrijf.shifts || bedrijf.shifts.length === 0) {
-      console.log('No ShiftArrays found for this bedrijf');
-      return null;
+    if (!bedrijf || !bedrijf.shifts) {
+      throw new Error(`Bedrijf with ID ${bedrijfId} not found or shifts not available`);
     }
-    // Return the populated ShiftArray documents
-    console.log(bedrijf.shifts)
-    return bedrijf.shifts;
+
+    const shiftArrays = await ShiftArray.find({ _id: { $in: bedrijf.shifts } })
+      .populate('shifts')
+      .lean(); // Use lean to return plain JS objects
+
+    console.log("ShiftArrays: ", JSON.stringify(shiftArrays, null, 2)); // Pretty print the objects for better readability
+
+    return shiftArrays;
   } catch (error) {
-    console.error('Error fetching ShiftArrays:', error);
-    throw new Error('Failed to fetch ShiftArrays');
+    console.error('Error fetching geplaatste shifts:', error);
+    throw new Error('Failed to fetch geplaatste shifts');
   }
 };
-
 
 
 

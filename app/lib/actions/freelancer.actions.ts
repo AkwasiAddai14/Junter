@@ -25,6 +25,7 @@ type Werkervaring = {
   };
   
   type Freelancer = {
+    naam: any;
     clerkId: string;
     voornaam: string;
     tussenvoegsel?: string;
@@ -123,8 +124,7 @@ export async function verwijderFreelancer(clerkId: string): Promise<Freelancer |
 export const haalFreelancer = async  (clerkId: string) => {
     
     try {
-        
-        const freelancer = await Freelancer.findById({clerkId});
+        const freelancer = await Freelancer.findOne({clerkId});
         return freelancer;
     } catch (error) {
         console.error('Error retrieving freelancers:', error);
@@ -187,3 +187,18 @@ export const haalFreelancers = async ({
 
 
 
+export const haalAlleFreelancers = async (): Promise<Freelancer[]> => {
+    try {
+        await connectToDB();
+        const opdrachtnemers = await Freelancer.find();
+        const freelancersWithNaam = opdrachtnemers.map(opdrachtnemer => ({
+            ...opdrachtnemer.toObject(), // Convert the Mongoose document to a plain object
+            naam: `${opdrachtnemer.voornaam} ${opdrachtnemer.achternaam}`.trim(), // Combine voornaam and achternaam
+        }));
+
+        return freelancersWithNaam || []; // Return an array with 'naam' property
+    } catch (error) {
+        console.error('Error fetching freelancers:', error);
+        throw new Error('Failed to fetch freelancers');
+    }
+};

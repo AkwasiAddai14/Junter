@@ -140,7 +140,7 @@ const CalenderW = () => {
                     <a href="#" className="group absolute inset-1 flex flex-col overflow-y-auto rounded-lg bg-blue-50 p-2 text-xs leading-5 hover:bg-blue-100">
                       <p className="order-1 font-semibold text-blue-700">{shift.title}</p>
                       <p className="text-blue-500 group-hover:text-blue-700">
-                        <time dateTime={shift.startTime}>{format(shift.startTime, 'p')}</time>
+                        <time dateTime={shift.begintijd}>{format(shift.eindtijd, 'p')}</time>
                       </p>
                     </a>
                   </li>

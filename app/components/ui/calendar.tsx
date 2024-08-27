@@ -70,17 +70,6 @@ function Calendar({
 
   return (
     <div>
-      <label>
-        <strong>Selecteer datum: </strong>
-      </label>
-      <input
-        style={{ fontSize: "inherit" }}
-        type="text"
-        value={inputValue}
-        placeholder="dd/mm/yyyy"
-        onChange={handleInputChange}
-        className ="px-2"
-      />
       {props.mode === "single" ? (
         <DayPicker
           {...props}

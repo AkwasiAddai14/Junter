@@ -136,11 +136,11 @@ export const verwijderFlexpool = async (flexpoolId: mongoose.Types.ObjectId) => 
     }
 };
 
-export const haalFlexpool = async (freelancerId: string) => {
+export const haalFlexpoolFreelancer = async (userId: string) => {
     try {
       await connectToDB();
         // Zoek de freelancer op basis van het gegeven ID
-        const freelancer = await Freelancer.findById(freelancerId).populate('flexpools');
+        const freelancer = await Freelancer.findById(userId).populate('flexpools');
 
         if (!freelancer) {
             throw new Error('Freelancer niet gevonden');
@@ -154,19 +154,42 @@ export const haalFlexpool = async (freelancerId: string) => {
     }
 };
 
+export const haalFlexpool = async (flexpoolId: string) => {
+  try {
+    await connectToDB();
+      // Zoek de freelancer op basis van het gegeven ID
+      const flexpool = await Flexpool.findById(flexpoolId).populate('shifts')
+      .populate('freelancers');
+
+      if (!flexpool) {
+          throw new Error('Flexpool niet gevonden');
+      }
+
+      // Retourneer de flexpools van de freelancer
+      return flexpool;
+  } catch (error) {
+      console.error('Error fetching flexpools:', error);
+      throw new Error('Failed to fetch flexpools');
+  }
+};
+
 
 export const haalFlexpools = async (bedrijfId: string): Promise<IFlexpool[]> => {
   try {
     console.log('Fetching flexpools for Bedrijf ID:', bedrijfId);
+
     // Fetch the Bedrijf document and populate the flexpools
     const bedrijf: IBedrijf | null = await Bedrijf.findById(bedrijfId)
       .populate('flexpools') // Populate the flexpools field
-      .exec();
+      .lean(); // Convert to plain JS objects to avoid circular references
+
     if (bedrijf && bedrijf.flexpools && bedrijf.flexpools.length > 0) {
-      // At this point, bedrijf.flexpools should be an array of Flexpool documents
-      // However, TypeScript might not infer this correctly, so we assert the type
-      const flexpools = bedrijf.flexpools as unknown as IFlexpool[];
-      console.log('Found flexpools:', flexpools);
+      // Fetch the related Flexpool documents
+      const flexpools = await Flexpool.find({ _id: { $in: bedrijf.flexpools } })
+        .lean(); // Convert to plain JS objects
+
+      console.log("Flexpools fetched successfully.");
+
       return flexpools;
     } else {
       console.log('No flexpools found for this Bedrijf.');
@@ -178,17 +201,7 @@ export const haalFlexpools = async (bedrijfId: string): Promise<IFlexpool[]> => 
   }
 };
 
-/* export const haalFlexpool = async (userId: string) => {
-  try {
-      const response = await fetch(`/api/flexpool/${userId}`);
-      const data = await response.json();
-      console.log("Fetched Flexpools:", data); // Add this line
-      return data;
-  } catch (error) {
-      console.error("Error in haalFlexpool:", error);
-      throw error;
-  }
-}; */
+
 
 export const haalAlleFlexpools = async (objectIds: string[]): Promise<IFlexpool[]> => {
   try {

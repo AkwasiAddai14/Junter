@@ -1,6 +1,6 @@
 'use client'
 
-import { Dialog, Transition } from '@headlessui/react';
+import { Dialog, Input, Transition } from '@headlessui/react';
 import {
   Bars3Icon,
   CalendarIcon,
@@ -19,12 +19,15 @@ import Calender from './Calender';
 import UitlogModal from './UitlogModal';
 import { fetchBedrijfByClerkId } from "@/app/lib/actions/bedrijven.actions";
 import { haalCheckouts } from '@/app/lib/actions/checkout.actions';
-import { haalFlexpools } from "@/app/lib/actions/flexpool.actions";
-import { haalGeplaatsteShifts, haalShift, haalShifts } from '@/app/lib/actions/shiftArray.actions';
+import { haalFlexpools, maakFlexpool } from "@/app/lib/actions/flexpool.actions";
+import { haalGeplaatsteShifts } from '@/app/lib/actions/shiftArray.actions';
 import ShiftCard from '../cards/ShiftCard';
 import FlexpoolCard from '../cards/FlexpoolCard';
 import { haalFacturen } from '@/app/lib/actions/factuur.actions';
-import { IBedrijf } from '@/app/lib/models/bedrijf.model';
+import { IShiftArray } from '@/app/lib/models/shiftArray.model';
+import mongoose from 'mongoose';
+import { IFlexpool } from '@/app/lib/models/flexpool.model';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
 
 
 
@@ -42,18 +45,21 @@ function classNames(...classes: string[]) {
 }
 
 
-const Dashboard = () => {
+const Dashboard =  () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { isLoaded, user } = useUser();
   const [position, setPosition] = useState("Dashboard");
-  const [shift, setShift] = useState<any[]>([]);
+  const [shift, setShift] = useState<IShiftArray[]>([]);
   const [factuur, setFactuur] = useState<any[]>([])
   const [checkout, setCheckout] = useState<any[]>([])
   const [flexpool, setFlexpool] = useState<any[]>([])
   const [profilePhoto, setProfilePhoto] = useState("");
   const [fullName, setFullName] = useState<string | null>(null);
   const [showLogOut, setShowLogOut] = useState(false);
-  const [bedrijfiD, setBedrijfiD] = useState<string>("")
+  const [bedrijfiD, setBedrijfiD] = useState<string>("");
+/*   const [flexpools, setFlexpools] = useState<IFlexpool[]>([]) */
+  const [newFlexpoolTitle, setNewFlexpoolTitle] = useState('');
+  const [showCheckout, setShowCheckout] = useState(false);
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -68,7 +74,7 @@ const Dashboard = () => {
       try {
         const bedrijf = await fetchBedrijfByClerkId(user!.id);
         if (bedrijf && bedrijf._id) {
-          setBedrijfiD(bedrijf._id.toString())
+          setBedrijfiD(bedrijf._id.toString());
         }
       } catch (error) {
         console.error("Error fetching bedrijf by Clerk ID:", error);
@@ -78,77 +84,90 @@ const Dashboard = () => {
     if (user && !bedrijfiD) {  // Only fetch if user exists and bedrijfiD is not already set
       getBedrijfId();
     }
-  }, [user]); // Remove bedrijfiD from the dependency array
-
+  }, [user]); // Dependency array ensures this runs only when `user` changes
   
+
   useEffect(() => {
-    const fetchShift = async () => {
-      try {
-        if (bedrijfiD) {
-          const fetchedShifts = await haalGeplaatsteShifts({ bedrijfId: bedrijfiD });
-          // Sanitize the fetched data before setting state
-          const sanitizeObject = (obj: any) => {
-            return JSON.parse(JSON.stringify(obj)); // Removes complex properties like functions, etc.
-          };
-          setShift(fetchedShifts ? fetchedShifts.map(sanitizeObject) : []);
+    if (bedrijfiD) {  // Only fetch shifts if bedrijfId is available
+      const fetchShifts = async () => {
+        try {
+          const shifts = await haalGeplaatsteShifts({ bedrijfId: bedrijfiD });
+          setShift(shifts || []);  // Ensure shifts is always an array
+        } catch (error) {
+          console.error('Error fetching shifts:', error);
+          setShift([]);  // Handle error by setting an empty array
         }
-      } catch (error) {
-        console.error('Error fetching shifts:', error);
-        setShift([]); // Prevent triggering a re-fetch
-      }
-    };
+      };
   
-    fetchShift();
-  }, [bedrijfiD]); // Only run this when `bedrijfiD` changes
-  
-useEffect(() => {
-  const fetchCheckout = async () => {
-    try {
-      if (bedrijfiD) {
-        const fetchedCheckout = await haalCheckouts(bedrijfiD);
-        setCheckout(fetchedCheckout); // Set the fetched checkouts to state
-        console.log(checkout)
-      }
-    } catch (error) {
-      console.error('Error fetching checkouts:', error);
+      fetchShifts();
     }
-  };
+  }, [bedrijfiD]); 
 
-  fetchCheckout();
-}, [bedrijfiD]); // Add user.id to the dependency array  
+  useEffect(() =>{
+    if(bedrijfiD){
+      const fetchFlexpool = async () => {
+        try {        
+          const flexpools = await haalFlexpools(bedrijfiD);
+          setFlexpool(flexpools || []);
+        } catch (error){
+          console.log('Error fetching flexpools:', error);
+          setFlexpool([]);
+          }
+              }
+              fetchFlexpool();
+            }
+          }, [bedrijfiD])
 
-useEffect(() => {
-  const fetchFactuur = async () => {
-    try {
-      if (checkout.length > 0) {
-        const fetchedFactuur = await haalFacturen();
-        setFactuur(fetchedFactuur || []);
-      }
-    } catch (error) {
-      console.error('Error fetching facturen:', error);
-    }
-  };
-
-  fetchFactuur();
-}, [checkout]); // Voeg `checkout` toe aan de dependency array  
-
-useEffect(() => {
-  const fetchFlexpool = async () => {
-    try {
-      if (bedrijfiD) {
-        const fetchedFlexpools = await haalFlexpools(bedrijfiD);
-        setFlexpool(fetchedFlexpools || []); // Set state without triggering re-renders
-      }
-    } catch (error) {
-      console.error('Error fetching flexpools:', error);
-    }
-  };
-
-  fetchFlexpool();
-}, [bedrijfiD]); // Trigger fetch when bedrijfId is updated
-
-console.log(shift, flexpool)
-
+          useEffect(() => {
+            const fetchCheckout = async () => {
+              try {
+                if (bedrijfiD) {
+                  const fetchedCheckout = await haalCheckouts(bedrijfiD);
+                  setCheckout(fetchedCheckout); // Set the fetched checkouts to state
+                  console.log(checkout)
+                }
+              } catch (error) {
+                console.error('Error fetching checkouts:', error);
+              }
+            };
+          
+            fetchCheckout();
+          }, [bedrijfiD]); // Add user.id to the dependency array  
+          
+          useEffect(() => {
+            const fetchFactuur = async () => {
+              try {
+                if (checkout.length > 0) {
+                  const fetchedFactuur = await haalFacturen();
+                  setFactuur(fetchedFactuur || []);
+                }
+              } catch (error) {
+                console.error('Error fetching facturen:', error);
+              }
+            };
+          
+            fetchFactuur();
+          }, [checkout]); // Voeg checkout toe aan de dependency array  
+          
+    
+          const voegFlexpoolToe = async () => {
+            try {
+              if (!bedrijfiD) {
+                console.error("BedrijfId is not available");
+                return;
+              }
+             const niewFlexpool =  await maakFlexpool({
+                titel: newFlexpoolTitle.trim(),
+                bedrijfId: bedrijfiD as unknown as mongoose.Types.ObjectId,
+              });
+              // You should manage the flexpools state in the parent component and update it here
+              setNewFlexpoolTitle("");
+              setFlexpool((prevFlexpool) => [...prevFlexpool, niewFlexpool]);
+            } catch (error) {
+              console.error("Error creating flexpool:", error);
+            }
+          };
+          
   return (
     <Fragment>
     <>
@@ -351,6 +370,23 @@ console.log(shift, flexpool)
               {position === 'Flexpools' ?
               flexpool.length > 0 ? (
                 <ScrollArea>
+                  <AlertDialog>
+                        <AlertDialogTrigger className="p-medium-14 my-10 flex w-32 rounded-md bg-sky-500 py-3 justify-center items-center text-primary-50 hover:bg-primary-50 focus:text-primary-500">
+                            Maak flexpool
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-white">
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Flexpool</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    <Input type="text" placeholder="flexpool toevoegen" className="input-field mt-3" onChange={(e) => setNewFlexpoolTitle(e.target.value)} />
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Annuleer</AlertDialogCancel>
+                                <AlertDialogAction onClick={voegFlexpoolToe}>Toevoegen</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                   <div className="grid grid-cols-3 gap-4">
                     {flexpool.slice(0, 9).map((flexpoolItem, index) => (
                       <FlexpoolCard key={index} flexpool={flexpoolItem} />
@@ -373,7 +409,7 @@ console.log(shift, flexpool)
               <p className="italic font-mono text-lg font-semibold text-center mt-2">Shifts</p>
             </div>
             <div className="flex-grow overflow-hidden">
-              <ScrollArea>
+            <ScrollArea className="h-96 overflow-auto">
                 {shift.map((shiftItem, index) => (
                   <li key={index} className="col-span-1 flex rounded-md shadow-sm">
                     
@@ -386,16 +422,15 @@ console.log(shift, flexpool)
                         <p className="text-gray-500">{shiftItem.aanmeldingen?.length} Aanmeldingen</p>
                       </div>
                     </div>
-      
-                    <div className="flex w-8 flex-shrink-0 items-center justify-center rounded-full">
+                    <div className='mt-10 h-16 w-16 items-center justify-center overflow-hidden'>
                       <Image
-                      src={shiftItem.afbeelding}
-                      width={6}
-                      height={6}
-                      alt={shiftItem.titel}
+                      src={shiftItem.afbeelding || "https://utfs.io/f/72e72065-b298-4ffd-b1a2-4d12b06230c9-n2dnlw.webp"}
+                      width={32}
+                      height={32}
+                      alt={shiftItem.opdrachtgeverNaam || "shift"}
+                      className="object-contain rounded-full" 
                       />
-                    </div> 
-      
+                    </div>
                   </li>
                 ))}
               </ScrollArea>
@@ -430,11 +465,14 @@ console.log(shift, flexpool)
               <ScrollArea>
                 {flexpool.map((flexpoolItem, index) => (
                   <li key={index} className="col-span-1 flex rounded-md shadow-sm">
-                    <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white">
-                      {flexpoolItem.freelancers?.length} freelancer
-                    </div>
-                    <div className="flex flex-1 items-center justify-between truncate rounded-r-md border-b border-r border-t border-gray-200 bg-white">
-                      <p className="text-gray-500">{flexpoolItem.shifts?.length} shifts</p>
+                     <div className="flex flex-1 items-center justify-between truncate border-b border-gray-200 bg-white">
+                      <div className="flex-1 truncate px-4 py-2 text-sm">
+                        <a href="#" className="font-medium text-gray-900 hover:text-gray-600">
+                          {flexpoolItem.titel}
+                        </a>
+                        <p> {flexpoolItem.freelancers?.length} freelancer</p>
+                        <p className="text-gray-500">{flexpoolItem.shifts?.length} shifts</p>
+                      </div>
                     </div>
                   </li>
                 ))}
