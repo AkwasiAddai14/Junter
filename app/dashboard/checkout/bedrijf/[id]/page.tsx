@@ -15,11 +15,12 @@ import { TimePicker } from '@mui/x-date-pickers/TimePicker/TimePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import ReactStars from "react-rating-stars-component";
 import DropdownPauze from '@/app/components/shared/DropdownPauze';
+import { useRouter } from 'next/navigation';
 
 
 
-export default function Checkoutgegevens({isVisible, onClose, shiftId} : {isVisible: boolean, onClose: any, shiftId: string}) {
-    if (!isVisible) return null;
+export default function Checkoutgegevens({ shiftId} : {shiftId: string}) {
+    const router = useRouter()
     const { control } = useForm();
     const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T15:30'));
     const [eindtijd, setEindtijd] = useState<Dayjs | null>(dayjs('2022-04-17T15:30'));
@@ -62,7 +63,7 @@ export default function Checkoutgegevens({isVisible, onClose, shiftId} : {isVisi
     } catch (error) {
       console.error('Failed to submit checkout:', error);
   }
-    onClose()
+    router.back()
    }
     
     async function onSubmit(values: z.infer<typeof CheckoutValidation>) {
@@ -78,8 +79,7 @@ export default function Checkoutgegevens({isVisible, onClose, shiftId} : {isVisi
       } catch (error) {
         console.error('Failed to submit checkout:', error);
     }
-      
-
+    router.back();
   }
 
   return (
