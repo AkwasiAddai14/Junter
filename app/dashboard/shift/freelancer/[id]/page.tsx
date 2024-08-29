@@ -1,8 +1,7 @@
+
 import AanmeldButton from '@/app/components/shared/AanmeldButton';
-import { AanmeldingenSectie } from '@/app/components/shared/AanmeldingenSectie';
 import Collection from '@/app/components/shared/Collection';
 import { haalShiftMetId, haalGerelateerdShiftsMetCategorie } from '@/app/lib/actions/shift.actions'
-import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
 import calendar from '@/app/assets/images/logos/calendar.svg';
 import location from '@/app/assets/images/logos/location-grey.svg'
@@ -12,20 +11,16 @@ import { UserIcon } from '@heroicons/react/20/solid';
 export type SearchParamProps = {
   params: { id: string }
   searchParams: { [key: string]: string | string[] | undefined }
+  isOpdrachtgever: boolean
 }
 
 const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) => {
   const shift = await haalShiftMetId(id);
-  const { user } = useUser()
-  
   const relatedEvents = await haalGerelateerdShiftsMetCategorie({
     categoryId: shift.functie,
     shiftId: shift._id,
     page: searchParams.page as string,
   })
-
-  const isOpdrachtgever = shift.opdrachtgever.clerkId === user!.id;
-
   
 
   return (
@@ -83,11 +78,14 @@ const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
               <UserIcon className='w-8 h-8'/>
               <p className="p-medium-16 lg:p-regular-20">{shift.plekken} plekken</p>
             </div>
+            <div className="p-regular-20 flex items-center gap-3">
+              <p className="p-medium-16 lg:p-regular-20">{shift.aanmeldingen.length} aanmeldingen</p>
+            </div>
             <p className="p-medium-16 lg:p-regular-18 truncate text-primary-500">{shift.inFlexpool ? '✅ Flexpool' : 'niet in flexpool'}</p>
             </div>
-            {!isOpdrachtgever && 
+           
             <AanmeldButton shift={shift} />
-          }
+          
           </div>
 
           <div className="flex flex-col gap-2">
@@ -100,9 +98,8 @@ const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
       </div>
     </section>
 
-    {!isOpdrachtgever ? ( <section className="wrapper my-8 flex flex-col gap-8 md:gap-12">
+      <section className="wrapper my-8 flex flex-col gap-8 md:gap-12">
       <h2 className="h2-bold">Gerelateerde shifts</h2>
-
       <Collection 
           data={relatedEvents?.data}
           emptyTitle="Geen relevante shifts gevonden"
@@ -113,11 +110,6 @@ const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
           totalPages={relatedEvents?.totalPages}
         />
     </section>
-    ) : 
-    (
-    <AanmeldingenSectie shiftId={shift._id}/>
-    )
-  }
     </>
   )
 }

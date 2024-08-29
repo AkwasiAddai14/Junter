@@ -7,7 +7,7 @@ import { Button } from '@/app/components/ui/button'
 import { ScrollArea } from "@/app/components/ui/scroll-area"
 import { useUser } from "@clerk/nextjs"
 import { haalShifts } from "@/app/lib/actions/shiftArray.actions"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {  haalFacturen } from "@/app/lib/actions/factuur.actions"
 import { haalFlexpoolFreelancer } from "@/app/lib/actions/flexpool.actions"
 import { haalCheckouts } from "@/app/lib/actions/checkout.actions"
@@ -32,6 +32,7 @@ import axios from "axios"
 import { Calendar } from "../ui/calendar"
 import { Dialog, Menu, MenuButton, MenuItems, } from '@headlessui/react'
 import { haalFreelancer } from "@/app/lib/actions/freelancer.actions"
+import FlexpoolCard from "../cards/FlexpoolCard"
 
 
 
@@ -74,7 +75,8 @@ export default function Example() {
   const [uurtarief, setUurtarief] = useState<[number, number]>([0, 100]);
   const [afstand, setAfstand] = useState<[number, number]>([0, 100]);
   const [filteredShifts, setFilteredShifts] = useState<any[]>([]);
-  const [freelancerId, setFreelancerId] = useState<String>("")
+  const [freelancerId, setFreelancerId] = useState<string>("")
+  const hasFetched = useRef(false);
   
   
   
@@ -90,32 +92,35 @@ export default function Example() {
       try {
         const freelancer = await haalFreelancer(user!.id);
         if (freelancer && freelancer._id) {
-          setFreelancerId(freelancer._id.toString())
+          setFreelancerId(freelancer._id.toString());
         }
       } catch (error) {
-        console.error("Error fetching bedrijf by Clerk ID:", error);
+        console.error("Error fetching freelancer by Clerk ID:", error);
       }
     };
   
-    if (user && !freelancerId) {  // Only fetch if user exists and bedrijfiD is not already set
+    if (user && !freelancerId) {  // Only fetch if user exists and freelancerId is not already set
       getFreelancerId();
     }
   }, [user]);
   
-    useEffect(() => {
+  useEffect(() => {
     const fetchShifts = async () => {
       try {
-        const response = await haalShifts();
-        setShift(response || []);
+        if (!hasFetched.current) {
+          const response = await haalShifts();
+          setShift(response || []);
+          hasFetched.current = true;  // Mark as fetched
+        }
       } catch (error) {
         console.error('Error fetching shifts:', error);
       }
     };
-    
+
     fetchShifts();
   }, []);
   
-  useEffect(() => {
+  /* useEffect(() => {
     const fetchFactuur = async () => {
       try {
         const response = await haalFacturen();
@@ -126,12 +131,12 @@ export default function Example() {
     };
     
     fetchFactuur();
-  }, []);
-  
+  }, []); */
+  /* 
   useEffect(() => {
     const fetchCheckout = async () => {
       try {
-        const response = await haalCheckouts('66ae8f9f559045c255ceadf5');
+        const response = await haalCheckouts(freelancerId as string);
         setCheckout(response || []);
       } catch (error) {
         console.error('Error fetching checkouts:', error);
@@ -139,23 +144,26 @@ export default function Example() {
     };
     
     fetchCheckout();
-  }, []);
+  }, [freelancerId]); */
   
-  useEffect(() => {
-    const fetchFlexpool = async () => {
-      try {
-        const response = await haalFlexpoolFreelancer('66ae8f9f559045c255ceadf5');
-        setFlexpool(response.data || []);
-      } catch (error) {
-        console.error('Error fetching flexpool:', error);
-      }
-    };
-    
-    fetchFlexpool();
-  }, []);
+
+  useEffect(() =>{
+    if(freelancerId){
+      const fetchFlexpool = async () => {
+        try {        
+          const flexpools = await haalFlexpoolFreelancer(freelancerId);
+          setFlexpool(flexpools || []);
+        } catch (error){
+          console.log('Error fetching flexpools:', error);
+          setFlexpool([]);
+          }
+              }
+              fetchFlexpool();
+            }
+          }, [freelancerId])
   
   
-  useEffect(() => {
+  /* useEffect(() => {
     applyFilters();
   }, [dateRange, uurtarief, afstand, shift]);
   
@@ -170,7 +178,9 @@ export default function Example() {
     });
     
     setFilteredShifts(filtered);
-  };
+  }; */
+  
+  console.log("Freelancer ID: ", freelancerId, shift, flexpool)
   
   return (
     <Fragment>
@@ -390,12 +400,12 @@ export default function Example() {
                                )
                              : null
                             } 
-               {position === 'Flexpool' ?
+               {position === 'Flexpools' ?
               flexpool.length > 0 ? (
                 <ScrollArea>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                 {flexpool.slice(0, 9).map((flexpoolItem, index) => (
-                  <ShiftCard key={index} shift={flexpoolItem} />
+                  <FlexpoolCard key={index} flexpool={flexpoolItem} />
                   ))}
                   </div>
                   </ScrollArea>

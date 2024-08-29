@@ -189,11 +189,9 @@ export const haalAlleFreelancers = async (): Promise<Freelancer[]> => {
     try {
         await connectToDB();
         const opdrachtnemers = await Freelancer.find();
-        const freelancersWithNaam = opdrachtnemers.map(opdrachtnemer => ({
-            ...opdrachtnemer.toObject(), // Convert the Mongoose document to a plain object
-        }));
-
-        return freelancersWithNaam || []; // Return an array with 'naam' property
+        
+        console.log(opdrachtnemers)
+        return opdrachtnemers || []; // Return an array with 'naam' property
     } catch (error) {
         console.error('Error fetching freelancers:', error);
         throw new Error('Failed to fetch freelancers');

@@ -56,6 +56,12 @@ export const AanmeldingenSectie = ({ shiftId }: shiftIdParams) => {
   }, [shiftId]);
 
   const calculateAge = (dateOfBirth: string | number | Date) => {
+    // If dateOfBirth is a string in the format dd/MM/yyyy, parse it
+    if (typeof dateOfBirth === 'string') {
+      const [day, month, year] = dateOfBirth.split('/').map(Number);
+      dateOfBirth = new Date(year, month - 1, day);
+    }
+  
     const diff = Date.now() - new Date(dateOfBirth).getTime();
     const age = new Date(diff).getUTCFullYear() - 1970;
     return age;
@@ -121,7 +127,7 @@ export const AanmeldingenSectie = ({ shiftId }: shiftIdParams) => {
                       <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                         <div className="flex items-center">
                           <div className="h-11 w-11 flex-shrink-0">
-                            <img alt="" src={opdrachtnemer.profielfoto} className="h-11 w-11 rounded-full" />
+                            <img alt="freelancer profielfoto" src={opdrachtnemer.profielfoto} className="h-11 w-11 rounded-full" />
                           </div>
                           <div className="ml-4">
                             <div className="font-medium text-gray-900">{opdrachtnemer.naam}</div>
@@ -139,7 +145,7 @@ export const AanmeldingenSectie = ({ shiftId }: shiftIdParams) => {
                         <button onClick={() => {accepteerFreelancer({ shiftId, freelancerId: opdrachtnemer.freelancerId })}} className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
                           Accepteren<span className="sr-only">, {opdrachtnemer.naam}</span>
                         </button>
-                        <button onClick={() => {afwijzenFreelancer({ shiftId, freelancerId: opdrachtnemer.freelancerId })}}className="inline-flex items-center rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-green-600/20">
+                        <button onClick={() => {afwijzenFreelancer({ shiftId, freelancerId: opdrachtnemer.freelancerId })}}className="inline-flex ml-2 items-center rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-green-600/20">
                           Afwijzen<span className="sr-only">, {opdrachtnemer.naam}</span>
                         </button>
                       </td>

@@ -71,10 +71,10 @@ export async function voegAanFlexpool({
 
     // Add freelancers to the flexpool
     flexpool.freelancers.push(freelancer._id);
-
+    freelancer.flexpools.push(flexpool._id);
+    await freelancer.save();
     // Save the updated flexpool
     const updatedFlexpool = await flexpool.save();
-
     // Return the updated flexpool
     return updatedFlexpool;
   } catch (error) {
@@ -136,18 +136,27 @@ export const verwijderFlexpool = async (flexpoolId: mongoose.Types.ObjectId) => 
     }
 };
 
-export const haalFlexpoolFreelancer = async (userId: string) => {
+export const haalFlexpoolFreelancer = async (userId: string): Promise<IFlexpool[]> => {
     try {
       await connectToDB();
         // Zoek de freelancer op basis van het gegeven ID
-        const freelancer = await Freelancer.findById(userId).populate('flexpools');
+        const freelancer: typeof Freelancer | null = await Freelancer.findById(userId)
+        .populate('flexpools') // Populate the flexpools field
+        .lean(); // Convert to plain JS objects to avoid circular references
 
-        if (!freelancer) {
-            throw new Error('Freelancer niet gevonden');
+        if (freelancer && freelancer.flexpools && freelancer.flexpools.length > 0) {
+          // Fetch the related Flexpool documents
+          const flexpools = await Flexpool.find({ _id: { $in: freelancer.flexpools } })
+            .lean(); // Convert to plain JS objects
+    
+          console.log("Flexpools fetched successfully.");
+    
+          return flexpools;
+        } else {
+          console.log('No flexpools found for this Bedrijf.');
+          return [];
         }
-
         // Retourneer de flexpools van de freelancer
-        return freelancer.flexpools;
     } catch (error) {
         console.error('Error fetching flexpools:', error);
         throw new Error('Failed to fetch flexpools');
@@ -158,13 +167,22 @@ export const haalFlexpool = async (flexpoolId: string) => {
   try {
     await connectToDB();
       // Zoek de freelancer op basis van het gegeven ID
-      const flexpool = await Flexpool.findById(flexpoolId).populate('shifts')
-      .populate('freelancers');
+      const flexpool = await Flexpool.findById(flexpoolId).populate({
+        path: 'shifts',
+        model: 'ShiftArray',
+        select: 'titel begindatum aanmeldingen opdrachtgeverNaam plekken afbeelding inFlexpool uurtarief begintijd eindtijd urrtarief', // Select only necessary fields to avoid deep recursion
+      })
+      .populate({
+        path: 'freelancers',
+        model: 'Freelancer',
+        select: 'voornaam achternaam emailadres ratingCount stad profielfoto punctualiteit opkomst rating', // Select only necessary fields
+      })
+      .lean();
 
       if (!flexpool) {
           throw new Error('Flexpool niet gevonden');
       }
-
+      console.log(flexpool)
       // Retourneer de flexpools van de freelancer
       return flexpool;
   } catch (error) {

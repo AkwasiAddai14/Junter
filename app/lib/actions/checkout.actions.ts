@@ -180,13 +180,9 @@ export const noShowCheckout = async ({ shiftId }: { shiftId: string }) =>{
 export const haalCheckouts = async (userId: string) => {
     try {
         await connectToDB();
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
-            throw new Error('Invalid freelancer ID');
-          }
         // Vind de checkouts voor de specifieke freelancer
-        const checkouts = await Shift.find({ opdrachtnemer: userId })
-            .populate('opdrachtgever')
-            .populate('shift');
+        const freelancer = await Freelancer.findById(userId);
+        const checkouts = freelancer.shifts
 
         return checkouts;
     } catch (error) {

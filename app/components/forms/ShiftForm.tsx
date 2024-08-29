@@ -115,12 +115,16 @@ const ShiftForm = ({ userId, type, shift, shiftId }: ShiftFormProps) => {
   const initialValues =
     shift && type === "update"
       ? {
-          ...shift.toObject(),
+          ...shift,
           opdrachtgever: bedrijfDetails?._id ?? "",
-          afbeelding: bedrijfDetails?.profielfoto ?? "",
+          afbeelding: bedrijfDetails?.profielfoto ?? shift.afbeelding,
           adres: `${bedrijfDetails?.stad}, ${bedrijfDetails?.straat} ${bedrijfDetails?.huisnummer}` ?? "",
           begindatum: new Date(shift.begindatum),
           einddatum: new Date(shift.einddatum),
+          pauze: "30 minuten",
+          inFlexpool: shift.inFlexpool || false,
+          flexpoolId: shift.flexpools?.toString() ? shift.flexpools.toString() : ""
+
         }
       : DefaultValues;
 
@@ -174,8 +178,12 @@ if (files.length > 0) {
           eindtijd: values.eindtijd,
           pauze: values.pauze,
           beschrijving: values.beschrijving,
-          vaardigheden: values.vaardigheden ? values.vaardigheden.split(", ") : [],
-          kledingsvoorschriften: values.kledingsvoorschriften ? values.kledingsvoorschriften.split(", ") : [],
+          vaardigheden: typeof values.vaardigheden === 'string'
+          ? values.vaardigheden.split(", ") // If it's a string, split it into an array
+          : Array.isArray(values.vaardigheden)
+            ? values.vaardigheden // If it's already an array, use it as is
+            : [], // Default to an empty array if it's neither
+          kledingsvoorschriften: typeof values.kledingsvoorschriften === 'string' ? values.kledingsvoorschriften.split(", ") : [],
           opdrachtnemers: [],
           flexpoolId: values.flexpoolId,
           path: "/dashboard",
@@ -206,6 +214,7 @@ if (files.length > 0) {
       }
 
       try {
+        console.log(values)
         const updatedShift = await updateShift({
           opdrachtgever: bedrijfDetails._id,
           opdrachtgeverNaam: bedrijfDetails.displaynaam,
@@ -221,8 +230,12 @@ if (files.length > 0) {
           eindtijd: values.eindtijd,
           pauze: values.pauze,
           beschrijving: values.beschrijving,
-          vaardigheden: values.vaardigheden ? values.vaardigheden.split(",") : [],
-          kledingsvoorschriften: values.kledingsvoorschriften ? values.kledingsvoorschriften.split(", ") : [],
+          vaardigheden: typeof values.vaardigheden === 'string'
+          ? values.vaardigheden.split(", ") // If it's a string, split it into an array
+          : Array.isArray(values.vaardigheden)
+            ? values.vaardigheden // If it's already an array, use it as is
+            : [], // Default to an empty array if it's neither
+          kledingsvoorschriften: typeof values.kledingsvoorschriften === "string" ? values.kledingsvoorschriften.split(", ") : [],
           opdrachtnemers: [],
           flexpoolId: values.flexpoolId,
           path: "/dashboard",
@@ -239,7 +252,7 @@ if (files.length > 0) {
 
         if (updatedShift) {
           form.reset();
-          router.push(`/shift/${updatedShift._id}`);
+          router.push("/dashboard");
         }
       } catch (error) {
         console.log(error);
@@ -276,7 +289,9 @@ if (files.length > 0) {
               <FormItem className="w-full">
                 <FormLabel>Categorie</FormLabel>
                 <FormControl>
+                <div className="flex-center  h-[54px] w-full overflow-hidden rounded-full bg-gray-50 px-4 py-2">
                 <DropdownCategorie onChangeHandler={field.onChange} value={field.value} />
+                </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>

@@ -1,10 +1,13 @@
+"use client"
+
 import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
 import Link from 'next/link';
-import React from 'react';
+import React, { useState } from 'react';
 import { DeleteConfirmation } from '@/app/components/shared/DeleteConfirmation';
-import { formatDateTimeF } from '@/app/lib/utils';
 import { IShiftArray } from '@/app/lib/models/shiftArray.model';
+import  edit  from "/Users/georgeaddai/Desktop/thejunter/app/assets/images/logos/edit.svg"
+import { isBedrijf } from '@/app/lib/actions/bedrijven.actions';
 
 type CardProps = {
   shift: IShiftArray;
@@ -13,25 +16,43 @@ type CardProps = {
 const Card = ({ shift }: CardProps) => {
   const { user } = useUser();
   const userId = user?.id as string;
-  const isEventCreator = userId === shift.opdrachtgever?._id?.toString();
+  const [isEenBedrijf, setIsEenBedrijf] = useState<boolean | null>(null);;
+
+  const bedrijfCheck = async () => {
+  try {
+    const isEventCreator = await isBedrijf(userId) // Assuming isBedrijf is a function that returns a boolean
+    setIsEenBedrijf(isEventCreator); // Set the state with the boolean result
+  } catch (error) {
+    console.error("Error checking if user is a bedrijf:", error);
+  }
+};
+
+bedrijfCheck()
+
 
   const backgroundImageUrl = shift.afbeelding;
   const opdrachtgeverName = shift.opdrachtgeverNaam || 'Junter';
   const opdrachtgeverStad = shift.adres || 'Amsterdam';
-  const flexpoolTitle = shift.flexpools && shift.flexpools.length > 0 ? "In flexpool" : 'Niet in flexpool';
+  const flexpoolTitle = shift.inFlexpool ? "✅ flexpool" : '❎ flexpool';
 
 
   return (
     <div className="group relative flex min-h-[380px] w-full max-w-[400px] flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all hover:shadow-lg md:min-h-[438px]">
-      <Link 
-        href={`/dashboard/shift/${shift._id}`}
-        style={{ backgroundImage: `url(${backgroundImageUrl})` }}
-        className="flex-center flex-grow bg-gray-50 bg-cover bg-center text-grey-500"
-      />
-      {isEventCreator && (
-        <div className="absolute right-2 top-2 flex flex-col gap-4 rounded-xl bg-white p-3 shadow-sm transition-all">
-          <Link href={`/dashboard/shift/${shift._id}/update`}>
-            <Image src="/assets/icons/edit.svg" alt="edit" width={20} height={20} />
+      { isEenBedrijf ? (
+          <Link 
+          href={`/dashboard/shift/bedrijf/${shift._id}`}
+          style={{ backgroundImage: `url(${backgroundImageUrl})` }}
+          className="flex-center flex-grow bg-gray-50 bg-cover bg-center text-grey-500"
+        />
+      ):   <Link 
+      href={`/dashboard/shift/freelancer/${shift._id}`}
+      style={{ backgroundImage: `url(${backgroundImageUrl})` }}
+      className="flex-center flex-grow bg-gray-50 bg-cover bg-center text-grey-500"
+    />}
+      {isEenBedrijf && (
+        <div className="absolute items-stretch right-2 top-2 flex flex-col gap-4 rounded-xl bg-white p-3 shadow-sm transition-all">
+          <Link href={`/dashboard/shift/bedrijf/${shift._id}/update`}>
+            <Image src={edit} alt="edit" width={20} height={20} />
           </Link>
           <DeleteConfirmation shiftId={shift._id as string} />
         </div>
@@ -56,9 +77,14 @@ const Card = ({ shift }: CardProps) => {
           </p>
         </div>
        
-        <Link href={`/shift/${shift._id}`}>
+        
+        { isEenBedrijf ? (
+          <Link href={`/dashboard/shift/bedrijf/${shift._id}`}>
           <p className="p-medium-16 md:p-medium-20 line-clamp-1 flex-1 text-black">{shift.titel}</p>
         </Link>
+      ):   <Link href={`/dashboard/shift/freelancer/${shift._id}`}>
+      <p className="p-medium-16 md:p-medium-20 line-clamp-1 flex-1 text-black">{shift.titel}</p>
+    </Link>}
         <div className="flex-between w-full"></div>
         <p className="line-clamp-1 p-medium-14 md:p-medium-16 text-grey-600">
           {opdrachtgeverStad}
@@ -74,7 +100,7 @@ const Card = ({ shift }: CardProps) => {
             {flexpoolTitle}
           </p>
           <p className="p-medium-14 md:p-medium-16 text-grey-600">
-            {shift.aanmeldingen.length} / {shift.plekken}
+          {shift.aanmeldingen?.length || 0} / {shift.plekken}
           </p>
         </div>
       </div>

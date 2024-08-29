@@ -13,8 +13,8 @@ export const ShiftValidation = z.object({
     pauze: z.string(),
     plekken: z.number().gt(0),
     beschrijving: z.string(),
-    vaardigheden: z.string(),
-    kledingsvoorschriften: z.string(),
+    vaardigheden: z.union([z.string(), z.array(z.string())]),
+    kledingsvoorschriften: z.union([z.string(), z.array(z.string())]),
     inFlexpool: z.boolean(),
     flexpoolId: z.string(),
 })

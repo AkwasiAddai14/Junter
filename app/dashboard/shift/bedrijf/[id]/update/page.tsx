@@ -1,9 +1,10 @@
 
 import ShiftForm from "@/app/components/forms/ShiftForm";
 import { haalShiftMetId } from "@/app/lib/actions/shift.actions"
-import { useUser } from "@clerk/nextjs";
 import DashNav from "@/app/components/shared/DashNav";
 import Footer from "@/app/components/shared/Footer4";
+import { fetchBedrijfClerkId } from "@/app/lib/actions/bedrijven.actions";
+
 
 
 type UpdateEventProps = {
@@ -13,10 +14,9 @@ type UpdateEventProps = {
 }
 
 const UpdateEvent = async ({ params: { id } }: UpdateEventProps) => {
-  const { user } = useUser();
-
-  const userId = user?.id as string;
-  const shift = await haalShiftMetId(id)
+  
+  const shift = await haalShiftMetId(id);
+  const bedrijf = await fetchBedrijfClerkId(shift.opdrachtgever)
 
   return (
     <>
@@ -29,7 +29,7 @@ const UpdateEvent = async ({ params: { id } }: UpdateEventProps) => {
           type="update" 
           shift={shift} 
           shiftId={shift._id} 
-          userId={userId} 
+          userId={bedrijf} 
         />
       </div>
       <Footer/>

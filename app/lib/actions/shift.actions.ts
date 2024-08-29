@@ -7,7 +7,7 @@ import Freelancer from "../models/freelancer.model";
 import Bedrijf from "../models/bedrijf.model";
 import Flexpool from "../models/flexpool.model";
 import Shift, { ShiftType } from "../models/shift.model";
-import ShiftArray from "../models/shiftArray.model";
+import ShiftArray, { IShiftArray } from "../models/shiftArray.model";
 import Pauze from "@/app/lib/models/pauze.model";
 import Category from "../models/categorie.model";
 import dayjs from 'dayjs';
@@ -375,12 +375,12 @@ export async function verwijderShiftArray({
 
   interface ReageerShiftParams {
     shiftArrayId: string;
-    freelancerId: string;
+    clerkId: string;
   }
   
   export async function reageerShift({
     shiftArrayId,
-    freelancerId,
+    clerkId,
   }: ReageerShiftParams) {
     try {
       await connectToDB();
@@ -393,9 +393,9 @@ export async function verwijderShiftArray({
       }
   
       // Find the freelancer by ID
-      const freelancer = await Freelancer.findById(freelancerId);
+      const freelancer = await Freelancer.findOne({clerkId});
       if (!freelancer) {
-        throw new Error(`Freelancer with ID ${freelancerId} not found`);
+        throw new Error(`Freelancer with ID ${clerkId} not found`);
       }
   
       // Ensure that shifts is an array of ShiftType
@@ -514,74 +514,65 @@ interface AccepteerFreelancerParams {
 }
 
 export async function accepteerFreelancer({
-    shiftId,
-    freelancerId
+  shiftId,
+  freelancerId
 }: AccepteerFreelancerParams) {
-    try {
-        await connectToDB();
-       
-        const shiftObjectId = new mongoose.Types.ObjectId(shiftId);
-        const freelancerObjectId = new mongoose.Types.ObjectId(freelancerId);
-        // Find the shift by ID
-        const shift = await Shift.findById(shiftId).populate('opdrachtnemer');
-        if (!shift) {
-            throw new Error(`Shift with ID ${shiftId} not found`);
-        }
+  try {
+      await connectToDB();
 
-        // Find the shift array by ID
-        const shiftArray = await ShiftArray.findById(shift.shiftArrayId);
-        if (!shiftArray) {
-            throw new Error(`ShiftArray with ID ${shift.shiftArrayId} not found`);
-        }
+      if (!mongoose.Types.ObjectId.isValid(shiftId)) {
+          throw new Error(`Invalid shift ID: ${shiftId}`);
+      }
 
-        // Move the freelancer from the aanmeldingen array to the opdrachtnemers array
-        const aanmeldingenIndex = shiftArray.aanmeldingen.indexOf(freelancerObjectId);
-        if (aanmeldingenIndex > -1) {
-            shiftArray.aanmeldingen.splice(aanmeldingenIndex, 1);
-        }
-        
+      if (!mongoose.Types.ObjectId.isValid(freelancerId)) {
+          throw new Error(`Invalid freelancer ID: ${freelancerId}`);
+      }
 
-        // Find the freelancer by ID
-        const freelancer = await Freelancer.findById(freelancerId);
-        if (!freelancer) {
-            throw new Error(`Freelancer with ID ${freelancerId} not found`);
-        }
+      const shiftObjectId = new mongoose.Types.ObjectId(shiftId);
+      const freelancerObjectId = new mongoose.Types.ObjectId(freelancerId);
 
-        if (shift.opdrachtnemer === undefined) {
-          shift.opdrachtnemer = freelancerObjectId; ;
-        } else {
-          console.log("Action failed.")
-        }
+      const shiftArray = await ShiftArray.findById(shiftObjectId) as (Document<unknown, {}, IShiftArray> & IShiftArray & { _id: mongoose.Types.ObjectId });
+      if (!shiftArray) {
+          throw new Error(`ShiftArray with ID ${shiftId} not found`);
+      }
 
-        if (!Array.isArray(shiftArray.shifts) || shiftArray.shifts.length === 0) {
+      const freelancer = await Freelancer.findById(freelancerObjectId);
+      if (!freelancer) {
+          throw new Error(`Freelancer with ID ${freelancerId} not found`);
+      }
+
+      if (!Array.isArray(shiftArray.shifts) || shiftArray.shifts.length === 0) {
           throw new Error('No shifts found in the shiftArray.');
       }
-        // Find the first shift in the shift array's shifts array
-        const firstShiftId = shiftArray.shifts[0];
-        const firstShift = await Shift.findById(firstShiftId);
-        if (!firstShift) {
-            throw new Error(`Shift with ID ${firstShiftId} not found`);
-        }
 
-        // Add the first shift to the freelancer's shifts array
-        freelancer.shifts.push({ shift: firstShift._id, status: 'aangenomen' });
+      const firstShiftId = shiftArray.shifts[0];
+      const firstShift = await Shift.findById(firstShiftId);
+      if (!firstShift) {
+          throw new Error(`Shift with ID ${firstShiftId} not found`);
+      }
 
-        // Remove the shift instance in the freelancer's shifts array with the same shiftArrayId and status 'aangemeld'
-        freelancer.shifts = freelancer.shifts.filter((s: { shiftArrayId: { toString: () => any; }; status: string; }) => {
-          const shiftArrayIdString = (shiftArray._id as mongoose.Types.ObjectId).toString();
-          return s.shiftArrayId.toString() !== shiftArrayIdString || s.status !== 'aangemeld';
-        });
+      freelancer.shifts.push({
+          shift: firstShift._id,
+          status: 'aangenomen',
+      });
 
-        // Save the updates
-        await shiftArray.save();
-        await freelancer.save();
-        await shift.save();
+      freelancer.shifts = freelancer.shifts.filter((s: { shiftArrayId: { toString: () => any; }; status: string; }) => {
+          return (
+              s.shiftArrayId.toString() !== shiftArray._id.toString() ||
+              s.status !== 'aangemeld'
+          );
+      });
 
-        return { success: true, message: "Freelancer successfully accepted for the shift" };
-    } catch (error: any) {
-        throw new Error(`Failed to accept freelancer for shift: ${error.message}`);
-    }
+      await shiftArray.save();
+      await freelancer.save();
+      await firstShift.save();
+
+      return { success: true, message: "Freelancer successfully accepted for the shift" };
+  } catch (error: any) {
+      throw new Error(`Failed to accept freelancer for shift: ${error.message}`);
+  }
 }
+
 
 
 interface AfwijzenFreelancerParams {

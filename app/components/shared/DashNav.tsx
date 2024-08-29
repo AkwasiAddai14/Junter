@@ -6,13 +6,15 @@ import logo from '@/app/assets/images/178884748_padded_logo.png';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/nextjs';
-
+import { useClerk } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 
 export default function Example() {
   const { isLoaded, user } = useUser();
   const [profilePhoto, setProfilePhoto] = useState("");
   const router = useRouter();
+  const { signOut } = useClerk();
+
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -77,12 +79,20 @@ export default function Example() {
                 className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-200 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
               >
                 <MenuItem>
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100">
-                   Profiel
+                  <a
+                   href="/dashboard"
+                   onClick={() => router.back()} 
+                   className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100"
+                   >
+                   terug
                   </a>
                 </MenuItem>
                 <MenuItem>
-                  <a href="#" className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100">
+                  <a 
+                  href="#"
+                  className="block px-4 py-2 text-sm text-gray-700 data-[focus]:bg-gray-100"
+                  onClick={() => signOut({ redirectUrl: '/' })}
+                  >
                     Uitloggen
                   </a>
                 </MenuItem>

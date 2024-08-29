@@ -415,7 +415,7 @@ const Dashboard =  () => {
                     
                     <div className="flex flex-1 items-center justify-between truncate border-b border-gray-200 bg-white">
                       <div className="flex-1 truncate px-4 py-2 text-sm">
-                        <a href="#" className="font-medium text-gray-900 hover:text-gray-600">
+                        <a href={`/dashboard/shift/bedrijf/${shiftItem._id}`} className="font-medium text-gray-900 hover:text-gray-600">
                           {shiftItem.titel}
                         </a>
                         <p className="text-gray-500">{new Date(shiftItem.begindatum).toLocaleDateString('nl-NL')}</p>
@@ -459,19 +459,27 @@ const Dashboard =  () => {
       
           <div className="h-1/3 border-2 rounded-lg flex flex-col mt-2">
             <div className="w-full border-b-2 h-10">
-              <p className="mt-2 italic font-mono text-lg font-semibold text-center">Flexpools</p>
+              <p className="mt-2 italic font-mono text-lg font-semibold text-center">Facturen</p>
             </div>
             <div className="flex-grow overflow-hidden">
               <ScrollArea>
-                {flexpool.map((flexpoolItem, index) => (
+                {factuur.map((factuurItem, index) => (
                   <li key={index} className="col-span-1 flex rounded-md shadow-sm">
                      <div className="flex flex-1 items-center justify-between truncate border-b border-gray-200 bg-white">
                       <div className="flex-1 truncate px-4 py-2 text-sm">
-                        <a href="#" className="font-medium text-gray-900 hover:text-gray-600">
-                          {flexpoolItem.titel}
+                        <a href={`/dashboard/shift/bedrijf/${factuurItem._id}`} className="font-medium text-gray-900 hover:text-gray-600">
+                          Week {factuurItem.week} 
                         </a>
-                        <p> {flexpoolItem.freelancers?.length} freelancer</p>
-                        <p className="text-gray-500">{flexpoolItem.shifts?.length} shifts</p>
+                        <p> {factuurItem.shifts?.length} shifts</p>
+                        <p className="text-gray-500">{factuurItem.shifts?.length} shifts</p>
+                        <div className="flex flex-1 items-center justify-between">
+                        <p className="text-gray-500">€{factuurItem.totaalbedrag} shifts</p>
+                        {factuurItem.isVoltooid ? (
+                        <p className="text-green-600">Betaald</p>
+                        ) : (
+                          <p className="text-gray-500">Openstaand</p>
+                        )}
+                        </div>
                       </div>
                     </div>
                   </li>

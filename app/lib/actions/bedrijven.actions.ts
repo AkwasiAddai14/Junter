@@ -163,4 +163,34 @@ export const fetchBedrijfDetails = async (clerkId: string) => {
     }
   };
 
+  export const isBedrijf = async (clerkId: string) => {
+    try {
+      await connectToDB();
+      const bedrijf = await Bedrijf.findOne({ clerkId }).exec();
+      if (bedrijf) {
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error fetching bedrijf details:', error);
+      throw error;
+    }
+  };
 
+  export const fetchBedrijfClerkId = async (bedrijfId: string): Promise<string> => {
+    try {
+      await connectToDB();
+      
+      // Find the company by its ObjectId
+      const bedrijf = await Bedrijf.findById(bedrijfId).exec();
+      
+      if (bedrijf) {
+        return bedrijf.clerkId; // Return the clerkId of the found company
+      }
+      
+      throw new Error('Bedrijf not found');
+    } catch (error) {
+      console.error('Error fetching bedrijf details:', error);
+      throw error;
+    }
+  };

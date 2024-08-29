@@ -14,7 +14,7 @@ export const haalShifts = async (): Promise<IShiftArray[] | ShiftType[] | null> 
   try {
     // Connect to the database
     await connectToDB();
-    const shiftArrays = await ShiftArray.find().populate('shifts'); // Ensure shifts are populated with full details
+    const shiftArrays = await ShiftArray.find(); // Ensure shifts are populated with full details
     // Filter out any shiftArrays that have empty shifts arrays
     const nonEmptyShiftArrays = shiftArrays.filter((shiftArray) => 
       Array.isArray(shiftArray.shifts) && shiftArray.shifts.length > 0
@@ -82,20 +82,15 @@ export const haalGeplaatsteShifts = async ({ bedrijfId }: { bedrijfId: string })
 export const haalAanmeldingen = async (shiftId: any) => {
   try {
     await connectToDB()
-    const shift = await Shift.findById(shiftId);
+    const shift = await ShiftArray.findById(shiftId);
     if (!shift) {
       throw new Error(`Shift with ID ${shiftId} not found`);
     }
 
-    const shiftArray = await ShiftArray.findOne({ shiftArrayId: shift.shiftArrayId }).populate('aanmeldingen');
-    if (!shiftArray) {
-      throw new Error(`ShiftArray with ID ${shift.shiftArrayId} not found`);
-    }
-
     const freelancers = await Freelancer.find({
-      _id: { $in: shiftArray.aanmeldingen }
+      _id: { $in: shift.aanmeldingen }
     });
-
+    console.log(freelancers)
     return freelancers;
   } catch (error: any) {
     console.error(error);

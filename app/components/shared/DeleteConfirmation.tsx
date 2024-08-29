@@ -3,7 +3,6 @@
 import { useEffect, useState, useTransition } from 'react'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/app/components/ui/alert-dialog'
+import del from "/Users/georgeaddai/Desktop/thejunter/app/assets/images/logos/delete.svg"
 
 import { haalShiftMetId, verwijderShiftArray } from '@/app/lib/actions/shift.actions'
 
@@ -36,12 +36,12 @@ export const DeleteConfirmation = ({ shiftId }: { shiftId: string }) => {
     return <p>Loading...</p>; // or a loading indicator
   }
 
-  const shiftArrayId = shift.shiftArrayId;
+  const shiftArrayId = shift._id;
 
   return (
     <AlertDialog>
       <AlertDialogTrigger>
-        <Image src="/assets/icons/delete.svg" alt="edit" width={20} height={20} />
+        <Image src={del} alt="edit" width={20} height={20} />
       </AlertDialogTrigger>
 
       <AlertDialogContent className="bg-white">
