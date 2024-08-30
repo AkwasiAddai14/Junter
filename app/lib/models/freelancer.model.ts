@@ -1,4 +1,33 @@
-import mongoose from 'mongoose';
+import mongoose, { Document, Types, Schema } from 'mongoose';
+
+export interface IFreelancer extends Document {
+    flexpools: Types.ObjectId[];
+    shifts: Types.ObjectId[];
+    facturen: Types.ObjectId[]; 
+    clerkId: string;
+    voornaam: string;
+    tussenvoegsel?: string;
+    achternaam: string;
+    geboortedatum: Date;
+    telefoonnummer?: string;
+    emailadres?: string;
+    bsn?: string;
+    korregeling?: boolean;
+    kvknr?: string;
+    btwid?: string;
+    iban: string;
+    postcode: string;
+    huisnummer: string;
+    straat?: string;
+    stad?: string;
+    onboarded?: boolean;
+    profielfoto?: string;
+    ratingCount?: number;
+    rating?: number;
+    opkomst?: number;
+    punctualiteit?: number;
+    bio?: string;
+  }
 
 const freelancerSchema = new mongoose.Schema({
     clerkId: { type: String, required: true },

@@ -3,7 +3,7 @@
 import { connectToDB} from "../mongoose";
 import Flexpool, { IFlexpool } from "../models/flexpool.model";
 import Bedrijf, { IBedrijf } from "../models/bedrijf.model";
-import Freelancer from "../models/freelancer.model";
+import Freelancer, { IFreelancer } from "../models/freelancer.model";
 import mongoose from "mongoose";
 
 
@@ -140,7 +140,7 @@ export const haalFlexpoolFreelancer = async (userId: string): Promise<IFlexpool[
     try {
       await connectToDB();
         // Zoek de freelancer op basis van het gegeven ID
-        const freelancer: typeof Freelancer | null = await Freelancer.findById(userId)
+        const freelancer: IFreelancer | null  = await Freelancer.findById(userId)
         .populate('flexpools') // Populate the flexpools field
         .lean(); // Convert to plain JS objects to avoid circular references
 
