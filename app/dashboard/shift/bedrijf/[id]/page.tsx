@@ -11,10 +11,10 @@ import { UserIcon } from '@heroicons/react/20/solid';
 export type SearchParamProps = {
   params: { id: string }
   searchParams: { [key: string]: string | string[] | undefined }
-  isOpdrachtgever: boolean
+ 
 }
 
-const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) => {
+const shiftDetails = async ({ params: { id }, searchParams, }: SearchParamProps) => {
   const shift = await haalShiftMetId(id);
 
   return (
