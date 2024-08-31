@@ -308,7 +308,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                     <DatePicker
                         selected={selectedDate || null} // Assign selectedDate or null to the selected attribute
                         onChange={(date: Date | null) => setValue('geboortedatum', date as Date, { shouldValidate: true })} // Update the form state
-                        dateFormat="dd/MM/yyyy"
+                        dateFormat="MM/dd/yyyy"
                         wrapperClassName="datePicker"
                       />
                       {errors.geboortedatum && <p className="mt-2 text-sm text-red-600">{errors.geboortedatum.message}</p>}

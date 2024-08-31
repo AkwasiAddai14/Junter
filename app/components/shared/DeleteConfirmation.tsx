@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/app/components/ui/alert-dialog'
-import del from "/Users/georgeaddai/Desktop/thejunter/app/assets/images/logos/delete.svg"
+import del from "@/app/assets/images/logos/delete.svg"
 
 import { haalShiftMetId, verwijderShiftArray } from '@/app/lib/actions/shift.actions'
 

@@ -4,6 +4,7 @@ import { accepteerFreelancer } from "@/app/lib/actions/shift.actions";
 import { afwijzenFreelancer } from "@/app/lib/actions/shift.actions";
 import { haalAanmeldingen } from "@/app/lib/actions/shiftArray.actions";
 import { useEffect, useState } from "react";
+import { format, startOfWeek, endOfWeek, addDays, isToday, differenceInMinutes, parseISO, parse } from 'date-fns';
 
 type shiftIdParams = {
   shiftId: string;
@@ -47,6 +48,7 @@ export const AanmeldingenSectie = ({ shiftId }: shiftIdParams) => {
       try {
         const aanmeldingen = await haalAanmeldingen(shiftId);
         setFreelancers(aanmeldingen);
+        console.log()
       } catch (error) {
         console.error("Error fetching aanmeldingen:", error);
       }
@@ -55,11 +57,27 @@ export const AanmeldingenSectie = ({ shiftId }: shiftIdParams) => {
     fetchFreelancers();
   }, [shiftId]);
 
+  const parseShiftTime = (date: Date): Date => {
+    // Format the date to 'yyyy-MM-dd'
+    const datePart = format(date, 'MM-dd-yyyy');
+    // Combine the date part with the time
+   console.log(datePart)
+    const parsedDate = parse(datePart, 'MM-dd-yyyy', new Date());
+   console.log(parsedDate)
+    // Check if the date is valid
+    if (isNaN(parsedDate.getTime())) {
+      throw new Error(`Invalid date: ${datePart}`);
+    }
+    console.log(parsedDate)
+    return parsedDate;
+  };
+
   const calculateAge = (dateOfBirth: string | number | Date) => {
     // If dateOfBirth is a string in the format dd/MM/yyyy, parse it
     if (typeof dateOfBirth === 'string') {
       const [day, month, year] = dateOfBirth.split('/').map(Number);
       dateOfBirth = new Date(year, month - 1, day);
+      console.log(dateOfBirth)
     }
   
     const diff = Date.now() - new Date(dateOfBirth).getTime();
@@ -72,13 +90,13 @@ export const AanmeldingenSectie = ({ shiftId }: shiftIdParams) => {
     naam: `${freelancer.voornaam} ${freelancer.tussenvoegsel ? freelancer.tussenvoegsel + ' ' : ''}${freelancer.achternaam}`,
     profielfoto: freelancer.profielfoto,
     stad: freelancer.stad,
-    leeftijd: calculateAge(freelancer.geboortedatum),
+    leeftijd: calculateAge(parseShiftTime(new Date(freelancer.geboortedatum))),
     rating: freelancer.rating,
     klussen: freelancer.shifts.length,
     opkomst: freelancer.opkomst,
     punctualiteit: freelancer.punctualiteit,
   }));
-
+console.log(freelancers)
     return (
       <div className="px-4 mt-12 sm:px-6 lg:px-8">
         <div className="sm:flex sm:items-center">

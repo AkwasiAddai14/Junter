@@ -299,7 +299,7 @@ const Dashboard =  () => {
             <Bars3Icon className="h-6 w-6" aria-hidden="true" />
           </button>
           <div className="flex-1 text-sm font-semibold leading-6 text-white">Dashboard</div>
-          <a href="#">
+          <a href="/">
             <span className="sr-only">{fullName}</span>
             <Image
               className="h-8 w-8 rounded-full bg-gray-800"
@@ -409,7 +409,7 @@ const Dashboard =  () => {
               <p className="italic font-mono text-lg font-semibold text-center mt-2">Shifts</p>
             </div>
             <div className="flex-grow overflow-hidden">
-            <ScrollArea className="h-96 overflow-auto">
+            <ScrollArea className="h-full overflow-auto">
                 {shift.map((shiftItem, index) => (
                   <li key={index} className="col-span-1 flex rounded-md shadow-sm">
                     
@@ -442,7 +442,7 @@ const Dashboard =  () => {
               <p className="mt-2 italic font-mono text-lg font-semibold text-center">Checkouts</p>
             </div>
             <div className="flex-grow overflow-hidden">
-              <ScrollArea>
+              <ScrollArea className="h-full overflow-auto">
                 {checkout.map((checkoutItem, index) => (
                   <li key={index} className="col-span-1 flex rounded-md shadow-sm">
                     <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white">
@@ -462,7 +462,7 @@ const Dashboard =  () => {
               <p className="mt-2 italic font-mono text-lg font-semibold text-center">Facturen</p>
             </div>
             <div className="flex-grow overflow-hidden">
-              <ScrollArea>
+              <ScrollArea className="h-full overflow-auto">
                 {factuur.map((factuurItem, index) => (
                   <li key={index} className="col-span-1 flex rounded-md shadow-sm">
                      <div className="flex flex-1 items-center justify-between truncate border-b border-gray-200 bg-white">

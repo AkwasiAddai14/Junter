@@ -7,29 +7,118 @@ import {
   ClockIcon,
   EllipsisHorizontalIcon,
 } from '@heroicons/react/20/solid'
-import { Menu, Transition } from '@headlessui/react'
+import { useUser } from "@clerk/nextjs";
 import { Fragment, useEffect, useRef, useState } from 'react'
 import React from 'react'
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameDay, isSameMonth, parse } from 'date-fns'
+import { IShiftArray } from '@/app/lib/models/shiftArray.model'
+import { haalGeplaatsteShifts } from '@/app/lib/actions/shiftArray.actions';
+import { fetchBedrijfByClerkId } from "@/app/lib/actions/bedrijven.actions";
+
 
 function classNames(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(' ')
 }
 
 const CalenderM = () => {
+  const { isLoaded, user } = useUser();
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [shifts, setShifts] = useState<any[]>([])
+  const [shifts, setShifts] = useState<IShiftArray[]>([]);
+  const [bedrijfiD, setBedrijfiD] = useState<string>("");
+
+  useEffect(() => {
+    if (isLoaded && user) {
+      const getBedrijfId = async () => {
+        try {
+          const bedrijf = await fetchBedrijfByClerkId(user!.id);
+          if (bedrijf && bedrijf._id) {
+            setBedrijfiD(bedrijf._id.toString());
+          }
+        } catch (error) {
+          console.error("Error fetching bedrijf by Clerk ID:", error);
+        }
+      };
+    
+      if (user && !bedrijfiD) {  // Only fetch if user exists and bedrijfiD is not already set
+        getBedrijfId();
+      }
+    }
+  }, [isLoaded, user]);
+
+  
+
+  useEffect(() => {
+    if (bedrijfiD) {  // Only fetch shifts if bedrijfId is available
+      const fetchShifts = async () => {
+        try {
+          const shifts = await haalGeplaatsteShifts({ bedrijfId: bedrijfiD });
+          setShifts(shifts || []);  // Ensure shifts is always an array
+        } catch (error) {
+          console.error('Error fetching shifts:', error);
+          setShifts([]);  // Handle error by setting an empty array
+        }
+      };
+  
+      fetchShifts();
+    }
+  }, [bedrijfiD]); 
+
 
   const startDate = startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 })
   const endDate = endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 })
 
-  const days = []
-  let day = startDate
-  while (day <= endDate) {
-    days.push(day)
-    day = addDays(day, 1)
+  interface Day {
+    date: string;
+    isCurrentMonth: boolean;
+    isToday?: boolean;
+    isSelected?: boolean;
+    events: Event[];
   }
+
+  interface Event {
+    id: string;
+    name: string;
+    time: string;
+    datetime: string;
+    href: string;
+  }
+
+  const today = format(new Date(), 'yyyy-MM-dd');
+  
+  const days: Day[] = [];
+  let day = startDate;
+  while (day <= endDate) {
+    days.push({
+      date: format(day, 'yyyy-MM-dd'),
+      isCurrentMonth: day.getMonth() === currentMonth.getMonth(),
+      isToday: format(day, 'yyyy-MM-dd') === today,
+      isSelected: false,
+      events: [], // This is now typed as Event[]
+    });
+    day = addDays(day, 1);
+  }
+
+days.forEach((day) => {
+  const dayDate = new Date(day.date);
+
+  shifts.forEach((shift) => {
+    const shiftDate = new Date(shift.begindatum);
+    if (
+      shiftDate.getFullYear() === dayDate.getFullYear() &&
+      shiftDate.getMonth() === dayDate.getMonth() &&
+      shiftDate.getDate() === dayDate.getDate()
+    ) {
+      day.events.push({
+        id: shift._id as string,
+        name: shift.titel,
+        time: shift.begintijd,
+        datetime: shift.begindatum.toISOString(),
+        href: `/dashboard/shift/bedrijf/${shift._id}`,
+      })
+    }
+  })
+})
 
   const handlePrevMonth = () => {
     setCurrentMonth(subMonths(currentMonth, 1))
@@ -43,11 +132,13 @@ const CalenderM = () => {
     setSelectedDate(date)
   }
 
+  const selectedDay = days.find((day) => day.isSelected)
+
   return (
     <div className="lg:flex lg:pl-96 md:w-auto lg:w-auto lg:h-full lg:flex-col">
       <header className="flex items-center justify-between border-b border-gray-200 px-6 py-4 lg:flex-none">
         <h1 className="text-base font-semibold leading-6 text-gray-900">
-          <time dateTime={format(currentMonth, 'yyyy-MM')}>{format(currentMonth, 'MMMM yyyy')}</time>
+          <time dateTime={format(currentMonth, 'MM-yyyy')}>{format(currentMonth, 'MMMM yyyy')}</time>
         </h1>
         <div className="flex items-center">
           <div className="relative flex items-center rounded-md bg-white shadow-sm md:items-stretch">
@@ -106,23 +197,23 @@ const CalenderM = () => {
           <div className="hidden w-full lg:grid lg:grid-cols-7 lg:grid-rows-6 lg:gap-px">
             {days.map((day) => (
               <div
-                key={format(day, 'yyyy-MM-dd')}
+                key={day.date}
                 className={classNames(
-                  isSameMonth(day, currentMonth) ? 'bg-white' : 'bg-gray-50 text-gray-500',
-                  'relative px-3 py-2'
+                  day.isCurrentMonth ? 'bg-white' : 'bg-gray-50 text-gray-500',
+                  'relative px-3 py-2',
                 )}
               >
                 <time
-                  dateTime={format(day, 'yyyy-MM-dd')}
+                  dateTime={day.date}
                   className={
-                    isSameDay(day, new Date())
-                      ? 'flex h-6 w-6 items-center justify-center rounded-full bg-sky-600 font-semibold text-white'
+                    day.isToday
+                      ? 'flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 font-semibold text-white'
                       : undefined
                   }
                 >
-                  {format(day, 'd')}
+                  {(day.date.split('-').pop() ?? '').replace(/^0/, '')}
                 </time>
-                {/* {day.events.length > 0 && (
+                {day.events.length > 0 && (
                   <ol className="mt-2">
                     {day.events.slice(0, 2).map((event) => (
                       <li key={event.id}>
@@ -143,51 +234,48 @@ const CalenderM = () => {
                   </ol>
                 )}
               </div>
-            ))} */}
-              </div>
             ))}
           </div>
           <div className="isolate grid w-full grid-cols-7 grid-rows-6 gap-px lg:hidden">
             {days.map((day) => (
               <button
-                key={format(day, 'yyyy-MM-dd')}
+                key={day.date}
                 type="button"
                 className={classNames(
-                  isSameMonth(day, currentMonth) ? 'bg-white' : 'bg-gray-50',
-                  (isSameDay(day, selectedDate ?? new Date()) || isSameDay(day, new Date())) && 'font-semibold',
-                  isSameDay(day, selectedDate ?? new Date()) && 'text-white',
-                  !isSameDay(day, selectedDate ?? new Date()) && isSameDay(day, new Date()) && 'text-sky-600',
-                  !isSameDay(day, selectedDate ?? new Date()) && isSameMonth(day, currentMonth) && !isSameDay(day, new Date()) && 'text-gray-900',
-                  !isSameDay(day, selectedDate ?? new Date()) && !isSameMonth(day, currentMonth) && !isSameDay(day, new Date()) && 'text-gray-500',
-                  'flex h-36 flex-col px-3 py-2 hover:bg-gray-100 focus:z-10'
+                  day.isCurrentMonth ? 'bg-white' : 'bg-gray-50',
+                  (day.isSelected || day.isToday) && 'font-semibold',
+                  day.isSelected && 'text-white',
+                  !day.isSelected && day.isToday && 'text-indigo-600',
+                  !day.isSelected && day.isCurrentMonth && !day.isToday && 'text-gray-900',
+                  !day.isSelected && !day.isCurrentMonth && !day.isToday && 'text-gray-500',
+                  'flex h-14 flex-col px-3 py-2 hover:bg-gray-100 focus:z-10',
                 )}
-                onClick={() => handleDateClick(day)}
               >
                 <time
-                  dateTime={format(day, 'yyyy-MM-dd')}
+                  dateTime={day.date}
                   className={classNames(
-                    isSameDay(day, selectedDate ?? new Date()) && 'flex h-6 w-6 items-center justify-center rounded-full',
-                    isSameDay(day, selectedDate ?? new Date()) && isSameDay(day, new Date()) && 'bg-sky-600',
-                    isSameDay(day, selectedDate ?? new Date()) && !isSameDay(day, new Date()) && 'bg-gray-900',
-                    'ml-auto'
+                    day.isSelected && 'flex h-6 w-6 items-center justify-center rounded-full',
+                    day.isSelected && day.isToday && 'bg-indigo-600',
+                    day.isSelected && !day.isToday && 'bg-gray-900',
+                    'ml-auto',
                   )}
                 >
-                  {format(day, 'd')}
+                  {(day.date.split('-').pop() ?? '').replace(/^0/, '')}
                 </time>
-                <span className="sr-only">{/* {day.events.length} events */}</span>
-                {/*{day.events.length > 0 && (
+                <span className="sr-only">{day.events.length} events</span>
+                {day.events.length > 0 && (
                   <span className="-mx-0.5 mt-auto flex flex-wrap-reverse">
                     {day.events.map((event) => (
                       <span key={event.id} className="mx-0.5 mb-1 h-1.5 w-1.5 rounded-full bg-gray-400" />
                     ))}
                   </span>
-                )}*/}
+                )}
               </button>
             ))}
           </div>
         </div>
       </div>
-{/*       {selectedDay?.events.length > 0 && (
+      {selectedDay && selectedDay.events && selectedDay.events.length > 0 && (
         <div className="px-4 py-10 sm:px-6 lg:hidden">
           <ol className="divide-y divide-gray-100 overflow-hidden rounded-lg bg-white text-sm shadow ring-1 ring-black ring-opacity-5">
             {selectedDay.events.map((event) => (
@@ -203,13 +291,13 @@ const CalenderM = () => {
                   href={event.href}
                   className="ml-6 flex-none self-center rounded-md bg-white px-3 py-2 font-semibold text-gray-900 opacity-0 shadow-sm ring-1 ring-inset ring-gray-300 hover:ring-gray-400 focus:opacity-100 group-hover:opacity-100"
                 >
-                  Edit<span className="sr-only">, {event.name}</span>
+                  Wijzig<span className="sr-only">, {event.name}</span>
                 </a>
               </li>
             ))}
           </ol>
         </div>
-      )} */}
+      )}
     </div>
   )
 }

@@ -41,10 +41,10 @@ const Calender = () => {
       <header className="items-center justify-between flex flex-1 min-w-0 md:w-auto md:pl-0 sm:pl-0 lg:w-auto border-b border-gray-200 px-6 py-4">
       <div>
       <h1 className="text-base font-semibold leading-6 text-gray-900">
-        <time dateTime={format(currentDate, 'yyyy-MM-dd')} className="sm:hidden">
+        <time dateTime={format(currentDate, 'dd-MM-yyyy')} className="sm:hidden">
           {format(currentDate, 'PPpp')}
         </time>
-        <time dateTime={format(currentDate, 'yyyy-MM-dd')} className="hidden sm:inline">
+        <time dateTime={format(currentDate, 'dd-MM-yyyy')} className="hidden sm:inline">
           {format(currentDate, 'MMMM d, yyyy')}
         </time>
       </h1>

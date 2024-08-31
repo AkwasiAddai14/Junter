@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useState } from 'react';
-import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
-import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, EllipsisHorizontalIcon } from '@heroicons/react/20/solid';
+import { startOfMonth, endOfMonth, eachDayOfInterval, format, getDay, startOfDay } from 'date-fns';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid';
 
 function classNames(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(' ')
@@ -10,17 +10,29 @@ function classNames(...classes: (string | boolean | undefined)[]) {
 
 const generateYearCalendar = (year: number) => {
   const months = [];
+  const today = startOfDay(new Date());
+
   for (let month = 0; month < 12; month++) {
     const start = startOfMonth(new Date(year, month));
     const end = endOfMonth(start);
-    const days = eachDayOfInterval({ start, end }).map(date => ({
-      date: format(date, 'yyyy-MM-dd'),
-      isCurrentMonth: date.getMonth() === month,
-      isToday: format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
-    }));
+    let startDayOfWeek = getDay(start); // Get the day of the week for the 1st day of the month
+
+    // Adjust startDayOfWeek to make the week start on Monday
+    startDayOfWeek = (startDayOfWeek === 0) ? 6 : startDayOfWeek - 1; // Shift Sunday (0) to end of week
+
+    const days = eachDayOfInterval({ start, end }).map(date => {
+      const isToday = date.getTime() === today.getTime(); // Compare timestamps for accurate date matching
+      return {
+        date: format(date, 'yyyy-MM-dd'),
+        isCurrentMonth: date.getMonth() === month,
+        isToday,
+      };
+    });
+
     months.push({
       name: format(start, 'MMMM'),
-      days
+      days,
+      startDayOfWeek, // Pass this to handle empty spaces
     });
   }
   return months;
@@ -68,10 +80,16 @@ export default function Example() {
                 <div>S</div>
               </div>
               <div className="isolate mt-2 grid grid-cols-7 gap-px rounded-lg bg-gray-200 text-sm shadow ring-1 ring-gray-200">
+                {/* Add empty cells before the start of the month */}
+                {Array.from({ length: month.startDayOfWeek }).map((_, index) => (
+                  <div key={index} className="bg-gray-50 text-gray-400 py-1.5" />
+                ))}
+
                 {month.days.map((day, dayIdx) => (
                   <button
                     key={day.date}
                     type="button"
+                    aria-label={`Day ${day.date}`}
                     className={classNames(
                       day.isCurrentMonth ? 'bg-white text-gray-900' : 'bg-gray-50 text-gray-400',
                       dayIdx === 0 && 'rounded-tl-lg',
@@ -100,4 +118,5 @@ export default function Example() {
     </div>
   );
 }
+
 

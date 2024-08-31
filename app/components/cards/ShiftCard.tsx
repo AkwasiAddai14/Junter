@@ -6,7 +6,7 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 import { DeleteConfirmation } from '@/app/components/shared/DeleteConfirmation';
 import { IShiftArray } from '@/app/lib/models/shiftArray.model';
-import  edit  from "/Users/georgeaddai/Desktop/thejunter/app/assets/images/logos/edit.svg"
+import  edit  from "@/app/assets/images/logos/edit.svg"
 import { isBedrijf } from '@/app/lib/actions/bedrijven.actions';
 
 type CardProps = {
