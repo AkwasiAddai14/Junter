@@ -16,7 +16,7 @@ function classNames(...classes: string[]) {
 
 const getColumnStart = (date: Date): number => {
   const day = date.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
-  return day === 0 ? 7 : day; // Map Sunday to column 7, otherwise use the day index
+  return day === 0 ? 7 : day; // Map Sunday to column 7, otherwise use the day index (Monday = 1, etc.)
 };
 
 const getRowStart = (date: Date): number => {
@@ -29,6 +29,7 @@ const getRowSpan = (startTime: Date, endTime: Date): number => {
   const duration = differenceInMinutes(endTime, startTime);
   return Math.ceil(duration / 30); // Calculate the number of rows the shift should span
 };
+
 
 const parseShiftTime = (date: Date, timeString: string): Date => {
   // Format the date to 'yyyy-MM-dd'
@@ -208,35 +209,36 @@ const CalenderW = () => {
 
                {/* Events */}
                <ol
-                className="col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
-                style={{ gridTemplateRows: '1.75rem repeat(288, minmax(0, 1fr)) auto' }}
-              >
-                {shifts.map((shift) => {
-                  const startTime = parseShiftTime(shift.begindatum, shift.begintijd);
-                  const endTime = parseShiftTime(shift.begindatum, shift.eindtijd);
+  className="col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
+  style={{ gridTemplateRows: '1.75rem repeat(288, minmax(0, 1fr)) auto' }}
+>
+  {shifts.map((shift) => {
+    const startTime = parseShiftTime(shift.begindatum, shift.begintijd);
+    const endTime = parseShiftTime(shift.begindatum, shift.eindtijd);
 
-                  return (
-                    <li
-                      key={shift.id}
-                      className="relative mt-px flex"
-                      style={{
-                        gridColumn: `${getColumnStart(startTime)} / span 1`,
-                        gridRow: `${getRowStart(startTime)} / span ${getRowSpan(startTime, endTime)}`,
-                      }}
-                    >
-                      <a
-                        href= {`/dashboard/shift/bedrijf/${shift._id}`}
-                        className={`group absolute inset-1 flex flex-col overflow-y-auto rounded-lg bg-white border-blue-50 p-2 text-xs leading-5 hover:bg-opacity-75`}
-                      >
-                        <p className="order-1 font-semibold text-orange-700">{shift.titel}</p>
-                        <p className="text-sky-500 group-hover:text-blue-700">
-                          <time dateTime={startTime.toISOString()}>{format(startTime, 'hh:mm')}</time>
-                        </p>
-                      </a>
-                    </li>
-                  );
-                })}
-              </ol>
+    return (
+      <li
+        key={shift.id}
+        className="relative mt-px flex"
+        style={{
+          gridColumn: `${getColumnStart(startTime)} / span 1`,
+          gridRow: `${getRowStart(startTime)} / span ${getRowSpan(startTime, endTime)}`,
+        }}
+      >
+        <a
+          href={`/dashboard/shift/bedrijf/${shift._id}`}
+          className={`group absolute inset-1 flex flex-col overflow-y-auto rounded-lg bg-white border-blue-50 p-2 text-xs leading-5 hover:bg-opacity-75`}
+        >
+          <p className="order-1 font-semibold text-orange-700">{shift.titel}</p>
+          <p className="text-sky-500 group-hover:text-blue-700">
+            <time dateTime={startTime.toISOString()}>{format(startTime, 'hh:mm')}</time>
+          </p>
+        </a>
+      </li>
+    );
+  })}
+</ol>
+
             </div>
           </div>
         </div>

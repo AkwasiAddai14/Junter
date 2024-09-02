@@ -6,6 +6,7 @@ import Image from 'next/image';
 import calendar from '@/app/assets/images/logos/calendar.svg';
 import location from '@/app/assets/images/logos/location-grey.svg'
 import { UserIcon } from '@heroicons/react/20/solid';
+import DashNav from '@/app/components/shared/DashNav';
 
 
 export type SearchParamProps = {
@@ -24,6 +25,7 @@ const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
 
   return (
     <>
+    <DashNav/>
     <section className="flex justify-center bg-primary-50 bg-dotted-pattern bg-contain">
       <div className="grid grid-cols-1 md:grid-cols-2 2xl:max-w-7xl">
         <Image 

@@ -418,7 +418,6 @@ export async function verwijderShiftArray({
           // Update the freelancer's shifts array
           freelancer.shifts.push({
             shift: firstShift._id,
-            status: 'aangenomen',
           });
   
           await freelancer.save();
@@ -441,11 +440,21 @@ export async function verwijderShiftArray({
           // Update the freelancer's shifts array
           freelancer.shifts.push({
             shift: newShift._id,
-            status: 'aangemeld',
           });
+          
+          const shiftToRemove = freelancer.shifts.find(
+            (shift: { shiftArrayId: { toString: () => string; }; status: string; }) => shift.shiftArrayId?.toString() === shiftArrayId && shift.status === 'aangemeld'
+          );
+  
+          if (shiftToRemove) {
+            freelancer.shifts = freelancer.shifts.filter(
+              (shift: { _id: { toString: () => any; }; }) => shift._id.toString() !== shiftToRemove._id.toString()
+            );
+          }
   
           await freelancer.save();
         }
+
       } else {
         throw new Error('Shifts were not populated correctly.');
       }
@@ -490,11 +499,10 @@ export async function verwijderShiftArray({
       }
   
       // Remove the freelancer from the aanmeldingen array
-      shiftArray.aanmeldingen = shiftArray.aanmeldingen.filter((id: { toString: () => string; }) => id.toString() !== freelancerId);
-      await shiftArray.save();
-  
-      // Remove the shift from the freelancer's shifts array
-      freelancer.shifts = freelancer.shifts.filter((shift: any[]) => shift.shift.toString() !== shiftArrayId);
+      freelancer.shifts = freelancer.shifts.filter(
+        (shift: { shift: mongoose.Types.ObjectId; status: string; shiftArrayId: mongoose.Types.ObjectId }) =>
+          !(shift.shiftArrayId.toString() === shiftArrayId && shift.status === 'aangemeld')
+      );
       await freelancer.save();
   
       return { success: true, message: "Freelancer successfully removed from the ShiftsArray's aanmeldingen and shift removed from the freelancer's shifts array" };
@@ -503,14 +511,30 @@ export async function verwijderShiftArray({
     }
   }
 
-export async function annuleerShift(){
-
-};
-
 
 interface AccepteerFreelancerParams {
     shiftId: string;
     freelancerId: string;
+}
+
+async function removeFreelancerFromAanmeldingen({
+  shiftId,
+  freelancerId
+}: AccepteerFreelancerParams) {
+  try {
+    const result = await ShiftArray.updateOne(
+      { _id: shiftId },
+      { $pull: { aanmeldingen: freelancerId } }
+    );
+
+    if (result.modifiedCount === 0) {
+      throw new Error('No modifications were made. Either the document was not found or the freelancer was not in the aanmeldingen array.');
+    }
+
+    console.log(`Freelancer with ID ${freelancerId} removed from aanmeldingen`);
+  } catch (error: any) {
+    throw new Error(`Failed to remove freelancer from aanmeldingen: ${error.message}`);
+  }
 }
 
 export async function accepteerFreelancer({
@@ -551,27 +575,33 @@ export async function accepteerFreelancer({
           throw new Error(`Shift with ID ${firstShiftId} not found`);
       }
 
-      freelancer.shifts.push({
-          shift: firstShift._id,
-          status: 'aangenomen',
-      });
+      firstShift.opdrachtnemer = freelancerObjectId;
+      firstShift.status = "aangenomen";
+      freelancer.shifts.push(firstShift._id);
+
+      
 
       freelancer.shifts = freelancer.shifts.filter((s: { shiftArrayId: { toString: () => any; }; status: string; }) => {
-          return (
-              s.shiftArrayId.toString() !== shiftArray._id.toString() ||
-              s.status !== 'aangemeld'
-          );
-      });
+        return !(s.shiftArrayId.toString() === shiftArray._id.toString() && s.status === 'aangemeld');
+    });
 
-      await shiftArray.save();
       await freelancer.save();
       await firstShift.save();
+
+
+      await removeFreelancerFromAanmeldingen({ shiftId, freelancerId });
+
+
+      shiftArray.shifts.shift();
+      await shiftArray.save();
 
       return { success: true, message: "Freelancer successfully accepted for the shift" };
   } catch (error: any) {
       throw new Error(`Failed to accept freelancer for shift: ${error.message}`);
   }
 }
+
+
 
 
 
@@ -582,22 +612,12 @@ interface AfwijzenFreelancerParams {
 
 export async function afwijzenFreelancer({ shiftId, freelancerId }: AfwijzenFreelancerParams) {
     try {
-        await connectToDB();
 
-        // Find the shift
-        const shift = await Shift.findById(shiftId);
-        if (!shift) {
-            throw new Error(`Shift with ID ${shiftId} not found`);
-        }
-
-        // Change the status of the shift to 'afgewezen'
-        shift.status = 'afgewezen';
-        await shift.save();
 
         // Find the shift array by ID
-        const shiftArray = await ShiftArray.findById(shift.shiftArrayId);
+        const shiftArray = await ShiftArray.findById(shiftId);
         if (!shiftArray) {
-            throw new Error(`ShiftArray with ID ${shift.shiftArrayId} not found`);
+            throw new Error(`ShiftArray with ID ${shiftId} not found`);
         }
 
         // Remove the freelancer from the aanmeldingen array
@@ -623,12 +643,16 @@ export async function afwijzenFreelancer({ shiftId, freelancerId }: AfwijzenFree
     } catch (error: any) {
         throw new Error(`Failed to reject freelancer: ${error.message}`);
     }
-}
+};
+
+
 interface afrondenShiftParams {
     shiftId: string;
 }
+
 export async function afrondenShift({ shiftId} :afrondenShiftParams) {
     try {
+
         await connectToDB();
 
         const shift = await Shift.findById(shiftId);
@@ -654,12 +678,11 @@ export async function afrondenShift({ shiftId} :afrondenShiftParams) {
                 await freelancer.save();
             }
         }
-
         return { success: true, message: 'Shift completed successfully' };
     } catch (error:any) {
         throw new Error(`Failed to complete shift: ${error.message}`);
     }
-}
+};
 
 interface FilterParams {
     tarief?: number;
@@ -805,10 +828,71 @@ export const haalShiftMetIdCard = async (id: string) => {
 export const getAllCategories = async () =>{
   try{
     await connectToDB();
-
     const categories = await Category.find();
     return JSON.parse(JSON.stringify(categories));
   } catch (error){
     console.log("No categories found", error)
+  }
+}
+
+
+interface ShiftUpdateParams {
+  shiftId: string;
+}
+
+export async function updateShiftAndReassign({
+  shiftId
+}: ShiftUpdateParams) {
+  try {
+      await connectToDB();
+
+      if (!mongoose.Types.ObjectId.isValid(shiftId)) {
+          throw new Error(`Invalid shift ID: ${shiftId}`);
+      }
+
+      const shiftObjectId = new mongoose.Types.ObjectId(shiftId);
+
+      // Step 1: Find the shift by ID
+      const shift = await Shift.findById(shiftObjectId);
+      if (!shift) {
+          throw new Error(`Shift with ID ${shiftId} not found`);
+      }
+
+      // Step 2: Combine shift date and time to create a complete Date object
+      const shiftStartDateTime = new Date(shift.begindatum);
+      const [hours, minutes] = shift.begintijd.split(':').map(Number);
+      shiftStartDateTime.setHours(hours, minutes, 0, 0);
+
+      // Step 3: Compare current time with 72 hours before the shift start time
+      const currentTime = new Date();
+      const hoursBeforeShift = 72;
+      const timeDifference = shiftStartDateTime.getTime() - currentTime.getTime();
+      const hoursDifference = timeDifference / (1000 * 60 * 60);
+
+      if (hoursDifference > hoursBeforeShift) {
+          // Case 1: More than 72 hours before the shift
+          shift.opdrachtnemer = undefined; // Remove opdrachtnemer
+          shift.status = 'beschikbaar';
+      } else {
+          // Case 2: Less than 72 hours before the shift
+          shift.status = 'vervangen';
+      }
+
+      // Step 4: Find the corresponding ShiftArray
+      const shiftArray = await ShiftArray.findById(shift.shiftArrayId);
+      if (!shiftArray) {
+          throw new Error(`ShiftArray with ID ${shift.shiftArrayId} not found`);
+      }
+
+      // Step 5: Push the shift back into the ShiftArray
+      shiftArray.shifts.push(new mongoose.Types.ObjectId(shift._id));
+
+      // Step 6: Save the changes
+      await shift.save();
+      await shiftArray.save();
+
+      return { success: true, message: "Shift successfully updated and reassigned" };
+  } catch (error: any) {
+      throw new Error(`Failed to update and reassign shift: ${error.message}`);
   }
 }

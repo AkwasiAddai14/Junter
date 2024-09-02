@@ -73,11 +73,11 @@ const freelancerSchema = new mongoose.Schema({
         }
     ],
     shifts: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Shift",
-            status: { type: String, required: true }
-        }
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Shift",
+                required: true,
+            },
     ],
     flexpools: [
         {

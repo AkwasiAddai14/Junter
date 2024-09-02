@@ -10,19 +10,22 @@ import { format } from 'date-fns';
 import CalenderM from './CalenderM';
 import CalenderW from './CalenderW';
 import CalenderY from './CalenderY';
+import CalenderD from './CalenderD';
+
 
 function classNames(...classes: (string | boolean | undefined)[]) {
     return classes.filter(Boolean).join(' ')
   }
 
   const navigation = [
+    {name: 'Dag', value: 'Dag'},
     { name: 'Week', value: 'Week'},
     { name: 'Maand', value: 'Maand' },
     { name: 'Jaar', value: 'Jaar' },
   ]
 
 const Calender = () => {
-    const [position, setPosition] = React.useState("Week");
+    const [position, setPosition] = React.useState("Maand");
     const [currentDate, setCurrentDate] = useState<Date>(new Date());
     const router = useRouter()
     
@@ -74,11 +77,26 @@ const Calender = () => {
               >
                 <Menu.Items className="absolute right-0 z-10 mt-3 w-36 origin-top-right overflow-hidden rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                   <div className="py-1">
+                  <Menu.Item>
+                      {({ active }) => (
+                        <button
+                        key={'Week'}
+                        onClick={() => setPosition('Dag')}
+                        className={classNames(
+                            active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                            'block px-4 py-2 text-sm'
+                        )}
+                      >
+                        <span className="sr-only">Dag</span>
+                        Dag
+                      </button>
+                      )}
+                    </Menu.Item>
                     <Menu.Item>
                       {({ active }) => (
                         <button
                         key={'Week'}
-                        onClick={() => setPosition('Week')}
+                        /* onClick={() => setPosition('Week')} */
                         className={classNames(
                             active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
                             'block px-4 py-2 text-sm'
@@ -180,6 +198,21 @@ const Calender = () => {
                   </Menu.Item>
                 </div>
                 <div className="py-1">
+                <Menu.Item>
+                    {({ active }) => (
+                      <button
+                      key={"Week"}
+                      onClick={() => setPosition("Dag")}
+                      className={classNames(
+                        active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                          'block px-4 py-2 text-sm'
+                      )}
+                    >
+                      <span className="sr-only">Week</span>
+                      Dag
+                    </button>
+                    )}
+                  </Menu.Item>
                   <Menu.Item>
                     {({ active }) => (
                       <button
@@ -233,6 +266,10 @@ const Calender = () => {
   </header>
   </div>
   <div>
+  {position === "Dag"  && (
+<CalenderD/>
+    )
+    }
 {position === "Week"  && (
 <CalenderW/>
     )

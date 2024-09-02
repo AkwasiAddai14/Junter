@@ -10,10 +10,13 @@ import {
 import { useUser } from "@clerk/nextjs";
 import { Fragment, useEffect, useRef, useState } from 'react'
 import React from 'react'
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameDay, isSameMonth, parse } from 'date-fns'
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameDay, isSameMonth, parse, parseISO } from 'date-fns'
 import { IShiftArray } from '@/app/lib/models/shiftArray.model'
 import { haalGeplaatsteShifts } from '@/app/lib/actions/shiftArray.actions';
 import { fetchBedrijfByClerkId } from "@/app/lib/actions/bedrijven.actions";
+import LeButton from './LeButton';
+import { PersonIcon } from '@radix-ui/react-icons';
+
 
 
 function classNames(...classes: (string | boolean | undefined)[]) {
@@ -23,7 +26,7 @@ function classNames(...classes: (string | boolean | undefined)[]) {
 const CalenderM = () => {
   const { isLoaded, user } = useUser();
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date())
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDay, setSelectedDay] = useState<Day | null>(null);
   const [shifts, setShifts] = useState<IShiftArray[]>([]);
   const [bedrijfiD, setBedrijfiD] = useState<string>("");
 
@@ -79,8 +82,11 @@ const CalenderM = () => {
   interface Event {
     id: string;
     name: string;
-    time: string;
+    begintijd: string;
+    eindtijd: string;
     datetime: string;
+    plekken: number;
+    aanmeldingen: number;
     href: string;
   }
 
@@ -112,8 +118,11 @@ days.forEach((day) => {
       day.events.push({
         id: shift._id as string,
         name: shift.titel,
-        time: shift.begintijd,
+        begintijd: shift.begintijd,
+        eindtijd: shift.eindtijd,
         datetime: shift.begindatum.toISOString(),
+        plekken: shift.plekken,
+        aanmeldingen: shift.aanmeldingen.length,
         href: `/dashboard/shift/bedrijf/${shift._id}`,
       })
     }
@@ -129,10 +138,11 @@ days.forEach((day) => {
   }
 
   const handleDateClick = (date: Date) => {
-    setSelectedDate(date)
-  }
+    const selectedDayObject = days.find((day) => isSameDay(parseISO(day.date), date));
+    setSelectedDay(selectedDayObject || null); // Set the selected day object or null
+  };
 
-  const selectedDay = days.find((day) => day.isSelected)
+  const selectedDayObject = days.find((day) => day.isSelected);
 
   return (
     <div className="lg:flex lg:pl-96 md:w-auto lg:w-auto lg:h-full lg:flex-col">
@@ -207,7 +217,7 @@ days.forEach((day) => {
                   dateTime={day.date}
                   className={
                     day.isToday
-                      ? 'flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 font-semibold text-white'
+                      ? 'flex h-6 w-6 items-center justify-center rounded-full bg-sky-500 font-semibold text-white'
                       : undefined
                   }
                 >
@@ -218,14 +228,14 @@ days.forEach((day) => {
                     {day.events.slice(0, 2).map((event) => (
                       <li key={event.id}>
                         <a href={event.href} className="group flex">
-                          <p className="flex-auto truncate font-medium text-gray-900 group-hover:text-indigo-600">
-                            {event.name}
+                          <p className="flex-auto truncate font-small text-gray-900 group-hover:text-indigo-600">
+                          {event.begintijd} - {event.eindtijd}
                           </p>
                           <time
                             dateTime={event.datetime}
                             className="ml-3 hidden flex-none text-gray-500 group-hover:text-indigo-600 xl:block"
                           >
-                            {event.time}
+                            {event.aanmeldingen} / {event.plekken}
                           </time>
                         </a>
                       </li>
@@ -245,17 +255,18 @@ days.forEach((day) => {
                   day.isCurrentMonth ? 'bg-white' : 'bg-gray-50',
                   (day.isSelected || day.isToday) && 'font-semibold',
                   day.isSelected && 'text-white',
-                  !day.isSelected && day.isToday && 'text-indigo-600',
+                  !day.isSelected && day.isToday && 'text-sky-600',
                   !day.isSelected && day.isCurrentMonth && !day.isToday && 'text-gray-900',
                   !day.isSelected && !day.isCurrentMonth && !day.isToday && 'text-gray-500',
                   'flex h-14 flex-col px-3 py-2 hover:bg-gray-100 focus:z-10',
                 )}
+                onClick={() => handleDateClick(new Date(day.date))}
               >
                 <time
                   dateTime={day.date}
                   className={classNames(
                     day.isSelected && 'flex h-6 w-6 items-center justify-center rounded-full',
-                    day.isSelected && day.isToday && 'bg-indigo-600',
+                    day.isSelected && day.isToday && 'bg-sky-600',
                     day.isSelected && !day.isToday && 'bg-gray-900',
                     'ml-auto',
                   )}
@@ -275,7 +286,7 @@ days.forEach((day) => {
           </div>
         </div>
       </div>
-      {selectedDay && selectedDay.events && selectedDay.events.length > 0 && (
+      {selectedDay && selectedDay.events.length > 0 && (
         <div className="px-4 py-10 sm:px-6 lg:hidden">
           <ol className="divide-y divide-gray-100 overflow-hidden rounded-lg bg-white text-sm shadow ring-1 ring-black ring-opacity-5">
             {selectedDay.events.map((event) => (
@@ -284,15 +295,19 @@ days.forEach((day) => {
                   <p className="font-semibold text-gray-900">{event.name}</p>
                   <time dateTime={event.datetime} className="mt-2 flex items-center text-gray-700">
                     <ClockIcon className="mr-2 h-5 w-5 text-gray-400" aria-hidden="true" />
-                    {event.time}
+                    {event.begintijd} - {event.eindtijd}
                   </time>
+                  <p className="font-semibold text-gray-900">{event.aanmeldingen} aanmeldingen</p>
+                  <p className="font-semibold text-gray-900">{event.plekken} aangenomen |  
+                  {event.plekken === 1 ? (
+                      ` ${event.plekken} plek`
+                    ) : (
+                      ` ${event.plekken} plekken`
+                    )}                    
+                  </p>  
                 </div>
-                <a
-                  href={event.href}
-                  className="ml-6 flex-none self-center rounded-md bg-white px-3 py-2 font-semibold text-gray-900 opacity-0 shadow-sm ring-1 ring-inset ring-gray-300 hover:ring-gray-400 focus:opacity-100 group-hover:opacity-100"
-                >
-                  Wijzig<span className="sr-only">, {event.name}</span>
-                </a>
+                <LeButton link={event.href} buttonText="Wijzig" />
+                <LeButton link={`/dashboard/shift/bedrijf/${event.id}`} buttonText="Bekijk" />
               </li>
             ))}
           </ol>
