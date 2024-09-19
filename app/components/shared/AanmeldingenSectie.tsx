@@ -5,6 +5,7 @@ import { accepteerFreelancer } from'@/app/lib/actions/shift.actions';
 import { afwijzenFreelancer } from '@/app/lib/actions/shift.actions';
 import { useEffect, useState } from "react";
 import { format, startOfWeek, endOfWeek, addDays, isToday, differenceInMinutes, parseISO, parse } from 'date-fns';
+import { useToast } from '../ui/use-toast';
 
 type shiftIdParams = {
   shiftId: string;
@@ -42,7 +43,7 @@ type FreelancerType = {
 
 export const AanmeldingenSectie = ({ shiftId }: shiftIdParams) => {
   const [freelancers, setFreelancers] = useState<FreelancerType[]>([]);
-
+  const { toast } = useToast()
   useEffect(() => {
     const fetchFreelancers = async () => {
       try {
@@ -97,7 +98,48 @@ export const AanmeldingenSectie = ({ shiftId }: shiftIdParams) => {
     punctualiteit: freelancer.punctualiteit,
   }));
 
+  const handleFreelancerAcceptance = async (freelancerId: string) => {
+    try {
+      const response = await accepteerFreelancer({ shiftId, freelancerId });
+  
+      if (response.success) {
+        setFreelancers((prevFreelancers) => 
+          prevFreelancers.filter(freelancer => freelancer._id !== freelancerId)
+        );
+  
+        toast({
+          variant: 'succes',
+          description: "Freelancer geaccpeteerd voor de shift! 👍"
+        });
+      }
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        description: "De freelancer is helaas niet geaccpeteerd voor de shift! ❌"
+      });
+    }
+  };
 
+  const handleFreelanceRejection = async (freelancerId: string) => {
+    try {
+      const response = await afwijzenFreelancer({ shiftId, freelancerId });
+  
+      if (response.success) {
+        setFreelancers((prevFreelancers) => 
+          prevFreelancers.filter(freelancer => freelancer._id !== freelancerId)
+        );
+        toast({
+          variant: 'succes',
+          description: "Freelancer afgewezen voor de shift! 👍"
+        });
+      }
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        description: "Actie is niet toegestaan! ❌"
+      });
+    }
+  };
 
     return (
       <div className="px-4 mt-12 sm:px-6 lg:px-8">
@@ -153,10 +195,11 @@ export const AanmeldingenSectie = ({ shiftId }: shiftIdParams) => {
                       <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{opdrachtnemer.opkomst} %</td>
                       <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{opdrachtnemer.punctualiteit} %</td>
                       <td className="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                        <button onClick={() => {accepteerFreelancer({ shiftId, freelancerId: opdrachtnemer.freelancerId })}} className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                        <button onClick={() => handleFreelancerAcceptance(opdrachtnemer.freelancerId)}
+                       className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
                           Accepteren<span className="sr-only">, {opdrachtnemer.naam}</span>
                         </button>
-                        <button onClick={() => {afwijzenFreelancer({ shiftId, freelancerId: opdrachtnemer.freelancerId })}}className="inline-flex ml-2 items-center rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-green-600/20">
+                        <button onClick={() => handleFreelanceRejection(opdrachtnemer.freelancerId)} className="inline-flex ml-2 items-center rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-green-600/20">
                           Afwijzen<span className="sr-only">, {opdrachtnemer.naam}</span>
                         </button>
                       </td>

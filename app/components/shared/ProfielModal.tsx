@@ -91,32 +91,32 @@ export default function ProfielModal({isVisible, onClose} : {isVisible: boolean,
 
   return (
     <Form {...form}>
-    <form onSubmit={form.handleSubmit(onSubmit)} className="fixed inset-0 mt-14 bg-black bg-opacity-25 backdrop-blur-sm flex justify-center items-center overflow-hidden w-auto">
-        <div className="fixed inset-0 bg-black bg-opacity-25 backdrop-blur-sm flex justify-center items-center overflow-hidden w-auto">
-            <div className="lg:col-start-3 lg:row-end-1 max-w-lg w-full"> 
-                <h2 className="sr-only">Profiel</h2>
-                <div className="rounded-lg bg-gray-50 shadow-sm ring-1 ring-gray-900/5">
-                    <dl className="flex flex-wrap">
-                        <div className="flex-auto pl-6 pt-6">
-                            <dt className="text-sm font-semibold leading-6 text-gray-900">{user.fullName}</dt>
-                            <dd className="mt-1 text-base font-semibold leading-6 text-gray-900">{freelancer?.stad} {freelancer?.leeftijd}</dd>
-                        </div>
-                        <div className="flex-none justify-center items-center self-end px-6 pt-4">
-                            <Image
-                                className="h-8 w-8 rounded-full"
-                                src={user?.imageUrl}
-                                alt="profielfoto"
-                                width={32}
-                                height={32}
-                            />
-                            <dt className="sr-only">rating</dt>
-                            <dd className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                {freelancer?.rating || "nog geen rating"}
-                                <StarIcon aria-hidden="true" className="h-4 w-5 text-gray-400" />
-                            </dd>
-                        </div>
-                    </dl>
-                    <dl className="flex flex-wrap border-b  border-gray-900/5 px-6 pb-6">
+  <form onSubmit={form.handleSubmit(onSubmit)} className="fixed inset-0 mt-14 bg-black bg-opacity-25 backdrop-blur-sm flex justify-center items-center overflow-hidden w-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-25 backdrop-blur-sm flex justify-center items-center overflow-hidden w-auto">
+      <div className="lg:col-start-3 lg:row-end-1 max-w-lg w-full max-h-[90vh] overflow-y-auto"> {/* Added max height and overflow */}
+        <h2 className="sr-only">Profiel</h2>
+        <div className="rounded-lg bg-gray-50 shadow-sm ring-1 ring-gray-900/5">
+          <dl className="flex flex-wrap">
+            <div className="flex-auto pl-6 pt-6">
+              <dt className="text-sm font-semibold leading-6 text-gray-900">{user.fullName}</dt>
+              <dd className="mt-1 text-base font-semibold leading-6 text-gray-900">{freelancer?.stad} {freelancer?.leeftijd}</dd>
+            </div>
+            <div className="flex-none justify-center items-center self-end px-6 pt-4">
+              <Image
+                className="h-8 w-8 rounded-full"
+                src={user?.imageUrl}
+                alt="profielfoto"
+                width={32}
+                height={32}
+              />
+              <dt className="sr-only">rating</dt>
+              <dd className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                {freelancer?.rating || "nog geen rating"}
+                <StarIcon aria-hidden="true" className="h-4 w-5 text-gray-400" />
+              </dd>
+            </div>
+          </dl>
+          <dl className="flex flex-wrap border-b  border-gray-900/5 px-6 pb-6">
           <div className="mt-6 flex w-full flex-auto gap-x-4  border-t border-gray-900/5 px-6 pt-6">
               <p className="text-sm font-semibold leading-6 text-gray-900">{freelancer?.shiftsCount || "0"} </p>
             <dd className="text-sm leading-6 text-gray-500">Shifts gewerkt</dd>
@@ -132,20 +132,23 @@ export default function ProfielModal({isVisible, onClose} : {isVisible: boolean,
             <dd className="text-sm leading-6 text-gray-500">Op tijd</dd>
           </div>
         </dl>
-                    <div className="px-6 py-4 space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="kvk"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <Input placeholder={freelancer?.kvknr || "geen KVK-nummer"} {...field} className="input-field" />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
+
+          {/* Additional Fields */}
+          <div className="px-6 py-4 space-y-4">
+            <FormField
+              control={form.control}
+              name="kvk"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input placeholder={freelancer?.kvknr || "geen KVK-nummer"} {...field} className="input-field" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {/* Repeat other FormFields similarly */}
+            <FormField
                             control={form.control}
                             name="btwid"
                             render={({ field }) => (
@@ -205,25 +208,29 @@ export default function ProfielModal({isVisible, onClose} : {isVisible: boolean,
                                 </FormItem>
                             )}
                         />
-                    </div>
-                    <div className="border-t border-gray-900/5 px-6 py-6 flex justify-between">
-                        <Button className="bg-white text-black border-2 border-black hover:text-white" onClick={() => onClose()}>
-                            Annuleren
-                        </Button>
-                        <Button 
-                            type="submit"
-                            size="lg"
-                            disabled={form.formState.isSubmitting}
-                            className="bg-sky-500"
-                        >
-                            {form.formState.isSubmitting ? 'Opslaan...' : 'Opslaan'}
-                        </Button>
-                    </div>
-                </div>
-            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="border-t border-gray-900/5 px-6 py-6 flex justify-between">
+            <Button className="bg-white text-black border-2 border-black hover:text-white" onClick={() => onClose()}>
+              Annuleren
+            </Button>
+            <Button 
+              type="submit"
+              size="lg"
+              disabled={form.formState.isSubmitting}
+              className="bg-sky-500"
+            >
+              {form.formState.isSubmitting ? 'Opslaan...' : 'Opslaan'}
+            </Button>
+          </div>
         </div>
-    </form>
+      </div>
+    </div>
+  </form>
 </Form>
+
+
   )
 }
        

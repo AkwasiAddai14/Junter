@@ -2,9 +2,10 @@
 
 import { accepteerFreelancer } from "@/app/lib/actions/shift.actions";
 import { afwijzenFreelancer } from "@/app/lib/actions/shift.actions";
-import { haalAanmeldingen } from "@/app/lib/actions/shiftArray.actions";
+import { haalAangenomen, haalAanmeldingen, haalReserves } from "@/app/lib/actions/shiftArray.actions";
 import { useEffect, useState } from "react";
 import { format, startOfWeek, endOfWeek, addDays, isToday, differenceInMinutes, parseISO, parse } from 'date-fns';
+import { useToast } from '@/app/components/ui/use-toast';
 
 type shiftIdParams = {
   shiftId: string;
@@ -42,15 +43,19 @@ type FreelancerType = {
 
 export const AangenomenSectie = ({ shiftId }: shiftIdParams) => {
   const [freelancers, setFreelancers] = useState<FreelancerType[]>([]);
+  const [reserven, setReserven] = useState<FreelancerType[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchFreelancers = async () => {
       try {
-        const aanmeldingen = await haalAanmeldingen(shiftId);
-        setFreelancers(aanmeldingen);
+        const aangenomen = await haalAangenomen(shiftId);
+        setFreelancers(aangenomen);
+        const reserves = await haalReserves(shiftId);
+        setReserven(reserves);
         console.log()
       } catch (error) {
-        console.error("Error fetching aanmeldingen:", error);
+        console.error("Error fetching aangenomen:", error);
       }
     };
 
@@ -96,12 +101,69 @@ export const AangenomenSectie = ({ shiftId }: shiftIdParams) => {
     opkomst: freelancer.opkomst,
     punctualiteit: freelancer.punctualiteit,
   }));
+
+  const reserves = reserven.map((reserve) => ({
+    freelancerId: reserve._id,
+    naam: `${reserve.voornaam} ${reserve.tussenvoegsel ? reserve.tussenvoegsel + ' ' : ''}${reserve.achternaam}`,
+    profielfoto: reserve.profielfoto,
+    stad: reserve.stad,
+    leeftijd: calculateAge(parseShiftTime(new Date(reserve.geboortedatum))),
+    rating: reserve.rating,
+    klussen: reserve.ratingCount,
+    opkomst: reserve.opkomst,
+    punctualiteit: reserve.punctualiteit,
+  }));
+  const handleFreelancerAcceptance = async (freelancerId: string) => {
+    try {
+      const response = await accepteerFreelancer({ shiftId, freelancerId });
+  
+      if (response.success) {
+        setFreelancers((prevFreelancers) => 
+          prevFreelancers.filter(freelancer => freelancer._id !== freelancerId)
+        );
+  
+        toast({
+          variant: 'succes',
+          description: "Freelancer geaccpeteerd voor de shift! 👍"
+        });
+      }
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        description: "De freelancer is helaas niet geaccpeteerd voor de shift! ❌"
+      });
+    }
+  };
+
+  const handleFreelanceRejection = async (freelancerId: string) => {
+    try {
+      const response = await afwijzenFreelancer({ shiftId, freelancerId });
+  
+      if (response.success) {
+        setFreelancers((prevFreelancers) => 
+          prevFreelancers.filter(freelancer => freelancer._id !== freelancerId)
+        );
+        toast({
+          variant: 'succes',
+          description: "Freelancer afgewezen voor de shift! 👍"
+        });
+      }
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        description: "Actie is niet toegestaan! ❌"
+      });
+    }
+  };
 console.log(freelancers)
     return (
       <div className="px-4 mt-12 sm:px-6 lg:px-8">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
             <h1 className="text-base font-semibold leading-6 text-gray-900">Aaangenomen freelancers</h1>
+            <p className="mt-2 text-sm text-gray-700">
+              Een lijst van alle aangenomen freelancers.
+            </p>
           </div>
         </div>
         <div className="mt-8 flow-root">
@@ -148,11 +210,77 @@ console.log(freelancers)
                       <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{opdrachtnemer.opkomst} %</td>
                       <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{opdrachtnemer.punctualiteit} %</td>
                       <td className="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                      <button /* onClick={() => {accepteerFreelancer({ shiftId, freelancerId: opdrachtnemer.freelancerId })}} */ className="inline-flex items-center rounded-md bg-sky-50 px-2 py-1 text-xs font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20">
+                      <button  onClick={() => handleFreelancerAcceptance(opdrachtnemer.freelancerId)} className="inline-flex items-center rounded-md bg-sky-50 px-2 py-1 text-xs font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20">
                           Bekijken<span className="sr-only">, {opdrachtnemer.naam}</span>
                         </button>
-                        <button onClick={() => {afwijzenFreelancer({ shiftId, freelancerId: opdrachtnemer.freelancerId })}}className="inline-flex ml-2 items-center rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-green-600/20">
+                        <button onClick={() => handleFreelanceRejection(opdrachtnemer.freelancerId)} className="inline-flex ml-2 items-center rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-green-600/20">
                           Afzeggen<span className="sr-only">, {opdrachtnemer.naam}</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div className="sm:flex sm:items-center">
+          <div className="sm:flex-auto">
+            <h1 className="text-base font-semibold leading-6 text-gray-900">Reserve freelancers</h1>
+            <p className="mt-2 text-sm text-gray-700">
+              Een lijst van alle freelancers die op de reservelijst staan.
+            </p>
+          </div>
+        </div>
+        <div className="mt-8 flow-root">
+          <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+              <table className="min-w-full divide-y divide-gray-300">
+                <thead>
+                  <tr>
+                    <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
+                      Opdrachtnemer
+                    </th>
+                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      Werkervaring
+                    </th>
+                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      Opkomst
+                    </th>
+                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                      Punctualiteit
+                    </th>
+                    <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0">
+                      <span className="sr-only">Edit</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {reserves.map((reserve) => (
+                    <tr key={reserve.naam}>
+                      <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
+                        <div className="flex items-center">
+                          <div className="h-11 w-11 flex-shrink-0">
+                            <img alt="freelancer profielfoto" src={reserve.profielfoto} className="h-11 w-11 rounded-full" />
+                          </div>
+                          <div className="ml-4">
+                            <div className="font-medium text-gray-900">{reserve.naam}</div>
+                            <div className="mt-1 text-gray-500">{reserve.stad}, {reserve.leeftijd}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
+                        <div className="text-gray-900">{reserve.rating} sterren</div>
+                        <div className="mt-1 text-gray-500">{reserve.klussen} klussen</div>
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{reserve.opkomst} %</td>
+                      <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{reserve.punctualiteit} %</td>
+                      <td className="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                      <div className="inline-flex items-center rounded-md bg-sky-50 px-2 py-1 text-xs font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20">
+                          Reserve<span className="sr-only">, {reserve.naam}</span>
+                        </div>
+                        <button onClick={() => handleFreelanceRejection(reserve.freelancerId)} className="inline-flex ml-2 items-center rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-green-600/20">
+                          Afzeggen<span className="sr-only">, {reserve.naam}</span>
                         </button>
                       </td>
                     </tr>

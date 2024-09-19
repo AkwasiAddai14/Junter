@@ -7,6 +7,7 @@ import location from '@/app/assets/images/logos/location-grey.svg'
 import { UserIcon } from '@heroicons/react/20/solid';
 import DashNav from '@/app/components/shared/DashNav';
 import { AangenomenSectie } from '@/app/components/shared/Aangenomen';
+import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal, AwaitedReactNode, Key } from 'react';
 
 
 export type SearchParamProps = {
@@ -76,6 +77,28 @@ const shiftDetails = async ({ params: { id }, searchParams, }: SearchParamProps)
             </div>
             <p className="p-medium-16 lg:p-regular-18 truncate text-primary-500">{shift.inFlexpool ? '✅ Flexpool' : 'niet in flexpool'}</p>
             </div>
+          </div>
+          <div className="flex justify-between items-center">
+            <div className="">
+              <h3>Vaardigheden</h3>
+            <ul className="rounded-md bg-blue-300 px-3 py-3 gap-y-2">
+              {shift.vaardigheden?.map((vaardigheid: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined, index: Key | null | undefined) => (
+                 <li key={index}>• {vaardigheid}</li>
+                  ))}
+            </ul>
+            </div>
+
+
+            <div className="">
+            <h3>Kledingsvoorschriften</h3>
+              <ul className="rounded-md bg-orange-300 px-3 py-3 gap-y-2">
+                  {shift.kledingsvoorschriften?.map((kleding: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined, index: Key | null | undefined) => (
+                    <li key={index}>• {kleding}</li>
+                  ))}
+              </ul>
+            </div>
+
+
           </div>
           <div className="flex flex-col gap-2">
             <p className="p-bold-20 text-grey-600">Over de shift</p>

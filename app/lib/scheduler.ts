@@ -2,7 +2,6 @@ import cron from 'node-cron';
 import { connectToDB } from './mongoose.ts'// Update with your DB connection path
 import Freelancer from './models/freelancer.model'; // Update with your Freelancer model path
 import { afrondenShift } from './actions/shift.actions'; // Update with your afrondenShift function path
-import { maakCheckout } from './actions/checkout.actions.ts';
 
 async function checkAndCompleteShifts() {
     try {
@@ -25,7 +24,6 @@ async function checkAndCompleteShifts() {
                     // Check if 2 hours have passed since shift begin time (2 hours = 2 * 60 * 60 * 1000 milliseconds)
                     if (timeDifference >= 2 * 60 * 60 * 1000) {
                         await afrondenShift({ shiftId: shift._id });
-                        await maakCheckout({ shiftId: shift._id });
                     }
                 }
             }

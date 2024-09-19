@@ -258,218 +258,217 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
             </nav>
 
             <form onSubmit={handleSubmit(processForm)} className=" mt-8 items-center rounded-lg bg-white shadow-lg ring-1 ring-black/5">
-                {currentStep === 0 && (
-                    <motion.div
-                        initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ duration: 0.3, ease: easeInOut }}
-                    >
-                        <div className="px-8 space-y-12 sm:space-y-16">
-                            <div className="border-b border-gray-900/10 pb-12">
-                                <h2 className="text-base font-semibold mt-10 leading-7 text-gray-900">Bedrijfgegevens</h2>
-                                <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                                    <div className="sm:col-span-4">
-                                        <label htmlFor="kvk" className="block text-sm font-medium leading-6 text-gray-900">
-                                            KVK
-                                        </label>
-                                        <div className="mt-2">
-                                        <input
-                                            id="kvknr"
-                                            {...register('kvknr')}
-                                            value={kvkNummer}
-                                            onChange={(e) => setKvkNummer(e.target.value)}
-                                            type="text"
-                                            autoComplete="textinput"
-                                            className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                        />                                                        
-                                            {errors.kvknr && (
-                                                <p className="text-red-500 text-sm">{errors.kvknr.message}</p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="sm:col-span-4">
-                                        <label htmlFor="name" className="block text-sm font-medium leading-6 text-gray-900">
-                                           Naam contactpersoon / beheerder
-                                        </label>
-                                        <div className="mt-2">
-                                            <input
-                                                id="name"
-                                                {...register('naam')}
-                                                type="text"
-                                                autoComplete="name"
-                                                placeholder=''
-                                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                            />
-                                            {errors.naam && (
-                                                <p className="text-red-500 text-sm">{errors.naam.message}</p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="sm:col-span-2 sm:col-start-1">
-                                        <label htmlFor="postal-code" className="block text-sm font-medium leading-6 text-gray-900">
-                                            Postcode
-                                        </label>
-                                        <div className="mt-2">
-                                            <input
-                                                id="postal-code"
-                                                {...register('postcode')}
-                                                type="text"
-                                                autoComplete="postal-code"
-                                                placeholder=''
-                                                className="block px-3 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                                value={watch('postcode')}
-                                                onChange={(e) => setValue('postcode', e.target.value)}
-                                            />
-                                            {errors.postcode && (
-                                                <p className="text-red-500 text-sm">{errors.postcode.message}</p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="sm:col-span-2">
-                                        <label htmlFor="huisnummer" className="block text-sm font-medium leading-6 text-gray-900">
-                                            Huisnummer
-                                        </label>
-                                        <div className="mt-2">
-                                            <input
-                                                id="huisnummer"
-                                                {...register('huisnummer')}
-                                                type="text"
-                                                autoComplete="textinput"
-                                                placeholder=''
-                                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                                value={watch('huisnummer')}
-                                                onChange={(e) => setValue('huisnummer', e.target.value)}
-                                            />
-                                            {errors.huisnummer && (
-                                                <p className="text-red-500 text-sm">{errors.huisnummer.message}</p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="col-span-2">
-                                        <label htmlFor="straat" className="block text-sm font-medium leading-6 text-gray-900">
-                                            Straatnaam
-                                        </label>
-                                        <div className="mt-2">
-                                            <input
-                                                id="straat"
-                                                {...register('straat')}
-                                                type="text"
-                                                autoComplete="textinput"
-                                                placeholder=''
-                                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                                value={watch('straat')}
-                                                onChange={(e) => setValue('straat', e.target.value)}
-                                            />
-                                            {errors.straat && (
-                                                <p className="text-red-500 text-sm">{errors.straat.message}</p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="sm:col-span-4 sm:col-start-1">
-                                        <label htmlFor="city" className="block text-sm font-medium leading-6 text-gray-900">
-                                            Stad
-                                        </label>
-                                        <div className="mt-2">
-                                            <input
-                                                id="city"
-                                                {...register('stad')}
-                                                type="text"
-                                                autoComplete="stad"
-                                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                                value={watch('stad')}
-                                                onChange={(e) => setValue('stad', e.target.value)}
-                                            />
-                                            {errors.stad && (
-                                                <p className="text-red-500 text-sm">{errors.stad.message}</p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="sm:col-span-4 sm:col-start-1">
-                                        <label htmlFor="city" className="block text-sm font-medium leading-6 text-gray-900">
-                                            Emailadres
-                                        </label>
-                                        <div className="mt-2">
-                                            <input
-                                                id="emailadres"
-                                                {...register('emailadres')}
-                                                type="text"
-                                                autoComplete="emailadres"
-                                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                            />
-                                            {errors.emailadres && (
-                                                <p className="text-red-500 text-sm">{errors.emailadres.message}</p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="sm:col-span-4 sm:col-start-1">
-                                        <label htmlFor="city" className="block text-sm font-medium leading-6 text-gray-900">
-                                            Telefoonnummer
-                                        </label>
-                                        <div className="mt-2">
-                                            <input
-                                                id="telefoonnummer"
-                                                {...register('telefoonnummer')}
-                                                type="text"
-                                                autoComplete="telefoonnummer"
-                                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                            />
-                                            {errors.telefoonnummer && (
-                                                <p className="text-red-500 text-sm">{errors.telefoonnummer.message}</p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="col-span-full">
-                                        <label htmlFor="iban" className="block text-sm font-medium leading-6 text-gray-900">
-                                            BTW-ID
-                                        </label>
-                                        <p className="text-sm text-slate-400">(optioneel)</p>
-                                        <div className="mt-2">
-                                            <input
-                                                id="btwnr"
-                                                {...register('btwnr')}
-                                                type="text"
-                                                autoComplete="btwid"
-                                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                            />
-                                            {errors.iban && (
-                                                <p className="text-red-500 text-sm">{errors.iban.message}</p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="col-span-full">
-                                        <label htmlFor="iban" className="block text-sm font-medium leading-6 text-gray-900">
-                                            IBAN
-                                        </label>
-                                        <p className="text-sm text-slate-400">(optioneel)</p>
-                                        <div className="mt-2">
-                                            <input
-                                                id="iban"
-                                                {...register('iban')}
-                                                type="text"
-                                                autoComplete="iban"
-                                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                                            />
-                                            {errors.iban && (
-                                                <p className="text-red-500 text-sm">{errors.iban.message}</p>
-                                            )}
-                                        </div>
-                                    </div>
-
-
-                                </div>
-                            </div>
+            {currentStep === 0 && (
+    <motion.div
+        initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.3, ease: easeInOut }}
+    >
+        <div className="px-8 space-y-12 sm:space-y-16">
+            <div className="border-b border-gray-900/10 pb-12">
+                <h2 className="text-base font-semibold mt-10 leading-7 text-gray-900">Bedrijfgegevens</h2>
+                <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                    <div className="sm:col-span-6">
+                        <label htmlFor="kvk" className="block text-sm font-medium leading-6 text-gray-900">
+                            KVK
+                        </label>
+                        <div className="mt-2">
+                            <input
+                                id="kvknr"
+                                {...register('kvknr')}
+                                value={kvkNummer}
+                                onChange={(e) => setKvkNummer(e.target.value)}
+                                type="text"
+                                autoComplete="textinput"
+                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                            />
+                            {errors.kvknr && (
+                                <p className="text-red-500 text-sm">{errors.kvknr.message}</p>
+                            )}
                         </div>
-                    </motion.div>
-                )}
+                    </div>
+
+                    <div className="sm:col-span-6">
+                        <label htmlFor="name" className="block text-sm font-medium leading-6 text-gray-900">
+                            Naam contactpersoon / beheerder
+                        </label>
+                        <div className="mt-2">
+                            <input
+                                id="name"
+                                {...register('naam')}
+                                type="text"
+                                autoComplete="name"
+                                placeholder=''
+                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                            />
+                            {errors.naam && (
+                                <p className="text-red-500 text-sm">{errors.naam.message}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="sm:col-span-3">
+                        <label htmlFor="postal-code" className="block text-sm font-medium leading-6 text-gray-900">
+                            Postcode
+                        </label>
+                        <div className="mt-2">
+                            <input
+                                id="postal-code"
+                                {...register('postcode')}
+                                type="text"
+                                autoComplete="postal-code"
+                                placeholder=''
+                                className="block px-3 w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                value={watch('postcode')}
+                                onChange={(e) => setValue('postcode', e.target.value)}
+                            />
+                            {errors.postcode && (
+                                <p className="text-red-500 text-sm">{errors.postcode.message}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="sm:col-span-3">
+                        <label htmlFor="huisnummer" className="block text-sm font-medium leading-6 text-gray-900">
+                            Huisnummer
+                        </label>
+                        <div className="mt-2">
+                            <input
+                                id="huisnummer"
+                                {...register('huisnummer')}
+                                type="text"
+                                autoComplete="textinput"
+                                placeholder=''
+                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                value={watch('huisnummer')}
+                                onChange={(e) => setValue('huisnummer', e.target.value)}
+                            />
+                            {errors.huisnummer && (
+                                <p className="text-red-500 text-sm">{errors.huisnummer.message}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="sm:col-span-6">
+                        <label htmlFor="straat" className="block text-sm font-medium leading-6 text-gray-900">
+                            Straatnaam
+                        </label>
+                        <div className="mt-2">
+                            <input
+                                id="straat"
+                                {...register('straat')}
+                                type="text"
+                                autoComplete="textinput"
+                                placeholder=''
+                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                value={watch('straat')}
+                                onChange={(e) => setValue('straat', e.target.value)}
+                            />
+                            {errors.straat && (
+                                <p className="text-red-500 text-sm">{errors.straat.message}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="sm:col-span-6">
+                        <label htmlFor="city" className="block text-sm font-medium leading-6 text-gray-900">
+                            Stad
+                        </label>
+                        <div className="mt-2">
+                            <input
+                                id="city"
+                                {...register('stad')}
+                                type="text"
+                                autoComplete="stad"
+                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                value={watch('stad')}
+                                onChange={(e) => setValue('stad', e.target.value)}
+                            />
+                            {errors.stad && (
+                                <p className="text-red-500 text-sm">{errors.stad.message}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="sm:col-span-6">
+                        <label htmlFor="city" className="block text-sm font-medium leading-6 text-gray-900">
+                            Emailadres
+                        </label>
+                        <div className="mt-2">
+                            <input
+                                id="emailadres"
+                                {...register('emailadres')}
+                                type="text"
+                                autoComplete="emailadres"
+                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                            />
+                            {errors.emailadres && (
+                                <p className="text-red-500 text-sm">{errors.emailadres.message}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="sm:col-span-6">
+                        <label htmlFor="city" className="block text-sm font-medium leading-6 text-gray-900">
+                            Telefoonnummer
+                        </label>
+                        <div className="mt-2">
+                            <input
+                                id="telefoonnummer"
+                                {...register('telefoonnummer')}
+                                type="text"
+                                autoComplete="telefoonnummer"
+                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                            />
+                            {errors.telefoonnummer && (
+                                <p className="text-red-500 text-sm">{errors.telefoonnummer.message}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="sm:col-span-6">
+                        <label htmlFor="iban" className="block text-sm font-medium leading-6 text-gray-900">
+                            BTW-ID
+                        </label>
+                        <p className="text-sm text-slate-400">(optioneel)</p>
+                        <div className="mt-2">
+                            <input
+                                id="btwnr"
+                                {...register('btwnr')}
+                                type="text"
+                                autoComplete="btwid"
+                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                            />
+                            {errors.iban && (
+                                <p className="text-red-500 text-sm">{errors.iban.message}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="sm:col-span-6">
+                        <label htmlFor="iban" className="block text-sm font-medium leading-6 text-gray-900">
+                            IBAN
+                        </label>
+                        <p className="text-sm text-slate-400">(optioneel)</p>
+                        <div className="mt-2">
+                            <input
+                                id="iban"
+                                {...register('iban')}
+                                type="text"
+                                autoComplete="iban"
+                                className="block w-full px-3 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                            />
+                            {errors.iban && (
+                                <p className="text-red-500 text-sm">{errors.iban.message}</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </motion.div>
+)}
+
 
                  {currentStep === 1 && (
                     <motion.div

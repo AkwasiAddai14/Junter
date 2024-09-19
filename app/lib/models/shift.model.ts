@@ -57,6 +57,7 @@ interface FreelancerDetails {
   voornaam: string;
   achternaam: string;
   emailadres: string;
+  profielfoto: string;
 }
 
 export type ShiftType = Document & {
@@ -83,8 +84,8 @@ export type ShiftType = Document & {
   kledingsvoorschriften?: string[];
   beschikbaar: boolean;
   inFlexpool?: boolean;
-  checkoutbegintijd: Date;
-  checkouteindtijd: Date;
+  checkoutbegintijd: string;
+  checkouteindtijd: string;
   checkoutpauze: number;
   feedback: string;
   opmerking: string;

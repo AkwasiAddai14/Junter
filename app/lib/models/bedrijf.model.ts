@@ -22,6 +22,7 @@ export interface IBedrijf extends Document {
   filialen: mongoose.Types.ObjectId[];
   flexpools: mongoose.Types.ObjectId[];
   shifts: mongoose.Types.ObjectId[];
+  checkouts: mongoose.Types.ObjectId[];
 }
 
 const bedrijfSchema: Schema<IBedrijf> = new mongoose.Schema({
@@ -55,6 +56,10 @@ const bedrijfSchema: Schema<IBedrijf> = new mongoose.Schema({
     ref: 'Flexpool'
   }],
   shifts: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ShiftArray'
+  }],
+  checkouts: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'ShiftArray'
   }]

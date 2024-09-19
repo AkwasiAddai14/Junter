@@ -87,6 +87,8 @@ const CalenderM = () => {
     datetime: string;
     plekken: number;
     aanmeldingen: number;
+    aangenomen: number;
+    reserven: number;
     href: string;
   }
 
@@ -123,6 +125,8 @@ days.forEach((day) => {
         datetime: shift.begindatum.toISOString(),
         plekken: shift.plekken,
         aanmeldingen: shift.aanmeldingen.length,
+        aangenomen: shift.aangenomen.length,
+        reserven: shift.reserves.length,
         href: `/dashboard/shift/bedrijf/${shift._id}`,
       })
     }
@@ -298,12 +302,12 @@ days.forEach((day) => {
                     {event.begintijd} - {event.eindtijd}
                   </time>
                   <p className="font-semibold text-gray-900">{event.aanmeldingen} aanmeldingen</p>
-                  <p className="font-semibold text-gray-900">{event.plekken} aangenomen |  
+                  <p className="font-semibold text-gray-900">  
                   {event.plekken === 1 ? (
                       ` ${event.plekken} plek`
                     ) : (
                       ` ${event.plekken} plekken`
-                    )}                    
+                    )} | {event.aangenomen} aangenomen | {event.reserven} reserven             
                   </p>  
                 </div>
                 <LeButton link={event.href} buttonText="Wijzig" />

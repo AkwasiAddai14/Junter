@@ -1,38 +1,35 @@
 "use client"
 
-import * as React from "react"
-import ShiftCard from '../cards/ShiftCard'
+import * as React from "react";
+import ShiftCard from '../cards/ShiftArrayCard';
+import Card from '../cards/ShiftCard';
+import FactuurCard from '../cards/FactuurCard';
 import { Slider } from "@/app/components/ui/slider"  
 import { Button } from '@/app/components/ui/button'
 import { ScrollArea } from "@/app/components/ui/scroll-area"
 import { useUser } from "@clerk/nextjs"
-import { haalShifts } from "@/app/lib/actions/shiftArray.actions"
+import { haalShift, fetchBedrijfShiftsByClerkId } from "@/app/lib/actions/shiftArray.actions"
 import { useEffect, useRef, useState } from "react"
-import {  haalFacturen } from "@/app/lib/actions/factuur.actions"
 import { haalFlexpoolFreelancer } from "@/app/lib/actions/flexpool.actions"
-import { haalCheckouts } from "@/app/lib/actions/checkout.actions"
-import {
-  Bars3Icon,
-  BellIcon,
-  CalendarIcon,
-  FolderIcon,
-  UsersIcon,
-  XMarkIcon,
-  CurrencyEuroIcon,
-  HomeIcon,
-  ClockIcon
-} from '@heroicons/react/24/outline'
-import { ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/20/solid'
+import {  Bars3Icon, BellIcon, CalendarIcon, FolderIcon, UsersIcon, XMarkIcon, CurrencyEuroIcon, HomeIcon, ClockIcon} from '@heroicons/react/24/outline'
+import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react';
+import { ChevronDownIcon } from '@heroicons/react/20/solid'
+import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 import { Fragment } from "react"
 import UitlogModal from "./UitlogModal"
 import ProfielModal from "./ProfielModal"
 import logo from '@/app/assets/images/178884748_padded_logo.png';
 import Image from 'next/image'; 
-import axios from "axios"
 import { Calendar } from "../ui/calendar"
 import { Dialog, Menu, MenuButton, MenuItems, } from '@headlessui/react'
 import { haalFreelancer } from "@/app/lib/actions/freelancer.actions"
 import FlexpoolCard from "../cards/FlexpoolCard"
+import mongoose from "mongoose"
+import { haalCheckouts } from "@/app/lib/actions/checkout.actions"
+import { haalFacturenFreelancer } from "@/app/lib/actions/factuur.actions"
+import { haalAlleBedrijven } from "@/app/lib/actions/bedrijven.actions"
+import { filterShift, haalAangemeld, getCoordinatesFromAddress } from "@/app/lib/actions/shift.actions"
+import { IShiftArray } from "@/app/lib/models/shiftArray.model"
 
 
 
@@ -55,6 +52,24 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ')
 }
 
+interface bedrijf {
+    clerkId: string,
+    profielfoto: string,
+    naam: string,
+    displaynaam: string,
+    kvknr: string,
+    btwnr: string,
+    postcode: string,
+    huisnummer: string,
+    stad: string,
+    straat: string,
+    emailadres: string,
+    telefoonnummer: string,
+    iban: string,
+    path: string
+}
+
+
 export default function Example() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { isLoaded, user } = useUser();
@@ -63,7 +78,6 @@ export default function Example() {
   const [factuur, setFactuur] = useState<any[]>([])
   const [checkout, setCheckout] = useState<any[]>([])
   const [flexpool, setFlexpool] = useState<any[]>([])
-  const [isFreelancer, setIsFreelancer] = useState(true);
   const [profilePhoto, setProfilePhoto] = useState("");
   const [fullName, setFullName] = useState<string | null>(null); 
   const [showProfiel, setShowProfiel] = useState(false);
@@ -72,12 +86,17 @@ export default function Example() {
     from: undefined,
     to: undefined,
   });
-  const [uurtarief, setUurtarief] = useState<[number, number]>([0, 100]);
-  const [afstand, setAfstand] = useState<[number, number]>([0, 100]);
+  const [tarief, setTarief] = useState<number>(14);
+  const [afstand, setAfstand] = useState<number>(5);
   const [filteredShifts, setFilteredShifts] = useState<any[]>([]);
+  const [businessShifts, setBusinessShifts] = useState<any[]>([]);
   const [freelancerId, setFreelancerId] = useState<string>("")
-  const hasFetched = useRef(false);
-  
+  const [query, setQuery] = useState('');
+  const [selectedBusiness, setSelectedBusiness] = useState<bedrijf | null>(null);
+  const [businesses, setBusinesses] = useState<bedrijf[]>([]);
+  const [aangemeld, setAangemeld] = useState<any[]>([]);
+  const [geaccepteerd, setGeaccepteerd] = useState<any[]>([]);
+  const [adres, setAdres] = useState<any>(null);
   
   
   useEffect(() => {
@@ -93,6 +112,10 @@ export default function Example() {
         const freelancer = await haalFreelancer(user!.id);
         if (freelancer && freelancer._id) {
           setFreelancerId(freelancer._id.toString());
+          const freelancerAdres = await getCoordinatesFromAddress(`${freelancer.huisnummer}+${freelancer.straat}+${freelancer.stad}+the+netherlands`);
+          setAdres(freelancerAdres)
+        } else{
+          console.log("geen freelancerId gevonden.")
         }
       } catch (error) {
         console.error("Error fetching freelancer by Clerk ID:", error);
@@ -102,28 +125,60 @@ export default function Example() {
     if (user && !freelancerId) {  // Only fetch if user exists and freelancerId is not already set
       getFreelancerId();
     }
-  }, [user]);
-  
+  }, [user, freelancerId]);
+
   useEffect(() => {
     const fetchShifts = async () => {
       try {
-        if (!hasFetched.current) {
-          const response = await haalShifts();
-          setShift(response || []);
-          hasFetched.current = true;  // Mark as fetched
+        const response = await haalShift(freelancerId as unknown as mongoose.Types.ObjectId);
+
+        if (response) {
+          // Sort the shifts by date
+          
+          const sortedShifts = response.sort((a: any, b: any) => {
+            return new Date(a.begindatum).getTime() - new Date(b.begindatum).getTime(); // Ascending order
+          });
+
+          setShift(sortedShifts); // Set the sorted shifts
+        } else {
+          setShift([]); // Handle case where response is empty or null
         }
       } catch (error) {
         console.error('Error fetching shifts:', error);
       }
     };
-
     fetchShifts();
-  }, []);
+  }, [freelancerId]);
+
+
+    useEffect(() => {
+    const fetchAangemeldeShifts = async () => {
+      try {
+            const response = await haalAangemeld(freelancerId as unknown as mongoose.Types.ObjectId);
+            if (response) {
+              // Filter and separate shifts based on their status
+              const geaccepteerdShifts = response.filter((shift: { status: string; }) => shift.status === 'aangenomen');
+              const aangemeldShifts = response.filter((shift: { status: string; }) => shift.status !== 'geaccepteerd');
+              // Set the state with the filtered shifts
+              setGeaccepteerd(geaccepteerdShifts);
+              setAangemeld(aangemeldShifts);
+            } else {
+              // If no response or not an array, default to empty arrays
+              setGeaccepteerd([]);
+              setAangemeld([]);
+            }
+        
+      } catch (error) {
+        console.error('Error fetching shifts:', error);
+      }
+    };
+    fetchAangemeldeShifts();  // Call the fetchShifts function
+  }, [freelancerId]); 
   
-  /* useEffect(() => {
+  useEffect(() => {
     const fetchFactuur = async () => {
       try {
-        const response = await haalFacturen();
+        const response = await haalFacturenFreelancer(freelancerId);
         setFactuur(response || []);
       } catch (error) {
         console.error('Error fetching factuur:', error);
@@ -131,24 +186,26 @@ export default function Example() {
     };
     
     fetchFactuur();
-  }, []); */
-  /* 
+  }, [freelancerId]); 
+   
   useEffect(() => {
     const fetchCheckout = async () => {
       try {
-        const response = await haalCheckouts(freelancerId as string);
-        setCheckout(response || []);
+        if(freelancerId !== ""){
+          const response = await haalCheckouts(freelancerId);
+          setCheckout(response || []);
+        } else {
+          console.log("Freelancer ID invalid")
+        }
       } catch (error) {
         console.error('Error fetching checkouts:', error);
       }
     };
-    
     fetchCheckout();
-  }, [freelancerId]); */
-  
+  }, [freelancerId]);
 
-  useEffect(() =>{
-    if(freelancerId){
+  
+    useEffect(() => {
       const fetchFlexpool = async () => {
         try {        
           const flexpools = await haalFlexpoolFreelancer(freelancerId);
@@ -157,30 +214,64 @@ export default function Example() {
           console.log('Error fetching flexpools:', error);
           setFlexpool([]);
           }
-              }
-              fetchFlexpool();
+      }
+        fetchFlexpool();
+      }, [freelancerId]);
+
+          useEffect(() => {
+            if (selectedBusiness) {  // Only fetch shifts if bedrijfId is available
+              const fetchShifts = async () => {
+                try {
+                  const shifts = await fetchBedrijfShiftsByClerkId(selectedBusiness.clerkId);
+                  setBusinessShifts(shifts || []);  // Ensure shifts is always an array
+                  setPosition('Bedrijf');
+                } catch (error) {
+                  console.error('Error fetching shifts:', error);
+                  setBusinessShifts([]);  // Handle error by setting an empty array
+                }
+              };
+              fetchShifts();
             }
-          }, [freelancerId])
+          }, [selectedBusiness]);
   
   
-  /* useEffect(() => {
+          useEffect(() => {
+    const applyFilters = async () => {
+      try {
+        let data: Date | Date[] | undefined = undefined;
+            if (dateRange.from && dateRange.to) {
+              data = [dateRange.from, dateRange.to]; // Pass an array if both dates are defined
+            } else if (dateRange.from) {
+            data = dateRange.from; // Pass the 'from' date if only 'from' is defined
+        }
+        const shifts = await filterShift({ tarief, range: afstand, dates: data, freelancerLocation: adres });
+        setFilteredShifts(shifts);  // This should now work correctly
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
     applyFilters();
-  }, [dateRange, uurtarief, afstand, shift]);
+  }, [tarief, afstand, shift, dateRange]);
   
-  const applyFilters = () => {
-    const filtered = shift.filter((shiftItem) => {
-      const isDateInRange = dateRange.from && dateRange.to
-      ? new Date(shiftItem.date) >= dateRange.from && new Date(shiftItem.date) <= dateRange.to
-      : true;
-      const isTariefInRange = shiftItem.uurtarief >= uurtarief[0] && shiftItem.uurtarief <= uurtarief[1];
-      const isAfstandInRange = shiftItem.afstand >= afstand[0] && shiftItem.afstand <= afstand[1];
-      return isDateInRange && isTariefInRange && isAfstandInRange;
-    });
-    
-    setFilteredShifts(filtered);
-  }; */
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const opdrachtgevers = await haalAlleBedrijven();
+        setBusinesses(opdrachtgevers);  // This should now work correctly
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
+  }, []);
   
-  console.log("Freelancer ID: ", freelancerId, shift, flexpool)
+  const filteredBusinesses = businesses.filter((opdrachtgevers: { displaynaam: any }) => {
+    const naam = `${opdrachtgevers.displaynaam}`;
+    return naam.includes(query.toLowerCase());
+  });
+ 
+console.log(aangemeld);
   
   return (
     <Fragment>
@@ -188,7 +279,6 @@ export default function Example() {
       <div>
       <Dialog open={sidebarOpen} onClose={setSidebarOpen} className="relative z-50 lg:hidden">
           <div className="fixed inset-0 bg-gray-900/80" />
-
           <div className="fixed inset-0 flex">
             <Dialog.Panel className="relative flex w-full max-w-xs flex-1 flex-col bg-gray-900 pb-2">
               <div className="absolute right-0 flex items-center pt-5">
@@ -199,10 +289,15 @@ export default function Example() {
 
               <div className="flex grow flex-col gap-y-5 overflow-y-auto">
                 <div className="flex h-16 shrink-0 items-center justify-center">
-                <Image className="h-32 w-auto" src={logo} alt="Junter logo" /> {/* Use Image component for optimized images */}
+                <Image 
+                className="h-8 w-auto rounded-full"
+                width={8}
+                height={8} 
+                src={logo} 
+                alt="Junter logo" /> {/* Use Image component for optimized images */}
                 </div>
                 <nav className="flex flex-1 flex-col">
-                  <ul role="list" className="-mx-2 space-y-1">
+                  <ul role="list" className="-mx-2  ml-4 space-y-1">
                     {navigation.map((item) => (
                       <li key={item.name}>
                         <button
@@ -230,7 +325,9 @@ export default function Example() {
             <Image
               alt="Junter"
               src={logo}
-              className="h-8 w-auto"
+              className="h-8 w-auto rounded-full"
+              width={8}
+              height={8}
               />
           </div>
           <nav className="flex grow flex-col items-center space-y-1 pt-5">
@@ -260,23 +357,62 @@ export default function Example() {
             {/* Separator */}
             <div aria-hidden="true" className="h-6 w-px bg-gray-900/10 lg:hidden" />
 
-            <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-              <form action="#" method="GET" className="relative flex flex-1">
-                <label htmlFor="search-field" className="sr-only">
-                  Search
-                </label>
-                <MagnifyingGlassIcon
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 text-gray-400"
-                  />
-                <input
-                  id="search-field"
-                  name="search"
-                  type="search"
-                  placeholder="Zoeken naar opdrachtgever..."
-                  className="block h-full w-full border-0 py-0 pl-8 pr-0 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm"
-                  />
-              </form>
+            <div className="flex flex-1 justify-between gap-x-4 self-stretch lg:gap-x-6">
+            <Combobox
+        as="div"
+        value={selectedBusiness}
+        onChange={(business) => {
+          setQuery('');
+          setSelectedBusiness(business);
+        }}
+      >
+        <div className="relative mt-3">
+          <ComboboxInput
+            className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-12 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600 sm:text-sm sm:leading-6"
+            onChange={(event) => setQuery(event.target.value)}
+            onBlur={() => setQuery('')}
+            displayValue={(opdrachtgever: any) => opdrachtgever ? `${opdrachtgever.displaynaam}` : ''}
+          />
+          <ComboboxButton className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
+            <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+          </ComboboxButton>
+
+          {filteredBusinesses.length > 0 && (
+            <ComboboxOptions className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+              {filteredBusinesses.map((business) => (
+                <>
+                <ComboboxOption
+                  key={business.displaynaam}
+                  value={business}
+                  className="group relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 data-[focus]:bg-sky-600 data-[focus]:text-white"
+                >
+                  <div className="flex items-center">
+                    <img src={business.profielfoto} alt="" className="h-6 w-6 flex-shrink-0 rounded-full" />
+                    <span className="ml-3 truncate group-data-[selected]:font-semibold">{business.displaynaam}</span>
+                  </div>
+
+                  <span className="absolute inset-y-0 right-0 hidden items-center pr-4 text-sky-600 group-data-[selected]:flex group-data-[focus]:text-white">
+                    <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                </ComboboxOption>
+                <ComboboxOption
+                key={"Alle shifts"}
+                value={"Alle shifts"}
+                onClick={() => setPosition('Shifts')}
+                className="group relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 data-[focus]:bg-sky-600 data-[focus]:text-white"
+                >
+                  <div className="flex items-center">
+                    <Image src={logo} alt="" className="h-6 w-6 flex-shrink-0 rounded-full" />
+                    <span className="ml-3 truncate group-data-[selected]:font-semibold">Alle shifts</span>
+                  </div>
+                  </ComboboxOption>
+                  </>
+              ))}
+            </ComboboxOptions>
+          )}
+        </div>
+      </Combobox>
+      
               <div className="flex items-center gap-x-4 lg:gap-x-6">
                 <button type="button" className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
                   <span className="sr-only">View notifications</span>
@@ -338,11 +474,45 @@ export default function Example() {
 
           <main className="xl:pl-96">
             <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-6">{/* Main area */}
-            {position === 'Shifts' ?
+
+                {position === 'Shifts' ?
+
             shift.length > 0 ? (
               <ScrollArea>
               <div className="grid grid-cols-3 gap-4">
-              {shift.slice(0, 9).map((shiftItem, index) => (
+              {shift.slice(0, shift.length).map((shiftItem, index) => (
+                <ShiftCard key={index} shift={shiftItem} />
+                ))}
+                </div>
+                </ScrollArea>
+              ) : ( 
+                <div>Geen shifts beschikbaar</div>
+                               )
+                             : null
+
+                }
+
+
+              {position === 'Filter' ?
+            filteredShifts.length > 0 ? (
+              <ScrollArea>
+              <div className="grid grid-cols-3 gap-4">
+              {filteredShifts.slice(0, filteredShifts.length).map((shiftItem, index) => (
+                <ShiftCard key={index} shift={shiftItem} />
+                ))}
+                </div>
+                </ScrollArea>
+              ) : ( 
+                <div>Geen shifts beschikbaar</div>
+                               )
+                             : null
+                }
+
+              {position === 'Bedrijf' ?
+            businessShifts.length > 0 ? (
+              <ScrollArea>
+              <div className="grid grid-cols-3 gap-4">
+              {businessShifts.slice(0, businessShifts.length).map((shiftItem, index) => (
                 <ShiftCard key={index} shift={shiftItem} />
                 ))}
                 </div>
@@ -353,30 +523,43 @@ export default function Example() {
                              : null
                             }
                          
-              {position === 'Aanmeldingen' && (
+                         {position === 'Aanmeldingen' ?
+            aangemeld.length > 0 ? (
               <ScrollArea>
               <div className="grid grid-cols-3 gap-4">
-              {shift.slice(0, 9).map((shiftItem, index) => (
-                <ShiftCard key={index} shift={shiftItem} />
+              {aangemeld.slice(0, aangemeld.length).map((shiftItem, index) => (
+                <Card key={index} shift={shiftItem} />
                 ))}
                 </div>
                 </ScrollArea>
-              )} 
-               {position === 'Geaccepteerde shifts' && (
-                <ScrollArea>
-                <div className="grid grid-cols-3 gap-4">
-                {shift.slice(0, 9).map((shiftItem, index) => (
-                  <ShiftCard key={index} shift={shiftItem} />
-                  ))}
-                  </div>
-                  </ScrollArea>
-                )} 
+              ) : ( 
+                <div>Geen shifts beschikbaar</div>
+                               )
+                             : null
+                            }
+
+                {position === 'Geaccepteerde shifts' ?
+            geaccepteerd.length > 0 ? (
+              <ScrollArea>
+              <div className="grid grid-cols-3 gap-4">
+              {geaccepteerd.slice(0, geaccepteerd.length).map((shiftItem, index) => (
+                <Card key={index} shift={shiftItem} />
+                ))}
+                </div>
+                </ScrollArea>
+              ) : ( 
+                <div>Geen shifts beschikbaar</div>
+                               )
+                             : null
+                            }
+
+
                {position === 'Checkouts' ?
               checkout.length > 0 ?  (
                 <ScrollArea>
                 <div className="grid grid-cols-3 gap-4">
-                {checkout.slice(0, 9).map((checkoutItem, index) => (
-                  <ShiftCard key={index} shift={checkoutItem} />
+                {checkout.slice(0, checkout.length).map((checkoutItem, index) => (
+                  <Card key={index} shift={checkoutItem} />
                   ))}
                   </div>
                   </ScrollArea>
@@ -390,8 +573,8 @@ export default function Example() {
               factuur.length > 0 ? (
                 <ScrollArea>
                 <div className="grid grid-cols-3 gap-4">
-                {factuur.slice(0, 9).map((factuurItem, index) => (
-                  <ShiftCard key={index} shift={factuurItem} />
+                {factuur.slice(0, factuur.length).map((factuurItem, index) => (
+                  <FactuurCard key={index} factuur={factuurItem} />
                   ))}
                   </div>
                   </ScrollArea>
@@ -404,7 +587,7 @@ export default function Example() {
               flexpool.length > 0 ? (
                 <ScrollArea>
                 <div className="grid grid-cols-2 gap-4">
-                {flexpool.slice(0, 9).map((flexpoolItem, index) => (
+                {flexpool.slice(0, flexpool.length).map((flexpoolItem, index) => (
                   <FlexpoolCard key={index} flexpool={flexpoolItem} />
                   ))}
                   </div>
@@ -434,27 +617,27 @@ export default function Example() {
             Tarief
           </p>
           <Slider
-            defaultValue={[0, 100]}
+            defaultValue={[14, 100]}
             step={5}
             className="mt-5"
-            /* onChange={(value) => setUurtarief(value)} */
+            onChange={(value) => setTarief(value as unknown as number)}
             />
          </div>
          <p className="mt-20">
             Afstand
          </p>
          <Slider
-           defaultValue={[0, 100]}
+           defaultValue={[5, 100]}
            step={5}
            className="mt-5"
-           /* onChange={(value) => setAfstand(value)} */ 
+           onChange={(value) => setAfstand(value as unknown as number)} 
            />
          <div>
           <div className="justify-between">
-          <Button className="mt-20 bg-white text-black border-2 border-black mr-10" onClick={() => { setDateRange({ from: undefined, to: undefined }); setUurtarief([0, 100]); setAfstand([0, 100]); /* applyFilters(); */ /* setShift(shift) */}} >
+          <Button className="mt-20 bg-white text-black border-2 border-black mr-10" onClick={() =>  setPosition("Shifts") } >
             Reset
           </Button>
-          <Button className="mt-20 bg-sky-500" /* onClick={applyFilters} */ >
+          <Button className="mt-20 bg-sky-500" onClick={() => setPosition('Filter')} >
             Zoek
           </Button>
           </div>

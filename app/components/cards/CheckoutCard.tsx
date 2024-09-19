@@ -10,7 +10,8 @@ import { CheckoutValidation } from "@/app/lib/validations/checkout";
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from 'zod';
 import { Textarea } from '../ui/textarea';
-import { maakCheckout, vulCheckout } from '@/app/lib/actions/checkout.actions';
+import { vulCheckout } from '@/app/lib/actions/checkout.actions';
+import { haalShiftMetIdCard } from '@/app/lib/actions/shift.actions';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker/TimePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import ReactStars from "react-rating-stars-component";
@@ -43,7 +44,7 @@ export default function CheckoutCard({isVisible, onClose, shiftId} : {isVisible:
     useEffect(() => {
         const fetchCheckout = async () => {
             try {
-                const data = await maakCheckout({ shiftId });
+                const data = await haalShiftMetIdCard(shiftId);
                 setCheckout(data);
             } catch (error) {
                 console.error('Failed to fetch checkout data:', error);

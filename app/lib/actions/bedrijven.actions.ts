@@ -3,6 +3,7 @@
 import { connectToDB} from "../mongoose";
 import mongoose from "mongoose";
 import Bedrijf from "../models/bedrijf.model";
+import { currentUser } from "@clerk/nextjs/server";
 
 
 type bedrijf = {
@@ -149,7 +150,7 @@ export const fetchBedrijfDetails = async (clerkId: string) => {
     try {
         await connectToDB()
         console.log(mongoose.modelNames());
-        const bedrijf = await Bedrijf.findOne({ clerkId });
+        const bedrijf = await Bedrijf.findOne({ clerkId: clerkId });
     if (bedrijf) {
       console.log('Found Bedrijf: ', JSON.stringify(bedrijf, null, 2));  // Log the entire bedrijf object
       return bedrijf.toObject();
@@ -163,17 +164,19 @@ export const fetchBedrijfDetails = async (clerkId: string) => {
     }
   };
 
-  export const isBedrijf = async (clerkId: string) => {
+  export const isBedrijf = async () => {
     try {
       await connectToDB();
-      const bedrijf = await Bedrijf.findOne({ clerkId }).exec();
+      const gebruiker = await currentUser();
+      const bedrijf = await Bedrijf.findOne({ clerkId: gebruiker!.id }).exec();
       if (bedrijf) {
         return true;
       }
-      return false;
+      if(!bedrijf) {
+        return false;
+      }
     } catch (error) {
       console.error('Error fetching bedrijf details:', error);
-      throw error;
     }
   };
 
@@ -194,3 +197,18 @@ export const fetchBedrijfDetails = async (clerkId: string) => {
       throw error;
     }
   };
+
+
+  export const haalAlleBedrijven = async (): Promise<bedrijf[]> => {
+    try {
+        await connectToDB();
+        const opdrachtgevers = await Bedrijf.find().lean<bedrijf[]>(); // Use lean() to return plain objects
+
+        console.log(opdrachtgevers);
+        return opdrachtgevers || []; // Return an array with 'naam' property
+    } catch (error) {
+        console.error('Error fetching bedrijven:', error);
+        throw new Error('Failed to fetch bedrijven');
+    }
+};
+

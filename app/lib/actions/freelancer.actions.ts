@@ -122,7 +122,7 @@ export async function verwijderFreelancer(clerkId: string): Promise<Freelancer |
 export const haalFreelancer = async  (clerkId: string) => {
     
     try {
-        const freelancer = await Freelancer.findOne({clerkId});
+        const freelancer = await Freelancer.findOne({clerkId: clerkId});
         return freelancer;
     } catch (error) {
         console.error('Error retrieving freelancers:', error);

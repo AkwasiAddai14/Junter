@@ -1,6 +1,6 @@
 "use server";
 
-import mongoose, { Schema, Document, ObjectId }  from "mongoose";
+import mongoose, { Schema, Document, ObjectId, Types }  from "mongoose";
 import { connectToDB } from "../mongoose";
 import { revalidatePath } from "next/cache";
 import Freelancer from "../models/freelancer.model";
@@ -11,6 +11,9 @@ import ShiftArray, { IShiftArray } from "../models/shiftArray.model";
 import Pauze from "@/app/lib/models/pauze.model";
 import Category from "../models/categorie.model";
 import dayjs from 'dayjs';
+import nodemailer from 'nodemailer';
+import { currentUser } from '@clerk/nextjs/server'
+import axios from "axios";
 
 
 export type voegAangepastParams = {
@@ -375,15 +378,22 @@ export async function verwijderShiftArray({
 
   interface ReageerShiftParams {
     shiftArrayId: string;
-    clerkId: string;
   }
   
   export async function reageerShift({
     shiftArrayId,
-    clerkId,
   }: ReageerShiftParams) {
     try {
       await connectToDB();
+      const user = await currentUser()
+      let userId ;
+      if (!user) {
+        throw new Error('You must be signed in to use this feature')
+      }
+      else{
+        userId = user!.id
+        console.log(user.id)
+      }
   
       // Find the ShiftArray by ID and populate the shifts with full documents
       const shiftArray = await ShiftArray.findById(shiftArrayId).populate('shifts');
@@ -393,14 +403,18 @@ export async function verwijderShiftArray({
       }
   
       // Find the freelancer by ID
-      const freelancer = await Freelancer.findOne({clerkId});
+      const freelancer = await Freelancer.findOne({clerkId : userId});
       if (!freelancer) {
-        throw new Error(`Freelancer with ID ${clerkId} not found`);
+        throw new Error(`Freelancer with ID ${userId} not found`);
       }
   
       // Ensure that shifts is an array of ShiftType
       if (Array.isArray(shiftArray.shifts) && typeof shiftArray.shifts[0] !== 'string') {
         const populatedShifts = shiftArray.shifts as unknown as ShiftType[];
+
+        if (!populatedShifts) {
+          throw new Error('No shift found to populate.');
+        }
   
         // Check if the freelancer is in the same flexpool
         const inSameFlexpool = shiftArray.flexpools.some((fp) =>
@@ -425,22 +439,42 @@ export async function verwijderShiftArray({
           // Add the freelancer to the ShiftArray aanmeldingen array
           shiftArray.aanmeldingen.push(freelancer._id);
           await shiftArray.save();
+
+          const populatedShift = populatedShifts[0];
+          
+          // Check if populatedShift has all the required fields
+              if (!populatedShift) {
+                   throw new Error('No shift found to populate.');
+                  }
   
           // Create a new shift with status 'aangemeld' for the freelancer
           const newShift = new Shift({
-            ...populatedShifts[0],
-            shiftArrayId,
-            aanmeldingen: [],
+            shiftArrayId: shiftArrayId,
+            opdrachtgever: populatedShift.opdrachtgever, // Ensure opdrachtgever is populated
             opdrachtnemer: freelancer._id,
+            opdrachtgeverNaam: populatedShift.opdrachtgeverNaam || "Junter",  // Fallback value for opdrachtgeverNaam
+            titel: populatedShift.titel || "Default Title",  // Fallback value for titel
+            functie: populatedShift.functie || "Default Function",  // Fallback value for functie
+            afbeelding: populatedShift.afbeelding || "default.jpg",  // Fallback value for afbeelding
+            uurtarief: !isNaN(Number(populatedShift.uurtarief)) ? Number(populatedShift.uurtarief) : 0,  // Ensure uurtarief is a valid number
+            plekken: 1, // Each shift has only one spot
+            adres: populatedShift.adres || "Default Address",  // Fallback value for adres
+            begindatum: populatedShift.begindatum || new Date(),  // Fallback value for begindatum
+            einddatum: populatedShift.einddatum || new Date(),  // Fallback value for einddatum
+            begintijd: populatedShift.begintijd || "09:00",  // Fallback value for begintijd
+            eindtijd: populatedShift.eindtijd || "17:00",  // Fallback value for eindtijd
+            pauze: populatedShift.pauze || "30 minutes",  // Fallback value for pauze
+            beschrijving: populatedShift.beschrijving || "No description available",  // Fallback value for beschrijving
+            vaardigheden: populatedShift.vaardigheden || [],  // Ensure vaardigheden is an array
+            kledingsvoorschriften: populatedShift.kledingsvoorschriften || "Casual",  // Fallback value for kledingsvoorschriften
             status: 'aangemeld',
           });
+          
   
           await newShift.save();
   
           // Update the freelancer's shifts array
-          freelancer.shifts.push({
-            shift: newShift._id,
-          });
+          freelancer.shifts.push(newShift._id);
           
           const shiftToRemove = freelancer.shifts.find(
             (shift: { shiftArrayId: { toString: () => string; }; status: string; }) => shift.shiftArrayId?.toString() === shiftArrayId && shift.status === 'aangemeld'
@@ -464,6 +498,108 @@ export async function verwijderShiftArray({
       throw new Error(`Failed to apply for shift: ${error.message}`);
     }
   }
+
+  interface EmailContent {
+    subject: string;
+    text: string;
+}
+
+// Nodemailer configuration
+const transporter = nodemailer.createTransport({
+    service: 'gmail', // Use your email provider, e.g., Gmail, SendGrid, etc.
+    auth: {
+        user: process.env.EMAIL_USER, // Your email
+        pass: process.env.EMAIL_PASS, // Your email password or app-specific password
+    },
+});
+
+export async function sendEmailBasedOnStatus(freelancerEmail: string, shiftDetails: any, status: string) {
+    const emailContent = generateEmailContent(shiftDetails, status);
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: freelancerEmail,
+        subject: emailContent.subject,
+        text: emailContent.text,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log('Email sent to ' + freelancerEmail);
+    } catch (error) {
+        console.error('Error sending email:', error);
+    }
+}
+
+function generateEmailContent(shiftDetails: any, status: string): EmailContent {
+    switch (status) {
+        case 'aangenomen':
+            return {
+                subject: `Gefeliciteerd! Jij bent geaccepteerd voor de shift: ${shiftDetails.titel}`,
+                text: `
+                Gefeliciteerd! Jij bent geaccepteerd voor de volgende shift:
+
+                Titel: ${shiftDetails.titel}
+                Datum: ${shiftDetails.begindatum}
+                Starttijd: ${shiftDetails.begintijd}
+                Eindtijd: ${shiftDetails.eindtijd}
+                Adres: ${shiftDetails.adres}
+                
+                Vaardigheden: ${shiftDetails.vaardigheden.join(', ') || 'Geen'}
+                Kledingsvoorschriften: ${shiftDetails.kledingsvoorschriften.join(', ') || 'Geen'}
+
+                Succes en veel plezier!
+                `,
+            };
+        case 'geannuleerd':
+            return {
+                subject: `Helaas! De shift ${shiftDetails.titel} is geannuleerd`,
+                text: `
+                Helaas! De volgende shift is geannuleerd:
+
+                Titel: ${shiftDetails.titel}
+                Datum: ${shiftDetails.begindatum}
+                Starttijd: ${shiftDetails.begintijd}
+                Eindtijd: ${shiftDetails.eindtijd}
+                Adres: ${shiftDetails.adres}
+
+                Neem contact op met ons als je vragen hebt.
+                `,
+            };
+        case 'voltooi checkout':
+            return {
+                subject: `Vul nu de checkout voor ${shiftDetails.titel} in`,
+                text: `
+                Het is tijd om de checkout in te vullen voor de volgende shift:
+
+                Titel: ${shiftDetails.titel}
+                Datum: ${shiftDetails.begindatum}
+                Starttijd: ${shiftDetails.begintijd}
+                Eindtijd: ${shiftDetails.eindtijd}
+                Adres: ${shiftDetails.adres}
+
+                Vul de checkout zo snel mogelijk in.
+                `,
+            };
+        case 'checkout geaccepteerd':
+            return {
+                subject: `De checkout voor shift ${shiftDetails.titel} is geaccepteerd!`,
+                text: `
+                De checkout voor de volgende shift is geaccepteerd:
+
+                Titel: ${shiftDetails.titel}
+                Datum: ${shiftDetails.begindatum}
+                Starttijd: ${shiftDetails.begintijd}
+                Eindtijd: ${shiftDetails.eindtijd}
+                Adres: ${shiftDetails.adres}
+
+                Bedankt voor je inzet!
+                `,
+            };
+        default:
+            throw new Error(`Invalid status: ${status}`);
+    }
+}
 
 
   interface AnnuleerAanmeldingenParams {
@@ -566,7 +702,50 @@ export async function accepteerFreelancer({
       }
 
       if (!Array.isArray(shiftArray.shifts) || shiftArray.shifts.length === 0) {
-          throw new Error('No shifts found in the shiftArray.');
+        console.log('No shifts found, creating a reserve shift...');
+        shiftArray.beschikbaar = false;
+        // Create a new shift with the status 'reserve'
+        const newShift = new Shift({
+          opdrachtgever: shiftArray.opdrachtgever, // Assuming it's an ObjectId
+          opdrachtnemer: freelancerObjectId, // Assigning the freelancer ObjectId
+          shiftArrayId: shiftArray._id, // Reference to the shiftArray
+          titel: shiftArray.titel, // Mapping relevant fields from shiftArray
+          opdrachtgeverNaam: shiftArray.opdrachtgeverNaam || "Junter",
+          functie: shiftArray.functie,
+          afbeelding: shiftArray.afbeelding,
+          uurtarief: shiftArray.uurtarief,
+          plekken: 1,  // Default value
+          adres: shiftArray.adres,
+          begindatum: shiftArray.begindatum,
+          einddatum: shiftArray.einddatum,
+          begintijd: shiftArray.begintijd,
+          eindtijd: shiftArray.eindtijd,
+          pauze: shiftArray.pauze ? shiftArray.pauze : "30 minuten pauze", // Providing a default if not present
+          beschrijving: shiftArray.beschrijving,
+          vaardigheden: shiftArray.vaardigheden,
+          kledingsvoorschriften: shiftArray.kledingsvoorschriften,
+          beschikbaar: true, // Assuming a new shift should be available
+          status: 'reserve', // Status for the new shift
+          checkoutbegintijd: "00:00",
+          checkouteindtijd: "00:00",
+          feedback: "",
+          opmerking: "",
+          ratingBedrijf: 5,
+          ratingFreelancer: 5,
+      });
+      
+      // Save the new shift
+      await newShift.save();
+
+        // Push the new shift into ShiftArray and Freelancer shifts array
+        shiftArray.shifts.push(new mongoose.Types.ObjectId(newShift._id));
+        freelancer.shifts.push(newShift._id);
+        shiftArray.reserves.push(freelancer._id);
+        // Save updates to ShiftArray and Freelancer
+        await shiftArray.save();
+        await freelancer.save();
+
+        return { success: true, message: "Reserve shift created and assigned to freelancer." };
       }
 
       const firstShiftId = shiftArray.shifts[0];
@@ -577,12 +756,13 @@ export async function accepteerFreelancer({
 
       firstShift.opdrachtnemer = freelancerObjectId;
       firstShift.status = "aangenomen";
+      firstShift.opdrachtgeverNaam = shiftArray.opdrachtgeverNaam;
       freelancer.shifts.push(firstShift._id);
-
+      shiftArray.aangenomen.push(freelancer._id)
       
 
-      freelancer.shifts = freelancer.shifts.filter((s: { shiftArrayId: { toString: () => any; }; status: string; }) => {
-        return !(s.shiftArrayId.toString() === shiftArray._id.toString() && s.status === 'aangemeld');
+      freelancer.shifts = freelancer.shifts.filter((s: { shiftArrayId?: { toString: () => any; }; status: string; }) => {
+        return !(s.shiftArrayId?.toString() === shiftArray._id.toString() && s.status === 'aangemeld');
     });
 
       await freelancer.save();
@@ -594,15 +774,12 @@ export async function accepteerFreelancer({
 
       shiftArray.shifts.shift();
       await shiftArray.save();
-
+      await sendEmailBasedOnStatus(freelancer.emailadres, firstShift, 'aangenomen');
       return { success: true, message: "Freelancer successfully accepted for the shift" };
   } catch (error: any) {
       throw new Error(`Failed to accept freelancer for shift: ${error.message}`);
   }
 }
-
-
-
 
 
 interface AfwijzenFreelancerParams {
@@ -611,39 +788,43 @@ interface AfwijzenFreelancerParams {
 }
 
 export async function afwijzenFreelancer({ shiftId, freelancerId }: AfwijzenFreelancerParams) {
-    try {
+  try {
+      // Find the shift array by ID
+      const shiftArray = await ShiftArray.findById(shiftId);
+      if (!shiftArray) {
+          throw new Error(`ShiftArray with ID ${shiftId} not found`);
+      }
 
+      // Remove the freelancer from the aanmeldingen array safely
+      shiftArray.aanmeldingen = shiftArray.aanmeldingen.filter((id: any) => {
+          return id && id.toString() !== freelancerId;
+      });
+      await shiftArray.save();
 
-        // Find the shift array by ID
-        const shiftArray = await ShiftArray.findById(shiftId);
-        if (!shiftArray) {
-            throw new Error(`ShiftArray with ID ${shiftId} not found`);
-        }
+      // Find the freelancer
+      const freelancer = await Freelancer.findById(freelancerId);
+      if (!freelancer) {
+          throw new Error(`Freelancer with ID ${freelancerId} not found`);
+      }
 
-        // Remove the freelancer from the aanmeldingen array
-        shiftArray.aanmeldingen = shiftArray.aanmeldingen.filter((id: { toString: () => string; }) => id.toString() !== freelancerId);
-        await shiftArray.save();
-
-        // Find the freelancer
-        const freelancer = await Freelancer.findById(freelancerId);
-        if (!freelancer) {
-            throw new Error(`Freelancer with ID ${freelancerId} not found`);
-        }
-
-        // Update the freelancer's shift status to 'afgewezen'
-        const shiftIndex = freelancer.shifts.findIndex((s: any) => s.shift.toString() === shiftId);
+      // Safely find the shift within the freelancer's shifts array
+      const shiftIndex = freelancer.shifts.findIndex((s: any) => s && s.shiftArrayId && s.shiftArrayId.toString() === shiftId);
+      console.log("Shift index: ",shiftIndex)
         if (shiftIndex > -1) {
-            freelancer.shifts[shiftIndex].status = 'afgewezen';
-        } else {
-            throw new Error(`Shift with ID ${shiftId} not found in freelancer's shifts`);
-        }
-        await freelancer.save();
+                freelancer.shifts[shiftIndex].status = 'afgewezen'; // Mark the shift as rejected
+            } else {
+                throw new Error(`Shift with ID ${shiftId} not found in freelancer's shifts`);
+         }
 
-        return { success: true, message: 'Freelancer rejected successfully' };
-    } catch (error: any) {
-        throw new Error(`Failed to reject freelancer: ${error.message}`);
-    }
+      // Save the updated freelancer
+      await freelancer.save();
+
+      return { success: true, message: 'Freelancer rejected successfully' };
+  } catch (error: any) {
+      throw new Error(`Failed to reject freelancer: ${error.message}`);
+  }
 };
+
 
 
 interface afrondenShiftParams {
@@ -692,44 +873,61 @@ interface FilterParams {
 }
 
 export async function filterShift({ tarief, range, dates, freelancerLocation }: FilterParams) {
-    try {
-        await connectToDB();
+  try {
+      await connectToDB();
 
-        // Initialize the query object
-        const query: any = {};
+      // Initialize the query object
+      const query: any = {};
 
-        // Filter by tarief (hourly rate)
-        if (tarief !== undefined) {
-            query.uurtarief = { $gte: tarief };
-        }
+      // Filter by tarief (hourly rate)
+      if (tarief !== undefined) {
+          query.uurtarief = { $gte: tarief };
+      }
 
-        // Filter by date(s)
-        if (dates) {
-            if (Array.isArray(dates)) {
-                query.datum = { $in: dates };
-            } else if (dates instanceof Date) {
-                query.datum = dates;
-            }
-        }
+      // Filter by date(s)
+      if (dates) {
+          if (Array.isArray(dates)) {
+              query.datum = { $in: dates };
+          } else if (dates instanceof Date) {
+              query.datum = dates;
+          }
+      }
 
-        // Find shifts that match the initial query
-        let shifts = await Shift.find(query);
+      // Find shifts that match the initial query
+      let shifts = await ShiftArray.find(query);
 
-        // Filter by range (distance from freelancer's location)
-        if (range !== undefined && freelancerLocation) {
-            const { lat, lng } = freelancerLocation;
-            shifts = shifts.filter(async shift => {
-                const shiftLocation = await getCoordinatesFromAddress(shift.adres); // You need to implement this function
-                const distance = calculateDistance(lat, lng, shiftLocation.lat, shiftLocation.lng); // You need to implement this function
-                return distance <= range;
-            });
-        }
+      // Filter by range (distance from freelancer's location)
+      if (range !== undefined && freelancerLocation) {
+          const { lat: freelancerLat, lng: freelancerLng } = freelancerLocation;
 
-        return shifts;
-    } catch (error:any) {
-        throw new Error(`Failed to filter shifts: ${error.message}`);
-    }
+          if (freelancerLat !== undefined && freelancerLng !== undefined) {
+              // Use `filter` instead of `map` to filter out shifts that do not match the distance criteria
+              shifts = await Promise.all(
+                  shifts.filter(async shift => {
+                      const shiftLocation = await getCoordinatesFromAddress(shift.adres); // You need to implement this function
+                      
+                      if (shiftLocation && shiftLocation.latitude !== undefined && shiftLocation.longitude !== undefined) {
+                          const distance = calculateDistance(
+                              freelancerLat, 
+                              freelancerLng, 
+                              shiftLocation.latitude, 
+                              shiftLocation.longitude
+                          );
+                          return distance <= range;
+                      }
+                      return false;
+                  })
+              );
+          }
+      }
+
+      return shifts;
+  } catch (error: any) {
+      throw new Error(`Failed to filter shifts: ${error.message}`);
+  }
 }
+
+
 
 // Example function to calculate the distance between two coordinates
 // You can use the Haversine formula or a library like geolib
@@ -747,9 +945,22 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
 
 // Example function to get coordinates from an address
 // You might need to use an API like Google Maps Geocoding API
-async function getCoordinatesFromAddress(address: string) {
-    // Dummy implementation, replace with actual geocoding logic
-    return { lat: 52.3676, lng: 4.9041 }; // Coordinates for Amsterdam, for example
+export async function getCoordinatesFromAddress(address: string) {
+  try {
+    const response = await axios.get(`/api/geocoding?address=${address}`);
+    if (response.data) {
+        const { latitude, longitude } = response.data;
+        return {
+          latitude,
+          longitude
+        };
+    } else {
+        return { latitude: 52.3676, longitude: 4.9041 };
+    }
+} catch (error) {
+    console.error('Error fetching coordinates:', error);
+    throw new Error('No coordinates found for the provided address.');
+  } // Coordinates for Amsterdam, for example
 }
 
 const populateShift = (query: any) => {
@@ -787,7 +998,7 @@ export type GetRelatedEventsByCategoryParams = {
 export async function haalGerelateerdShiftsMetCategorie({
   categoryId,
   shiftId,
-  limit = 3,
+  limit = 36,
   page = 1,
 }: GetRelatedEventsByCategoryParams) {
   try {
@@ -796,14 +1007,14 @@ export async function haalGerelateerdShiftsMetCategorie({
     const skipAmount = (Number(page) - 1) * limit
     const conditions = { $and: [{ category: categoryId }, { _id: { $ne: shiftId } }] }
 
-    const eventsQuery = Shift.find(conditions)
+    const eventsQuery = ShiftArray.find(conditions)
       .sort({ createdAt: 'desc' })
       .skip(skipAmount)
       .limit(limit)
 
     const events = await populateShift(eventsQuery)
-    const eventsCount = await Shift.countDocuments(conditions)
-
+    const eventsCount = await ShiftArray.countDocuments(conditions)
+  
     return { data: JSON.parse(JSON.stringify(events)), totalPages: Math.ceil(eventsCount / limit) }
   } catch (error) {
     console.log(error)
@@ -815,9 +1026,6 @@ export async function haalGerelateerdShiftsMetCategorie({
 export const haalShiftMetIdCard = async (id: string) => {
   try {
     const shift = await Shift.findById(id)
-      .populate('opdrachtgever')
-      .populate('flexpools')
-      .exec();
     return shift;
   } catch (error) {
     console.error('Error fetching shift:', error);
@@ -844,55 +1052,200 @@ export async function updateShiftAndReassign({
   shiftId
 }: ShiftUpdateParams) {
   try {
-      await connectToDB();
+    await connectToDB();
 
-      if (!mongoose.Types.ObjectId.isValid(shiftId)) {
-          throw new Error(`Invalid shift ID: ${shiftId}`);
-      }
+    if (!mongoose.Types.ObjectId.isValid(shiftId)) {
+      throw new Error(`Invalid shift ID: ${shiftId}`);
+    }
 
-      const shiftObjectId = new mongoose.Types.ObjectId(shiftId);
+    const shiftObjectId = new mongoose.Types.ObjectId(shiftId);
 
-      // Step 1: Find the shift by ID
-      const shift = await Shift.findById(shiftObjectId);
-      if (!shift) {
-          throw new Error(`Shift with ID ${shiftId} not found`);
-      }
+    // Step 1: Find the shift by ID
+    const shift = await Shift.findById(shiftObjectId);
+    if (!shift) {
+      throw new Error(`Shift with ID ${shiftId} not found`);
+    }
 
-      // Step 2: Combine shift date and time to create a complete Date object
-      const shiftStartDateTime = new Date(shift.begindatum);
-      const [hours, minutes] = shift.begintijd.split(':').map(Number);
-      shiftStartDateTime.setHours(hours, minutes, 0, 0);
+    // Step 2: Combine shift date and time to create a complete Date object
+    const shiftStartDateTime = new Date(shift.begindatum);
+    const [hours, minutes] = shift.begintijd.split(':').map(Number);
+    shiftStartDateTime.setHours(hours, minutes, 0, 0);
 
-      // Step 3: Compare current time with 72 hours before the shift start time
-      const currentTime = new Date();
-      const hoursBeforeShift = 72;
-      const timeDifference = shiftStartDateTime.getTime() - currentTime.getTime();
-      const hoursDifference = timeDifference / (1000 * 60 * 60);
+    // Step 3: Compare current time with 72 hours before the shift start time
+    const currentTime = new Date();
+    const hoursBeforeShift = 72;
+    const timeDifference = shiftStartDateTime.getTime() - currentTime.getTime();
+    const hoursDifference = timeDifference / (1000 * 60 * 60);
 
-      if (hoursDifference > hoursBeforeShift) {
-          // Case 1: More than 72 hours before the shift
-          shift.opdrachtnemer = undefined; // Remove opdrachtnemer
-          shift.status = 'beschikbaar';
-      } else {
-          // Case 2: Less than 72 hours before the shift
-          shift.status = 'vervangen';
-      }
+    if (hoursDifference > hoursBeforeShift) {
+      // Case 1: More than 72 hours before the shift
+      shift.opdrachtnemer = undefined; // Remove opdrachtnemer
+      shift.status = 'beschikbaar';
+    } else {
+      // Case 2: Less than 72 hours before the shift
+      shift.status = 'vervangen';
+    }
 
-      // Step 4: Find the corresponding ShiftArray
-      const shiftArray = await ShiftArray.findById(shift.shiftArrayId);
-      if (!shiftArray) {
-          throw new Error(`ShiftArray with ID ${shift.shiftArrayId} not found`);
-      }
+    // Step 4: Find the corresponding ShiftArray
+    const shiftArray = await ShiftArray.findById(shift.shiftArrayId);
+    if (!shiftArray) {
+      throw new Error(`ShiftArray with ID ${shift.shiftArrayId} not found`);
+    }
 
-      // Step 5: Push the shift back into the ShiftArray
+    // Step 5: Check for shifts with 'reserve' status in the ShiftArray
+    const reserveShift = await Shift.findOne({ _id: { $in: shiftArray.shifts }, status: 'reserve' });
+
+    if (reserveShift) {
+      // Extract the opdrachtnemer from the reserve shift
+      const newOpdrachtnemer = reserveShift.opdrachtnemer;
+
+      // Assign the new opdrachtnemer to the shift being updated
+      shift.opdrachtnemer = newOpdrachtnemer;
+
+      // Remove the reserve shift from the new opdrachtnemer's shifts array
+      await Freelancer.updateOne(
+        { _id: newOpdrachtnemer },
+        { $pull: { shifts: reserveShift._id } }
+      );
+
+      // Add the updated shift to the new opdrachtnemer's shifts array
+      await Freelancer.updateOne(
+        { _id: newOpdrachtnemer },
+        { $push: { shifts: shift._id } }
+      );
+
+      // Remove the new opdrachtnemer from the shiftArray aanmeldingen array
+      shiftArray.aanmeldingen = shiftArray.aanmeldingen.filter(
+        (id: mongoose.Types.ObjectId) => !id.equals(newOpdrachtnemer)
+      );
+
+      // Remove the reserve shift from the ShiftArray shifts array
+      shiftArray.shifts = shiftArray.shifts.filter(
+        (id: mongoose.Types.ObjectId) => !id.equals(reserveShift._id)
+      );
+
+      // Optionally, delete the reserve shift if no longer needed
+      await Shift.findByIdAndDelete(reserveShift._id);
+    } else {
+      // If no reserve shift found, push the updated shift back into the ShiftArray
       shiftArray.shifts.push(new mongoose.Types.ObjectId(shift._id));
+    }
 
-      // Step 6: Save the changes
-      await shift.save();
-      await shiftArray.save();
+    // Step 6: Save the changes
+    await shift.save();
+    await shiftArray.save();
 
-      return { success: true, message: "Shift successfully updated and reassigned" };
+    return { success: true, message: "Shift successfully updated and reassigned" };
   } catch (error: any) {
-      throw new Error(`Failed to update and reassign shift: ${error.message}`);
+    throw new Error(`Failed to update and reassign shift: ${error.message}`);
+  }
+}
+
+interface FreelancerAfzeggenParams {
+  freelancerObjectId: string;
+  shiftArrayObjectId: string;
+}
+
+export async function freelancerAfzeggen({
+  freelancerObjectId,
+  shiftArrayObjectId
+}: FreelancerAfzeggenParams) {
+  try {
+    await connectToDB();
+
+    if (!mongoose.Types.ObjectId.isValid(freelancerObjectId)) {
+      throw new Error(`Invalid freelancer ID: ${freelancerObjectId}`);
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(shiftArrayObjectId)) {
+      throw new Error(`Invalid shiftArray ID: ${shiftArrayObjectId}`);
+    }
+
+    const freelancerId = new mongoose.Types.ObjectId(freelancerObjectId);
+    const shiftArrayId = new mongoose.Types.ObjectId(shiftArrayObjectId);
+
+    // Step 1: Find the shift in the ShiftArray where the opdrachtnemer is the freelancer
+    const shift = await Shift.findOne({
+      shiftArrayId: shiftArrayId,
+      opdrachtnemer: freelancerId
+    });
+    const freelancer = await Freelancer.findById(freelancerId)
+
+    if (!shift) {
+      throw new Error(`No shift found with shiftArrayId ${shiftArrayObjectId} and opdrachtnemer ${freelancerObjectId}`);
+    }
+
+    // Step 2: Combine shift date and time to create a complete Date object
+    const shiftStartDateTime = new Date(shift.begindatum);
+    const [hours, minutes] = shift.begintijd.split(':').map(Number);
+    shiftStartDateTime.setHours(hours, minutes, 0, 0);
+
+    // Step 3: Compare current time with 24 hours before the shift start time
+    const currentTime = new Date();
+    const hoursBeforeShift = 24;
+    const timeDifference = shiftStartDateTime.getTime() - currentTime.getTime();
+    const hoursDifference = timeDifference / (1000 * 60 * 60);
+
+    if (hoursDifference > hoursBeforeShift) {
+      // Case 1: More than 24 hours before the shift
+      shift.status = 'afgezegd';
+    } else {
+      // Case 2: Less than 24 hours before the shift
+      shift.status = 'afgerond';
+      shift.checkoutbegintijd = shift.begintijd; // Set checkoutbegintijd to begintijd
+      const checkoutEndTime = new Date(shiftStartDateTime);
+      checkoutEndTime.setHours(checkoutEndTime.getHours() + 4); // Set checkout time to 4 hours later
+      shift.checkouteindtijd = `${checkoutEndTime.getHours().toString().padStart(2, '0')}:${checkoutEndTime.getMinutes().toString().padStart(2, '0')}`;
+    }
+
+    // Step 4: Save the updated shift
+    await shift.save();
+    await sendEmailBasedOnStatus(freelancer.emailadres, shift, 'geannuleerd');
+    return { success: true, message: "Shift status successfully updated" };
+  } catch (error: any) {
+    throw new Error(`Failed to update shift status: ${error.message}`);
+  }
+}
+
+export async function haalAangemeld(freelancerId: Types.ObjectId) {
+  try {
+    await connectToDB();
+
+    // Case 1: If freelancerId is provided
+    if (freelancerId.toString() !== "") {
+      const freelancer = await Freelancer.findById(freelancerId);
+
+      if (freelancer) {
+        // Find shifts where the freelancer is assigned as 'opdrachtnemer'
+        const filteredShifts = await Shift.find({ opdrachtnemer: freelancer._id });
+
+        return filteredShifts;
+      } else {
+        console.log("Freelancer not found");
+        return [];
+      }
+    }
+
+    // Case 2: If freelancerId is not provided, use the logged-in user (Clerk)
+    const user = await currentUser();
+
+    if (user) {
+      const freelancer = await Freelancer.findOne({ clerkId: user.id });
+
+      if (freelancer) {
+        // Find shifts where the logged-in freelancer is assigned as 'opdrachtnemer'
+        const filteredShifts = await Shift.find({ opdrachtnemer: freelancer._id });
+
+        return filteredShifts;
+      } else {
+        console.log("No freelancer found for the current user");
+        return [];
+      }
+    }
+
+    console.log("No user or freelancer found");
+    return [];
+  } catch (error: any) {
+    throw new Error(`Failed to find shift: ${error.message}`);
   }
 }

@@ -4,8 +4,10 @@ import { ShiftType } from './shift.model';
 export interface IShiftArray extends Document {
     opdrachtgever: mongoose.Types.ObjectId;
     aanmeldingen: mongoose.Types.ObjectId[];
+    reserves: mongoose.Types.ObjectId[];
+    aangenomen: mongoose.Types.ObjectId[];
     flexpools: mongoose.Types.ObjectId[];
-    shifts: mongoose.Types.ObjectId[] ;
+    shifts: mongoose.Types.ObjectId[];
     opdrachtgeverNaam: string,
     titel: string;
     functie: string;
@@ -32,6 +34,20 @@ const shiftArraySchema: Schema<IShiftArray> = new mongoose.Schema({
         required: true
     },
     aanmeldingen: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Freelancer',
+            required: false
+        }
+    ],
+    aangenomen: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Freelancer',
+            required: false
+        }
+    ],
+    reserves: [
         {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Freelancer',

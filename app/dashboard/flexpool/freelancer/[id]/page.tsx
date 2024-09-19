@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { ScrollArea } from '@radix-ui/react-scroll-area';
-import ShiftCard from '@/app/components/cards/ShiftCard';
+import ShiftCard from '@/app/components/cards/ShiftArrayCard';
 import { haalFlexpool } from '@/app/lib/actions/flexpool.actions';
 import DashNav from '@/app/components/shared/DashNav';
 import React from 'react'

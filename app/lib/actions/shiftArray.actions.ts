@@ -1,12 +1,13 @@
 "use server";
 
 
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { connectToDB } from '../mongoose';
 import Bedrijf from '../models/bedrijf.model';
 import ShiftArray, {IShiftArray} from '../models/shiftArray.model';
 import Shift, { ShiftType } from '@/app/lib/models/shift.model';
 import Freelancer from '@/app/lib/models/freelancer.model';
+import { currentUser } from '@clerk/nextjs/server'
 
 
 
@@ -35,23 +36,31 @@ export const haalShifts = async (): Promise<IShiftArray[] | ShiftType[] | null> 
 
 
 
-export const haalShift = async () => {
+export const haalShift = async (freelancerId: Types.ObjectId) => {
   try {
-      // Find all shiftArrays
-      await connectToDB()
-      const shiftArray = await ShiftArray.find();
+    await connectToDB();
 
-      // Iterate through each shiftArray
-          if (shiftArray) {
-              // Return the first shift in the shifts array
-              return shiftArray;
-          }
+    // Find the freelancer by their ObjectId
+    const freelancer = await Freelancer.findById(freelancerId).populate('shifts').exec();
+    
+    if (!freelancer) {
+      throw new Error(`Freelancer with ID ${freelancerId} not found`);
+    }
 
-      // If no non-empty shifts array found, return null
-      return null;
+    // Extract shiftArrayIds from the freelancer's shifts
+    const freelancerShiftArrayIds = freelancer.shifts.map((shift: any) => shift.shiftArrayId.toString());
+    console.log(freelancerShiftArrayIds)
+    // Find all ShiftArray documents
+    const allShiftArrays = await ShiftArray.find();
+
+    // Filter ShiftArrays that do not match any shiftArrayId in the freelancer's shifts
+    const filteredShiftArrays = allShiftArrays.filter((shiftArray: any) => 
+      !freelancerShiftArrayIds.includes(shiftArray._id.toString())
+    );
+    return filteredShiftArrays;
   } catch (error) {
-      console.error('Error fetching shifts:', error);
-      throw new Error('Failed to fetch shifts');
+    console.error('Error fetching shifts:', error);
+    throw new Error('Failed to fetch shifts');
   }
 };
 
@@ -77,6 +86,30 @@ export const haalGeplaatsteShifts = async ({ bedrijfId }: { bedrijfId: string })
   }
 };
 
+export const fetchBedrijfShiftsByClerkId = async (clerkId: string) => {
+  try {
+    await connectToDB();
+    
+    // Find the company by its ObjectId
+    const bedrijf = await Bedrijf.findOne({ clerkId }).exec();
+    
+    if (bedrijf) {
+      const shiftArrays = await ShiftArray.find({ _id: { $in: bedrijf.shifts } })
+      .populate('shifts')
+      .lean(); // Use lean to return plain JS objects
+
+    console.log("ShiftArrays: ", JSON.stringify(shiftArrays, null, 2)); // Pretty print the objects for better readability
+
+    return shiftArrays;
+    }
+    
+    throw new Error('Bedrijf not found');
+  } catch (error) {
+    console.error('Error fetching bedrijf details:', error);
+    throw error;
+  }
+};
+
 
 
 export const haalAanmeldingen = async (shiftId: any) => {
@@ -95,5 +128,43 @@ export const haalAanmeldingen = async (shiftId: any) => {
   } catch (error: any) {
     console.error(error);
     throw new Error(`Failed to fetch aanmeldingen: ${error.message}`);
+  }
+};
+
+export const haalAangenomen = async (shiftId: any) => {
+  try {
+    await connectToDB()
+    const shift = await ShiftArray.findById(shiftId);
+    if (!shift) {
+      throw new Error(`Shift with ID ${shiftId} not found`);
+    }
+
+    const freelancers = await Freelancer.find({
+      _id: { $in: shift.aangenomen }
+    });
+    console.log(freelancers)
+    return freelancers;
+  } catch (error: any) {
+    console.error(error);
+    throw new Error(`Failed to fetch aangenomen ${error.message}`);
+  }
+};
+
+export const haalReserves = async (shiftId: any) => {
+  try {
+    await connectToDB()
+    const shift = await ShiftArray.findById(shiftId);
+    if (!shift) {
+      throw new Error(`Shift with ID ${shiftId} not found`);
+    }
+
+    const freelancers = await Freelancer.find({
+      _id: { $in: shift.reserves }
+    });
+    console.log(freelancers)
+    return freelancers;
+  } catch (error: any) {
+    console.error(error);
+    throw new Error(`Failed to fetch reserves: ${error.message}`);
   }
 };

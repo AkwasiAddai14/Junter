@@ -232,7 +232,7 @@ days.forEach((day) => {
                   <p className="mt-0.5">
                     <time dateTime={shift.begintijd}>{shift.begintijd}</time> -{' '}
                     <time dateTime={shift.eindtijd}>{shift.eindtijd}</time> |
-                    Bezetting: {' '} {shift.aanmeldingen.length}/
+                    Bezetting: {' '} {shift.aangenomen.length}/
                     {shift.plekken} 
                   </p>
                 </div>

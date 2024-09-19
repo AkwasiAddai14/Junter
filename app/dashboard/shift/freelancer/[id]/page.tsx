@@ -1,3 +1,4 @@
+"use client"
 
 import AanmeldButton from '@/app/components/shared/AanmeldButton';
 import Collection from '@/app/components/shared/Collection';
@@ -7,6 +8,8 @@ import calendar from '@/app/assets/images/logos/calendar.svg';
 import location from '@/app/assets/images/logos/location-grey.svg'
 import { UserIcon } from '@heroicons/react/20/solid';
 import DashNav from '@/app/components/shared/DashNav';
+import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal, AwaitedReactNode, Key } from 'react';
+
 
 
 export type SearchParamProps = {
@@ -70,7 +73,8 @@ const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
 
             <div className="p-regular-20 flex items-center gap-3">
             <Image src={location} alt="location" width={32} height={32} />
-              <p className="p-medium-16 lg:p-regular-20"> {shift.adres}  {shift.stad}</p>
+              <p className="p-medium-16 lg:p-regular-20"> {shift.adres}</p>
+              <p className="p-medium-16 lg:p-regular-20"> {shift.stad}</p>
             </div>
 
 
@@ -88,7 +92,28 @@ const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
             <AanmeldButton shift={shift} />
           
           </div>
+          <div className="flex justify-between items-center">
+            <div className="">
+              <h3>Vaardigheden</h3>
+            <ul className="rounded-md bg-blue-300 px-3 py-3 gap-y-2">
+              {shift.vaardigheden?.map((vaardigheid: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined, index: Key | null | undefined) => (
+                 <li key={index}>• {vaardigheid}</li>
+                  ))}
+            </ul>
+            </div>
 
+
+            <div className="">
+            <h3>Kledingsvoorschriften</h3>
+              <ul className="rounded-md bg-orange-300 px-3 py-3 gap-y-2">
+                  {shift.kledingsvoorschriften?.map((kleding: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined, index: Key | null | undefined) => (
+                    <li key={index}>• {kleding}</li>
+                  ))}
+              </ul>
+            </div>
+
+
+          </div>
           <div className="flex flex-col gap-2">
             <p className="p-bold-20 text-grey-600">Over de shift</p>
             <p className="p-medium-16 lg:p-regular-18 line-clamp-9">
@@ -106,8 +131,8 @@ const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
           emptyTitle="Geen relevante shifts gevonden"
           emptyStateSubtext="Kom later nog eens terug"
           collectionType="All_Events"
-          limit={3}
-          page={searchParams.page as string}
+          limit={36}
+          page={1}
           totalPages={relatedEvents?.totalPages}
         />
     </section>

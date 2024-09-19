@@ -1,4 +1,16 @@
-import mongoose from 'mongoose';
+import mongoose, { Document, Model, Schema } from 'mongoose';
+
+export interface IFactuur extends Document {
+    week: string;
+    shifts: mongoose.Schema.Types.ObjectId[];
+    opdrachtgever: mongoose.Schema.Types.ObjectId[];
+    opdrachtnemers: mongoose.Schema.Types.ObjectId[];
+    datum: Date;
+    tijd: string;
+    werkdatum: string;
+    totaalbedrag: string;
+    isVoltooid: string;
+  }
 
 const factuurSchema = new mongoose.Schema({
    week: {type: String, required: true},

@@ -10,13 +10,14 @@ import { CheckoutValidation } from "@/app/lib/validations/checkout";
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from 'zod';
 import { Textarea } from '@/app/components/ui/textarea';
-import { maakCheckout, vulCheckout } from '@/app/lib/actions/checkout.actions';
+import { vulCheckout } from '@/app/lib/actions/checkout.actions';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker/TimePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import ReactStars from "react-rating-stars-component";
 import DropdownPauze from '@/app/components/shared/DropdownPauze';
 import { useRouter } from 'next/navigation'
 import DashNav from '@/app/components/shared/DashNav';
+import { haalShiftMetIdCard } from '@/app/lib/actions/shift.actions';
 export type SearchParamProps = {
   params: { id: string }
   searchParams: { [key: string]: string | string[] | undefined }
@@ -31,9 +32,9 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
 
 
   const DefaultValues = {
-   beginttijd: "",
-   eindtijd: "",
-   pauze: "",
+    beginttijd: "",
+    eindtijd: "",
+    pauze: "",
    rating: 5,
    opmerking: "",
    feedback: "",
@@ -47,7 +48,7 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
     useEffect(() => {
         const fetchCheckout = async () => {
             try {
-                const data = await maakCheckout({shiftId: id});
+                const data = await haalShiftMetIdCard(id);
                 setCheckout(data);
             } catch (error) {
                 console.error('Failed to fetch checkout data:', error);

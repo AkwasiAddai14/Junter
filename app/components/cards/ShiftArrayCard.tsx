@@ -1,77 +1,40 @@
 "use client"
 
+
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useState } from 'react';
-import  del  from "@/app/assets/images/logos/delete.svg"
+import { DeleteConfirmation } from '@/app/components/shared/DeleteConfirmation';
+import { ApplyConfirmation } from '../shared/ApplyConfirmation';
+import { IShiftArray } from '@/app/lib/models/shiftArray.model';
+import  edit  from "@/app/assets/images/logos/edit.svg"
 import { isBedrijf } from '@/app/lib/actions/bedrijven.actions';
-import { ShiftType } from '@/app/lib/models/shift.model';
-import { useToast } from '@/app/components/ui/use-toast';
-import { annuleerAanmeldingen } from '@/app/lib/actions/shift.actions';
-
 
 type CardProps = {
-  shift: ShiftType;
+  shift: IShiftArray;
 };
 
 const Card = ({ shift }: CardProps) => {
-  const { toast } = useToast();
-  const [isEenBedrijf, setIsEenBedrijf] = useState<boolean | null>(null);
 
+  const [isEenBedrijf, setIsEenBedrijf] = useState<boolean | undefined>(false);;
 
   const bedrijfCheck = async () => {
- 
+  try {
     const isEventCreator = await isBedrijf() // Assuming isBedrijf is a function that returns a boolean
-    if(isEventCreator){
     setIsEenBedrijf(isEventCreator); // Set the state with the boolean result
-    } else {
-      setIsEenBedrijf(false)
+  } catch (error) {
+    console.error("Error checking if user is a bedrijf:", error);
   }
-    
 };
 
-bedrijfCheck();
+bedrijfCheck()
+
 
   const backgroundImageUrl = shift.afbeelding;
   const opdrachtgeverName = shift.opdrachtgeverNaam || 'Junter';
   const opdrachtgeverStad = shift.adres || 'Amsterdam';
   const flexpoolTitle = shift.inFlexpool ? "✅ flexpool" : '❎ flexpool';
-  const opdrachtnemerId = typeof shift.opdrachtnemer === 'string' ? shift.opdrachtnemer : shift.opdrachtnemer?._id?.toString();
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'aangenomen':
-      case 'afgerond':
-        return 'bg-green-500'; // Green background for 'aangenomen' and 'afgerond'
-      case 'voltooi checkout':
-        return 'bg-yellow-400'; // Yellow background for 'voltooi checkout'
-        case 'afgewezen':
-          case 'afgezegd':
-            return 'bg-red-500'
-      default:
-        return 'bg-gray-300'; // Default background if no status matches
-    }
-  };
-
-  const shiftArrayId = shift.shiftArrayId;
-
-  const handleFreelanceRejection = async (freelancerId: string) => {
-    try {
-      const response = await annuleerAanmeldingen({ shiftArrayId, freelancerId });
-  
-      if (response.success) {
-        toast({
-          variant: 'succes',
-          description: "afgemeld voor de shift! "
-        });
-      }
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        description: "Actie is niet toegestaan! "
-      });
-    }
-  };
 
   return (
     <div className="group relative flex min-h-[380px] w-full max-w-[400px] flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all hover:shadow-lg md:min-h-[438px]">
@@ -86,10 +49,18 @@ bedrijfCheck();
       style={{ backgroundImage: `url(${backgroundImageUrl})` }}
       className="flex-center flex-grow bg-gray-50 bg-cover bg-center text-grey-500"
     />}
-      {!isEenBedrijf && (shift.status === "aangenomen" || shift.status === "aangemeld") && (
-        <button onClick={() => opdrachtnemerId && handleFreelanceRejection(opdrachtnemerId)} className="absolute items-stretch right-2 top-2 flex flex-col gap-4 rounded-xl bg-white p-3 shadow-sm transition-all">
-            <Image src={del} alt="delete" width={20} height={20} />
-        </button>
+      {isEenBedrijf ? (
+        <div className="absolute items-stretch right-2 top-2 flex flex-col gap-4 rounded-xl bg-white p-3 shadow-sm transition-all">
+          <Link href={`/dashboard/shift/bedrijf/${shift._id}/update`}>
+            <Image src={edit} alt="edit" width={20} height={20} />
+          </Link>
+          <DeleteConfirmation shiftId={shift._id as string} />
+        </div>
+      ) :
+      (
+        <div className="absolute items-stretch right-2 top-2 flex flex-col gap-4 rounded-xl bg-white p-3 shadow-sm transition-all">
+          <ApplyConfirmation shiftId={shift._id as string} />
+        </div>
       )}
 
       <div className="flex min-h-[230px] flex-col gap-3 p-5 md:gap-4">
@@ -99,6 +70,9 @@ bedrijfCheck();
           </span>
           <p className="p-semibold-14 w-min rounded-full bg-grey-500/10 px-4 py-1 text-grey-500 line-clamp-1">
             {shift.functie}
+          </p>
+          <p className="text-sm md:p-medium-16 text-grey-600 line-clamp-1">
+           {shift.aanmeldingen?.length || 0} / {shift.plekken} 
           </p>
         </div>
 
@@ -113,10 +87,10 @@ bedrijfCheck();
        
         
         { isEenBedrijf ? (
-          <Link href={`/dashboard/shift/bedrijf/${shift.shiftArrayId}`}>
+          <Link href={`/dashboard/shift/bedrijf/${shift._id}`}>
           <p className="p-medium-16 md:p-medium-20 line-clamp-1 flex-1 text-black">{shift.titel}</p>
         </Link>
-      ):   <Link href={`/dashboard/shift/freelancer/${shift.shiftArrayId}`}>
+      ):   <Link href={`/dashboard/shift/freelancer/${shift._id}`}>
       <p className="p-medium-16 md:p-medium-20 line-clamp-1 flex-1 text-black">{shift.titel}</p>
     </Link>}
         <div className="flex-between w-full"></div>
@@ -128,14 +102,9 @@ bedrijfCheck();
           <p className="line-clamp-1 p-medium-14 md:p-medium-16 text-grey-600">
             {opdrachtgeverName}
           </p> 
-        </div>
-        <div className="flex-between w-full">
-          <p className="p-medium-14 md:p-medium-16 text-grey-600">{flexpoolTitle}</p>
-       <div className={`rounded-md px-4 py-2 ${getStatusColor(shift.status)}`}>
           <p className="p-medium-14 md:p-medium-16 text-grey-600">
-          {shift.status}
-          </p>
-          </div>
+            {flexpoolTitle}
+        </p>
         </div>
       </div>
     </div>

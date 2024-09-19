@@ -3,14 +3,13 @@
 import { useEffect, useState } from 'react';
 import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions, Label } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon, XCircleIcon } from '@heroicons/react/20/solid';
-
+import { useToast } from '@/app/components/ui/use-toast';
 import { ScrollArea } from '@radix-ui/react-scroll-area';
-import ShiftCard from '@/app/components/cards/ShiftCard';
-import { StarIcon, ClockIcon, Image } from 'lucide-react';
+import ShiftCard from '@/app/components/cards/ShiftArrayCard';
+import { StarIcon, ClockIcon } from 'lucide-react';
 import { haalFlexpool, voegAanFlexpool, verwijderUitFlexpool } from '@/app/lib/actions/flexpool.actions';
 import { haalAlleFreelancers } from '@/app/lib/actions/freelancer.actions';
 import DashNav from '@/app/components/shared/DashNav';
-import { Button } from '@/app/components/ui/button';
 import mongoose from 'mongoose';
 import { BriefcaseIcon } from '@heroicons/react/24/outline';
 
@@ -36,6 +35,7 @@ export default function FlexpoolPage({ params: { id }, searchParams }: SearchPar
   const [shifts, setShifts] = useState<any[]>([]);
   const [freelancers, setFreelancers] = useState<any[]>([]);
   const [collegas, setCollegas] = useState<any[]>([]);
+  const { toast } = useToast();
 
   const voegFreelancerToe = () => {
     if (!selectedPerson) return; // Guard clause to prevent errors
@@ -45,8 +45,16 @@ export default function FlexpoolPage({ params: { id }, searchParams }: SearchPar
       freelancerId: selectedPerson._id as unknown as mongoose.Types.ObjectId,
     }).then((updatedFlexpool) => {
       setCollegas(updatedFlexpool.freelancers);
+      toast({
+        variant: 'succes',
+        description: "Freelancer uitgenodigd! 👍"
+      });
     }).catch(error => {
       console.error("Error adding freelancer:", error);
+      toast({
+        variant: 'destructive',
+        description: "Actie is niet toegestaan!"
+      });
     });
   };
 
@@ -56,9 +64,7 @@ export default function FlexpoolPage({ params: { id }, searchParams }: SearchPar
         flexpoolId: id as unknown as mongoose.Types.ObjectId,
         freelancerId: collega._id as unknown as mongoose.Types.ObjectId,
       });
-  
-      // Optimistically update the state to remove the freelancer
-      setCollegas((prevState) => prevState.filter((item) => item._id !== collega._id));
+
     } catch (error) {
       console.error('Error removing freelancer:', error);
     }
@@ -136,7 +142,7 @@ export default function FlexpoolPage({ params: { id }, searchParams }: SearchPar
                   className="group relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 data-[focus]:bg-indigo-600 data-[focus]:text-white"
                 >
                   <div className="flex items-center">
-                    <img src={person.profielfoto} alt="" className="h-6 w-6 flex-shrink-0 rounded-full" />
+                    <img src={person.profielfoto} alt="profielfoto" className="h-6 w-6 flex-shrink-0 rounded-full" />
                     <span className="ml-3 truncate group-data-[selected]:font-semibold">{person.voornaam} {person.achternaam}</span>
                   </div>
 

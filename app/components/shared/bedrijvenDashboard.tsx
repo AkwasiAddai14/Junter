@@ -21,7 +21,7 @@ import { fetchBedrijfByClerkId } from "@/app/lib/actions/bedrijven.actions";
 import { haalCheckouts } from '@/app/lib/actions/checkout.actions';
 import { haalFlexpools, maakFlexpool } from "@/app/lib/actions/flexpool.actions";
 import { haalGeplaatsteShifts } from '@/app/lib/actions/shiftArray.actions';
-import ShiftCard from '../cards/ShiftCard';
+import ShiftCard from '../cards/ShiftArrayCard';
 import FlexpoolCard from '../cards/FlexpoolCard';
 import { haalFacturen } from '@/app/lib/actions/factuur.actions';
 import { IShiftArray } from '@/app/lib/models/shiftArray.model';
@@ -137,8 +137,8 @@ const Dashboard =  () => {
           useEffect(() => {
             const fetchFactuur = async () => {
               try {
-                if (checkout.length > 0) {
-                  const fetchedFactuur = await haalFacturen();
+                if (bedrijfiD !== '') {
+                  const fetchedFactuur = await haalFacturen(bedrijfiD);
                   setFactuur(fetchedFactuur || []);
                 }
               } catch (error) {
@@ -147,7 +147,7 @@ const Dashboard =  () => {
             };
           
             fetchFactuur();
-          }, [checkout]); // Voeg checkout toe aan de dependency array  
+          }, [bedrijfiD]); // Voeg checkout toe aan de dependency array  
           
     
           const voegFlexpoolToe = async () => {
@@ -420,6 +420,8 @@ const Dashboard =  () => {
                         </a>
                         <p className="text-gray-500">{new Date(shiftItem.begindatum).toLocaleDateString('nl-NL')}</p>
                         <p className="text-gray-500">{shiftItem.aanmeldingen?.length} Aanmeldingen</p>
+                        <p className="text-gray-500">{shiftItem.plekken} Plekken</p>
+                        <p className="text-gray-500">{shiftItem.aangenomen?.length} Aangenomen</p>
                       </div>
                     </div>
                     <div className='mt-10 h-16 w-16 items-center justify-center overflow-hidden'>

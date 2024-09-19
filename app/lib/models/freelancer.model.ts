@@ -3,6 +3,7 @@ import mongoose, { Document, Types, Schema } from 'mongoose';
 export interface IFreelancer extends Document {
     flexpools: Types.ObjectId[];
     shifts: Types.ObjectId[];
+    checkouts: Types.ObjectId[];
     facturen: Types.ObjectId[]; 
     clerkId: string;
     voornaam: string;
@@ -79,6 +80,13 @@ const freelancerSchema = new mongoose.Schema({
                 required: true,
             },
     ],
+    checkouts: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Shift",
+            required: true,
+        },
+],
     flexpools: [
         {
             type: mongoose.Schema.Types.ObjectId,
