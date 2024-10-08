@@ -45,7 +45,7 @@
     "cheerio": "^1.0.0-rc.12",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "date-fns": "^2.29.3",
+    "date-fns": "^3.6.0",
     "dayjs": "^1.11.12",
     "dotenv": "^16.4.5",
     "fast-glob": "^3.2.11",
