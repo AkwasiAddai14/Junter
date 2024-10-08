@@ -21,7 +21,7 @@ function classNames(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(' ')
 }
 
-const generateYearCalendar = (year: number): { name: string; days: Day[]; startDayOfWeek: number }[] => {
+const generateYearCalendar = (year: number): { name: string; days: Day[]; startDayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6}[] => {
   const months = [];
   const today = startOfDay(new Date());
 
@@ -30,8 +30,8 @@ const generateYearCalendar = (year: number): { name: string; days: Day[]; startD
     const end = endOfMonth(start);
     let startDayOfWeek = getDay(start);
 
-    startDayOfWeek = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
-
+    startDayOfWeek = (startDayOfWeek === 0 ? 6 : startDayOfWeek - 1) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+    
     const days: Day[] = eachDayOfInterval({ start, end }).map(date => {
       const isToday = date.getTime() === today.getTime();
       return {

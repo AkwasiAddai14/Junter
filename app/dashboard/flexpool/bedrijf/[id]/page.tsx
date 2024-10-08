@@ -35,38 +35,55 @@ export default function FlexpoolPage({ params: { id }, searchParams }: SearchPar
   const [shifts, setShifts] = useState<any[]>([]);
   const [freelancers, setFreelancers] = useState<any[]>([]);
   const [collegas, setCollegas] = useState<any[]>([]);
+  const [laden, setLaden] = useState<boolean>(false);
   const { toast } = useToast();
 
-  const voegFreelancerToe = () => {
+  const voegFreelancerToe = async () => {
     if (!selectedPerson) return; // Guard clause to prevent errors
+    setLaden(true);
+    try {
 
-    voegAanFlexpool({
-      flexpoolId: id as unknown as mongoose.Types.ObjectId,
-      freelancerId: selectedPerson._id as unknown as mongoose.Types.ObjectId,
-    }).then((updatedFlexpool) => {
-      setCollegas(updatedFlexpool.freelancers);
-      toast({
-        variant: 'succes',
-        description: "Freelancer uitgenodigd! 👍"
-      });
-    }).catch(error => {
+
+      const voegfreelancer = await voegAanFlexpool({
+        flexpoolId: id as unknown as mongoose.Types.ObjectId,
+        freelancerId: selectedPerson._id as unknown as mongoose.Types.ObjectId,
+      })
+      setCollegas((prevCollegas) => [...prevCollegas, selectedPerson._id]);
+        toast({
+          variant: 'succes',
+          description: "Freelancer uitgenodigd! 👍"
+        });
+        
+    setLaden(false);
+    } catch(error:any) {
       console.error("Error adding freelancer:", error);
-      toast({
-        variant: 'destructive',
-        description: "Actie is niet toegestaan!"
+        toast({
+          variant: 'destructive',
+          description: "Actie is niet toegestaan!"
       });
-    });
+    } 
   };
 
   const verwijderFreelancer = async (collega: { _id: unknown; }) => {
     try {
-      await verwijderUitFlexpool({
+      const verwijderFreelancer = await verwijderUitFlexpool({
         flexpoolId: id as unknown as mongoose.Types.ObjectId,
         freelancerId: collega._id as unknown as mongoose.Types.ObjectId,
+      });
+      setCollegas((prevCollegas) => 
+          prevCollegas.filter(collega => collega._id !== collega)
+        );
+      toast({
+        variant: 'succes',
+        description: "Freelancer verwijderd! 👍"
       });
 
     } catch (error) {
       console.error('Error removing freelancer:', error);
+      toast({
+        variant: 'destructive',
+        description: `Actie is niet toegestaan!\n${error}`
+    });
     }
   };
 
@@ -74,9 +91,9 @@ export default function FlexpoolPage({ params: { id }, searchParams }: SearchPar
     const fetchData = async () => {
       try {
         const flexpool = await haalFlexpool(id);
-        console.log(flexpool)
+       
         const opdrachtnemers = await haalAlleFreelancers();
-        console.log(opdrachtnemers)
+       
   
         if (flexpool) {
           // Only update the state if the data has actually changed
@@ -100,14 +117,12 @@ export default function FlexpoolPage({ params: { id }, searchParams }: SearchPar
     };
   
     fetchData();
-  }, [id]);
+  }, [id, collegas, shifts]);
 
   const filteredPeople = freelancers.filter(opdrachtnemers => {
     const naam = `${opdrachtnemers.voornaam.toLowerCase()} ${opdrachtnemers.achternaam.toLowerCase()}`;
     return naam.includes(query.toLowerCase());
   });
-
-  console.log(shifts, freelancers)
 
   return (
     <>
@@ -121,7 +136,7 @@ export default function FlexpoolPage({ params: { id }, searchParams }: SearchPar
           setSelectedPerson(person);
         }}
       >
-        <Label className="block text-sm font-medium leading-6 text-gray-900">freelancer uitnodigen</Label>
+        <Label className="block text-sm font-medium leading-6 text-gray-900">Selecteer shift</Label>
         <div className="relative mt-2">
           <ComboboxInput
             className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-12 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
@@ -157,7 +172,7 @@ export default function FlexpoolPage({ params: { id }, searchParams }: SearchPar
       </Combobox>
       <button className="rounded-md bg-sky-500 text-white ml-10 mt-7 px-4 py-2"
         onClick={voegFreelancerToe}
-        disabled={!selectedPerson}
+        disabled={!selectedPerson || laden}
       >
         Uitnodigen
       </button>

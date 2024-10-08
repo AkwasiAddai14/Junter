@@ -20,7 +20,7 @@ import UitlogModal from './UitlogModal';
 import { fetchBedrijfByClerkId } from "@/app/lib/actions/bedrijven.actions";
 import { haalCheckouts } from '@/app/lib/actions/checkout.actions';
 import { haalFlexpools, maakFlexpool } from "@/app/lib/actions/flexpool.actions";
-import { haalGeplaatsteShifts } from '@/app/lib/actions/shiftArray.actions';
+import { haalGeplaatsteShifts, haalOngepubliceerdeShifts } from '@/app/lib/actions/shiftArray.actions';
 import ShiftCard from '../cards/ShiftArrayCard';
 import FlexpoolCard from '../cards/FlexpoolCard';
 import { haalFacturen } from '@/app/lib/actions/factuur.actions';
@@ -50,6 +50,7 @@ const Dashboard =  () => {
   const { isLoaded, user } = useUser();
   const [position, setPosition] = useState("Dashboard");
   const [shift, setShift] = useState<IShiftArray[]>([]);
+  const [unpublished, setUnpublished] = useState<IShiftArray[]>([]);
   const [factuur, setFactuur] = useState<any[]>([])
   const [checkout, setCheckout] = useState<any[]>([])
   const [flexpool, setFlexpool] = useState<any[]>([])
@@ -72,7 +73,7 @@ const Dashboard =  () => {
   useEffect(() => {
     const getBedrijfId = async () => {
       try {
-        const bedrijf = await fetchBedrijfByClerkId(user!.id);
+        const bedrijf = await fetchBedrijfByClerkId("user_2ky1tsL6QGL5S2YHO2Bfc2qDZBm");
         if (bedrijf && bedrijf._id) {
           setBedrijfiD(bedrijf._id.toString());
         }
@@ -93,6 +94,22 @@ const Dashboard =  () => {
         try {
           const shifts = await haalGeplaatsteShifts({ bedrijfId: bedrijfiD });
           setShift(shifts || []);  // Ensure shifts is always an array
+        } catch (error) {
+          console.error('Error fetching shifts:', error);
+          setShift([]);  // Handle error by setting an empty array
+        }
+      };
+  
+      fetchShifts();
+    }
+  }, [bedrijfiD]); 
+
+  useEffect(() => {
+    if (bedrijfiD) {  // Only fetch shifts if bedrijfId is available
+      const fetchShifts = async () => {
+        try {
+          const shifts = await haalOngepubliceerdeShifts({ bedrijfId: bedrijfiD });
+          setUnpublished(shifts || []);  // Ensure shifts is always an array
         } catch (error) {
           console.error('Error fetching shifts:', error);
           setShift([]);  // Handle error by setting an empty array
@@ -324,13 +341,22 @@ const Dashboard =  () => {
             <div className="lg:pl-96 ml-6 h-full overflow-hidden px-4 py-10 sm:px-6 lg:px-8 lg:py-6">
             { position === 'Shifts' ? (
                     shift.length > 0 ? (
+                      <>
                       <ScrollArea>
-                        <div className="grid grid-cols-3 gap-4">
-                          {shift.slice(0, shift.length).map((shiftItem, index) => (
-                            <ShiftCard key={index} shift={shiftItem} />
-                          ))}
-                        </div>
-                      </ScrollArea>
+                    <div className="grid grid-cols-3 gap-4">
+                      {shift.slice(0, shift.length).map((shiftItem, index) => (
+                        <ShiftCard key={index} shift={shiftItem} />
+                      ))}
+                    </div>
+                  </ScrollArea>
+                  <ScrollArea>
+                      <div className="grid grid-cols-3 gap-4">
+                        {unpublished.slice(0, unpublished.length).map((unpublishedItem, index) => (
+                          <ShiftCard key={index} shift={unpublishedItem} />
+                        ))}
+                      </div>
+                    </ScrollArea>
+                    </>
                     ) : (
       <div className="lg:pl-96 h-full overflow-hidden">Geen shifts beschikbaar</div>
                     )

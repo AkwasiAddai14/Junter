@@ -6,6 +6,7 @@ import { haalAangenomen, haalAanmeldingen, haalReserves } from "@/app/lib/action
 import { useEffect, useState } from "react";
 import { format, startOfWeek, endOfWeek, addDays, isToday, differenceInMinutes, parseISO, parse } from 'date-fns';
 import { useToast } from '@/app/components/ui/use-toast';
+import { haalFreelancerFlexpool } from "@/app/lib/actions/freelancer.actions";
 
 type shiftIdParams = {
   shiftId: string;
@@ -118,10 +119,8 @@ export const AangenomenSectie = ({ shiftId }: shiftIdParams) => {
       const response = await accepteerFreelancer({ shiftId, freelancerId });
   
       if (response.success) {
-        setFreelancers((prevFreelancers) => 
-          prevFreelancers.filter(freelancer => freelancer._id !== freelancerId)
-        );
-  
+        const acceptedFreelancer = await haalFreelancerFlexpool(freelancerId); // Fetch freelancer details if not present in the response
+        setFreelancers((prevFreelancers) => [...prevFreelancers, acceptedFreelancer]);
         toast({
           variant: 'succes',
           description: "Freelancer geaccpeteerd voor de shift! 👍"

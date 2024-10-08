@@ -1,24 +1,32 @@
 "use client"
  
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button } from '../ui/button'
 import { reageerShift } from '@/app/lib/actions/shift.actions'
 import { IShiftArray } from '@/app/lib/models/shiftArray.model'
 import { useToast } from '@/app/components/ui/use-toast';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@clerk/nextjs'
 
 
 const AanmeldButton = async ({ shift }: { shift: IShiftArray }) => {
- 
+  const [userId, setUserId] = useState<string>("");
   const { toast } = useToast();
   const hasShiftFinished = /* new Date(shift.begindatum) < new Date(); */ false;
   const shiftArrayId = shift._id as string;
   const router = useRouter();
-  
+  const {isLoaded, user} = useUser();
 
+  useEffect(() => {
+    if (isLoaded && user) {
+      setUserId(user?.id)
+    }
+  }, [isLoaded, user]);
+  
+ 
   const handleAanmelden = async () => {
     try {
-      const reageer = await reageerShift({shiftArrayId});
+      const reageer = await reageerShift({shiftArrayId, freelancerId: userId});
   
       if (reageer.success) {
         toast({

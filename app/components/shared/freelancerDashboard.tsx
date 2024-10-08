@@ -158,7 +158,7 @@ export default function Example() {
             if (response) {
               // Filter and separate shifts based on their status
               const geaccepteerdShifts = response.filter((shift: { status: string; }) => shift.status === 'aangenomen');
-              const aangemeldShifts = response.filter((shift: { status: string; }) => shift.status !== 'geaccepteerd');
+              const aangemeldShifts = response.filter((shift: { status: string; }) => shift.status !== 'aangenomen' || 'voltooi checkout');
               // Set the state with the filtered shifts
               setGeaccepteerd(geaccepteerdShifts);
               setAangemeld(aangemeldShifts);

@@ -14,17 +14,21 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from 'zod';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
+import { useToast } from '@/app/components/ui/use-toast';
+import { useUploadThing } from "@/app/lib/uploadthing";
+import { FileUploader } from './FileUploader';
+
 
 
 
 export default function ProfielModal({isVisible, onClose} : {isVisible: boolean, onClose: any}) {
     if (!isVisible) return null;
-    const [open, setOpen] = useState(true);
+    const [open, setOpen] = useState(false);
     const [freelancer, setFreelancer] = useState<any>(null);
-    const [ClerkId, setClerkId] = useState("");
-    const [profielfoto, setProfielfoto] = useState("");
-    const [fullName, setFullName] = useState<string | null>(null); 
     const { isLoaded, user } = useUser();
+    const { toast } = useToast();
+    const [files, setFiles] = useState<File[]>([]);
+    const { startUpload } = useUploadThing("media");
 
     useEffect(() => {
       if (isLoaded && user) {
@@ -60,34 +64,77 @@ export default function ProfielModal({isVisible, onClose} : {isVisible: boolean,
 
     async function onSubmit(values: z.infer<typeof FreelancerValidation>) {
 
-    const updateInformatie = updateFreelancer({
-        clerkId: user!.id,
-        voornaam: freelancer.voornaam,
-        tussenvoegsel: freelancer.tussenvoegsel,
-        achternaam: freelancer.achternaam,
-        geboortedatum: freelancer.geboortedatum,
-        emailadres: values?.emailadres || freelancer.emailadres,
-        telefoonnummer: values?.telefoonnummer || freelancer.telefoonnummer,
-        postcode: freelancer.postcode,
-        huisnummer: freelancer.huisnummer,
-        straat: freelancer.straat,
-        stad: freelancer.stad,
-        korregeling: false,
-        btwid: values?.btwid || freelancer.btwid,
-        iban: values?.iban || freelancer.iban,
-        path: freelancer.path,
-        kvk: freelancer.kvknr,
-        bio: values?.bio || freelancer.bio,
-        profielfoto: freelancer.profielfoto || user!.imageUrl,
-        werkervaring: freelancer.werkervaring,
-        vaardigheden: freelancer.vaardigheden,
-        opleidingen: freelancer.opleidingen,
-        cv: undefined,
-        bsn: '',
-        onboarded: true
-    })
+      let uploadedImageUrl = values.profielfoto;
 
+// Check if there are files to upload
+if (files.length > 0) {
+  try {
+    // Start the upload and wait for the response
+    const uploadedImages = await startUpload(files);
+
+    // Check if the upload was successful
+    if (!uploadedImages || uploadedImages.length === 0) {
+      console.error('Failed to upload images');
+      return;
+    }
+
+    // Use the URL provided by the upload service
+    uploadedImageUrl = uploadedImages[0].url;
+    console.log("Final URL:", uploadedImageUrl);
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    return;
   }
+}
+
+      try {
+
+        const updateInformatie = updateFreelancer({
+          clerkId: user!.id,
+          voornaam: freelancer.voornaam,
+          tussenvoegsel: freelancer.tussenvoegsel,
+          achternaam: freelancer.achternaam,
+          geboortedatum: freelancer.geboortedatum,
+          emailadres: values?.emailadres || freelancer.emailadres,
+          telefoonnummer: values?.telefoonnummer || freelancer.telefoonnummer,
+          postcode: freelancer.postcode,
+          huisnummer: freelancer.huisnummer,
+          straat: freelancer.straat,
+          stad: freelancer.stad,
+          korregeling: false,
+          btwid: values?.btwid || freelancer.btwid,
+          iban: values?.iban || freelancer.iban,
+          path: freelancer.path,
+          kvk: freelancer.kvknr,
+          bio: values?.bio || freelancer.bio,
+          profielfoto: values?.profielfoto || freelancer.profielfoto || user!.imageUrl,
+          werkervaring: freelancer.werkervaring,
+          vaardigheden: freelancer.vaardigheden,
+          opleidingen: freelancer.opleidingen,
+          cv: undefined,
+          bsn: '',
+          onboarded: true
+      })
+
+      if ((await updateInformatie).success) {
+        setTimeout(() => {
+          toast({
+            variant: 'succes', // Ensure you use 'success' (correct spelling)
+            description: "Informatie succesvol geupdate! 👍"
+          });
+        }, 1500); // Corrected the syntax for setTimeout
+        onClose()
+      }
+
+      } catch (error: any){
+        toast({
+          variant: 'destructive',
+          description: `Actie is niet toegestaan!\n${error}\n❌`
+        });
+        console.log(error)
+      }
+    }
+  
 
   return (
     <Form {...form}>
@@ -102,13 +149,34 @@ export default function ProfielModal({isVisible, onClose} : {isVisible: boolean,
               <dd className="mt-1 text-base font-semibold leading-6 text-gray-900">{freelancer?.stad} {freelancer?.leeftijd}</dd>
             </div>
             <div className="flex-none justify-center items-center self-end px-6 pt-4">
-              <Image
-                className="h-8 w-8 rounded-full"
-                src={user?.imageUrl}
-                alt="profielfoto"
-                width={32}
-                height={32}
-              />
+            
+            <Image
+  className="h-8 w-8 rounded-full"
+  src={freelancer?.profielfoto || user?.imageUrl}
+  alt="profielfoto"
+  width={32}
+  height={32}
+  onClick={() => setOpen(true)}
+/>
+{open && (
+  <FormField
+    control={form.control}
+    name="profielfoto"
+    render={({ field }) => (
+      <FormItem className="w-full">
+        <FormControl className="h-72">
+          <FileUploader
+            onFieldChange={field.onChange}
+            imageUrl={field.value as string}
+            setFiles={setFiles}
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
+    )}
+  />
+)}
+
               <dt className="sr-only">rating</dt>
               <dd className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
                 {freelancer?.rating || "nog geen rating"}

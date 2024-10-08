@@ -12,8 +12,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 
     if (req.method === 'GET') {
+        const { clerkId } = req.query;
+        let shifts;
         try {
-            const shifts = await haalFacturenFreelancer(id);
+            if(id){
+                shifts = await haalFacturenFreelancer(id);
+            } else {
+                if (typeof clerkId !== 'string') {
+                    throw new Error('Invalid clerkId, expected a string');
+                }
+                shifts = await haalFacturenFreelancer(clerkId);
+            }
+            
             res.status(200).json(shifts);
         } catch (error) {
             res.status(500).json({ error: 'Failed to fetch shifts' });

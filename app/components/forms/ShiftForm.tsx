@@ -17,7 +17,8 @@ import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Checkbox } from "../ui/checkbox";
 import { useRouter } from "next/navigation";
-import { maakShift, updateShift } from "@/app/lib/actions/shift.actions";
+import { useToast } from '@/app/components/ui/use-toast';
+import { maakOngepubliceerdeShift, maakShift, updateShift } from "@/app/lib/actions/shift.actions";
 import { ShiftType } from "@/app/lib/models/shift.model";
 import * as React from "react";
 import Dropdown from "../shared/Dropdown";
@@ -29,6 +30,11 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider/L
 import { IFlexpool } from "@/app/lib/models/flexpool.model";
 import { haalFlexpools } from "@/app/lib/actions/flexpool.actions";
 import DropdownCategorie from "../shared/DropdownCategorie";
+import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions, Label } from '@headlessui/react';
+import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
+import { CheckIcon } from "lucide-react";
+import { IShiftArray } from "@/app/lib/models/shiftArray.model";
+import { fetchUnpublishedShifts } from "@/app/lib/actions/shiftArray.actions";
 
 
 type ShiftFormProps = {
@@ -38,38 +44,6 @@ type ShiftFormProps = {
   shiftId?: string;
 };
 
-const DefaultValues = {
-  opdrachtgever: "",
-  opdrachtgeverNaam: " ",
-  opdrachtnemers: "",
-  afbeelding: "",
-  titel: "",
-  functie: "",
-  uurtarief: 14,
-  begindatum: new Date(),
-  einddatum: new Date(),
-  adres: "",
-  begintijd: "08:00",  // Ensure initial state is passed as default
-  eindtijd: "16:30",
-  pauze: "",
-  plekken: 1,
-  beschrijving: "",
-  vaardigheden: "",
-  kledingsvoorschriften: "",
-  beschikbaar: true,
-  geplubliceerd: false,
-  inFlexpool: false,
-  flexpoolId: "",
-  path: "",
-  shiftArrayId: "",
-  checkoutbegintijd:"",
-    checkouteindtijd: "",
-    checkoutpauze:"",
-    feedback:"",
-    opmerking:"",
-    ratingFreelancer: "",
-    ratingBedrijf: "",
-};
 
 const ShiftForm = ({ userId, type, shift, shiftId }: ShiftFormProps) => {
   const [files, setFiles] = useState<File[]>([]);
@@ -78,16 +52,83 @@ const ShiftForm = ({ userId, type, shift, shiftId }: ShiftFormProps) => {
   const [flexpools, setFlexpools] = useState<IFlexpool[]>([]);
   const [isInFlexpool, setIsInFlexpool] = useState(false);
   const [bedrijfDetails, setBedrijfDetails] = useState<any>(null);
+  const [query, setQuery] = useState('');
+  const [shifts, setShifts] = useState<any[]>([]);
+  const [selectedShift, setSelectedShift] = useState<IShiftArray | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
   const { startUpload } = useUploadThing("media");
+  const { toast } = useToast();
   
+  const DefaultValues = selectedShift ? {
+    opdrachtgever: selectedShift.opdrachtgever,
+    opdrachtgeverNaam: selectedShift.opdrachtgeverNaam,
+    opdrachtnemers: "",
+    afbeelding: selectedShift.afbeelding,
+    titel: selectedShift.titel,
+    functie: selectedShift.functie,
+    uurtarief: selectedShift.uurtarief,
+    begindatum: new Date(),
+    einddatum: new Date(),
+    adres: selectedShift.adres,
+    begintijd: selectedShift.begintijd,  // Ensure initial state is passed as default
+    eindtijd: selectedShift.eindtijd,
+    pauze: "",
+    plekken: selectedShift.plekken,
+    beschrijving: selectedShift.beschrijving,
+    vaardigheden: selectedShift.vaardigheden,
+    kledingsvoorschriften: selectedShift.kledingsvoorschriften,
+    beschikbaar: true,
+    geplubliceerd: false,
+    inFlexpool: false,
+    flexpoolId: "",
+    path: "",
+    shiftArrayId: "",
+    checkoutbegintijd:"",
+      checkouteindtijd: "",
+      checkoutpauze:"",
+      feedback:"",
+      opmerking:"",
+      ratingFreelancer: "",
+      ratingBedrijf: "",
+  } : {
+    opdrachtgever: "",
+    opdrachtgeverNaam: " ",
+    opdrachtnemers: "",
+    afbeelding: "",
+    titel: "",
+    functie: "",
+    uurtarief: 14,
+    begindatum: new Date(),
+    einddatum: new Date(),
+    adres: "",
+    begintijd: "08:00",  // Ensure initial state is passed as default
+    eindtijd: "16:30",
+    pauze: "",
+    plekken: 1,
+    beschrijving: "",
+    vaardigheden: "",
+    kledingsvoorschriften: "",
+    beschikbaar: true,
+    geplubliceerd: false,
+    inFlexpool: false,
+    flexpoolId: "",
+    path: "",
+    shiftArrayId: "",
+    checkoutbegintijd:"",
+      checkouteindtijd: "",
+      checkoutpauze:"",
+      feedback:"",
+      opmerking:"",
+      ratingFreelancer: "",
+      ratingBedrijf: "",
+  };
   
   useEffect(() => {
     if (userId) {
       fetchBedrijfDetails(userId)
         .then((details) => {
           setBedrijfDetails(details);
-          console.log("Bedrijf retrieved.");
         })
         .catch((error) => {
           console.error(error);
@@ -118,10 +159,10 @@ const ShiftForm = ({ userId, type, shift, shiftId }: ShiftFormProps) => {
           ...shift,
           opdrachtgever: bedrijfDetails?._id ?? "",
           afbeelding: bedrijfDetails?.profielfoto ?? shift.afbeelding,
-          adres: `${bedrijfDetails?.stad}, ${bedrijfDetails?.straat} ${bedrijfDetails?.huisnummer}` ?? "",
+          adres: `${shift.adres}` ?? "",
           begindatum: new Date(shift.begindatum),
           einddatum: new Date(shift.einddatum),
-          pauze: "30 minuten",
+          pauze: shift.pauze? shift.pauze : "30 minuten",
           inFlexpool: shift.inFlexpool || false,
           flexpoolId: shift.flexpools?.toString() ? shift.flexpools.toString() : ""
 
@@ -160,7 +201,6 @@ if (files.length > 0) {
     return;
   }
 }
-    console.log(values, userId)
     if (type === "maak") {
       try {
         const newShift = await maakShift({
@@ -214,7 +254,7 @@ if (files.length > 0) {
       }
 
       try {
-        console.log(values)
+        
         const updatedShift = await updateShift({
           opdrachtgever: bedrijfDetails._id,
           opdrachtgeverNaam: bedrijfDetails.displaynaam,
@@ -260,13 +300,123 @@ if (files.length > 0) {
     }
   }
 
+  async function makeUnpublishedShift(values: z.infer<typeof ShiftValidation>) {
+    setLoading(true)
+    try {
+      const unpublished = await maakOngepubliceerdeShift({
+        opdrachtgever: bedrijfDetails._id,
+        opdrachtgeverNaam: bedrijfDetails.displaynaam,
+        titel: values.titel,
+        functie: values.functie,
+        afbeelding: bedrijfDetails.profielfoto || values.afbeelding,
+        uurtarief: values.uurtarief,
+        plekken: Number(values.plekken), // Convert to number
+        adres: `${bedrijfDetails.stad}, ${bedrijfDetails.straat}, ${bedrijfDetails.huisnummer}` || values.adres,
+        begindatum: values.begindatum || new Date(),
+        einddatum: values.einddatum || new Date(),
+        begintijd: values.begintijd,
+        eindtijd: values.eindtijd,
+        pauze: values.pauze,
+        beschrijving: values.beschrijving,
+        vaardigheden: typeof values.vaardigheden === 'string'
+        ? values.vaardigheden.split(", ") // If it's a string, split it into an array
+        : Array.isArray(values.vaardigheden)
+          ? values.vaardigheden // If it's already an array, use it as is
+          : [], // Default to an empty array if it's neither
+        kledingsvoorschriften: typeof values.kledingsvoorschriften === "string" ? values.kledingsvoorschriften.split(", ") : [],
+      })
+
+      if(unpublished.succes){
+        toast({
+          variant: 'succes',
+          description: "ongepubliceerde shift gemaakt! 👍"
+        });
+        setLoading(false);
+        router.back();
+      } else {
+        toast({
+          variant: 'destructive',
+          description: "Actie is niet toegestaan! ❌"
+        });
+      }
+    } catch (error: any) {
+      console.error("Het maken van een ongepubliceerde shift is niet gelukt:", error);
+      toast({
+        variant: 'destructive',
+        description: `${error}`
+      });
+    }
+  }
+
   const adres = bedrijfDetails
   ? `${bedrijfDetails.straat || ""} ${bedrijfDetails.huisnummer || ""}, ${bedrijfDetails.stad || ""}`
   : "locatie";
 
+  useEffect(() => {
+    const fetchShifts = async () => {
+      const shifts = await fetchUnpublishedShifts(userId);
+      if(shifts){
+        setShifts(shifts)
+      } else {
+        setShifts([])
+      }
+    }
+    fetchShifts();
+  }, [shifts])
+
+  const filteredShifts = shifts.filter(shifts => {
+    const shiftTitel = `${shifts.titel.toLowerCase()}`;
+    return shiftTitel.includes(query.toLowerCase());
+  });
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="nl">
     <Form {...form}>
+      {type === 'maak' && (
+              <Combobox
+              as="div"
+              value={selectedShift}
+              onChange={(shift) => {
+                setQuery('');
+                setSelectedShift(shift);
+              }}
+              className="mb-10"
+            >
+              <Label className="block text-sm font-medium leading-6 text-gray-900">Selecteer shift</Label>
+              <div className="relative mt-2">
+                <ComboboxInput
+                  className="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-12 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  onChange={(event) => setQuery(event.target.value)}
+                  onBlur={() => setQuery('')}
+                  displayValue={(opdrachtnemer: any) => opdrachtnemer ? `${opdrachtnemer.voornaam} ${opdrachtnemer.achternaam}` : ''}
+                />
+                <ComboboxButton className="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 focus:outline-none">
+                  <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                </ComboboxButton>
+      
+                {filteredShifts.length > 0 && (
+                  <ComboboxOptions className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+                    {filteredShifts.map((shift) => (
+                      <ComboboxOption
+                        key={shift.titel}
+                        value={shift}
+                        className="group relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 data-[focus]:bg-indigo-600 data-[focus]:text-white"
+                      >
+                        <div className="flex items-center">
+                          <img src={shift.afbeelding} alt="profielfoto" className="h-6 w-6 flex-shrink-0 rounded-full" />
+                          <span className="ml-3 truncate group-data-[selected]:font-semibold">{shift.titel}</span>
+                        </div>
+      
+                        <span className="absolute inset-y-0 right-0 hidden items-center pr-4 text-indigo-600 group-data-[selected]:flex group-data-[focus]:text-white">
+                          <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                        </span>
+                      </ComboboxOption>
+                    ))}
+                  </ComboboxOptions>
+                )}
+              </div>
+            </Combobox>
+      )}
       <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-5">
         <div className="flex flex-col gap-5 md:flex-row">
           <FormField
@@ -595,10 +745,25 @@ if (files.length > 0) {
             />
           )}
         </div>
+                {type === 'maak' ? (
+                  <>
 
-        <Button type="submit" size="lg" disabled={form.formState.isSubmitting} className="button col-span-2 w-full">
-          {form.formState.isSubmitting ? "Shift plaatsen..." : `${type} shift `}
-        </Button>
+            <Button onClick={() => {makeUnpublishedShift}} size="lg" disabled={loading} className="button col-span-2 w-full">
+              {loading ? "Shift maken..." : `${type} shift `}
+            </Button>
+            
+            <Button type="submit" size="lg" disabled={form.formState.isSubmitting} className="button col-span-2 w-full bg-white text-sky-500 border-sky-500 border-2">
+                {form.formState.isSubmitting ? "Shift plaatsen..." : `plaats shift `}
+            </Button>
+
+              </>
+                ) : (
+              <Button type="submit" size="lg" disabled={form.formState.isSubmitting} className="button col-span-2 w-full">
+                {form.formState.isSubmitting ? "Shift updaten..." : `${type} shift `}
+              </Button>
+
+              )}
+        
       </form>
     </Form>
     </LocalizationProvider>

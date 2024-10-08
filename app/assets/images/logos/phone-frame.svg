@@ -49,7 +49,7 @@
         fill="url(#r)" fill-opacity=".3" />
       <path
         d="M305 15.5H59c-24.024 0-43.5 19.476-43.5 43.5v615c0 23.472 19.028 42.5 42.5 42.5h248c23.472 0 42.5-19.028 42.5-42.5V59c0-24.024-19.476-43.5-43.5-43.5Z"
-        stroke="#000" stroke-opacity=".07" />
+        stroke="#FFFFFF" stroke-opacity=".07" />
     </g>
     <g filter="url(#s)">
       <rect x="154" y="29" width="56" height="5" rx="2.5" fill="#D4D4D4" />
@@ -67,32 +67,32 @@
       <stop offset="1" stop-color="#E6E6E6" />
     </linearGradient>
     <linearGradient id="f" x1="3.002" y1="108.991" x2="3.002" y2="116.75" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#171717" />
-      <stop offset=".783" stop-color="#171717" stop-opacity="0" />
+      <stop stop-color="#fff" />
+      <stop offset=".783" stop-color="#fff" stop-opacity="0" />
     </linearGradient>
     <linearGradient id="h" x1="1.004" y1="190.867" x2="5" y2="190.867" gradientUnits="userSpaceOnUse">
       <stop stop-color="#D4D4D4" />
       <stop offset="1" stop-color="#E6E6E6" />
     </linearGradient>
     <linearGradient id="i" x1="3.002" y1="163.991" x2="3.002" y2="178.497" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#171717" />
-      <stop offset=".783" stop-color="#171717" stop-opacity="0" />
+      <stop stop-color="#fff" />
+      <stop offset=".783" stop-color="#fff" stop-opacity="0" />
     </linearGradient>
     <linearGradient id="k" x1="1.004" y1="260.867" x2="5" y2="260.867" gradientUnits="userSpaceOnUse">
       <stop stop-color="#D4D4D4" />
       <stop offset="1" stop-color="#E6E6E6" />
     </linearGradient>
     <linearGradient id="l" x1="3.002" y1="233.991" x2="3.002" y2="248.497" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#171717" />
-      <stop offset=".783" stop-color="#171717" stop-opacity="0" />
+      <stop stop-color="#fff" />
+      <stop offset=".783" stop-color="#fff" stop-opacity="0" />
     </linearGradient>
     <linearGradient id="n" x1="362.004" y1="226.25" x2="366" y2="226.25" gradientUnits="userSpaceOnUse">
       <stop offset=".124" stop-color="#E6E6E6" />
       <stop offset="1" stop-color="#D4D4D4" />
     </linearGradient>
     <linearGradient id="o" x1="364.002" y1="184.991" x2="364.002" y2="208.134" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#171717" />
-      <stop offset=".783" stop-color="#171717" stop-opacity="0" />
+      <stop stop-color="#fff" />
+      <stop offset=".783" stop-color="#fff" stop-opacity="0" />
     </linearGradient>
     <linearGradient id="p" x1="182" y1="15" x2="182" y2="716" gradientUnits="userSpaceOnUse">
       <stop stop-color="#fff" />
@@ -112,7 +112,7 @@
       <feOffset dx="-2" />
       <feGaussianBlur stdDeviation="2" />
       <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1" />
-      <feColorMatrix values="0 0 0 0 0.0901961 0 0 0 0 0.0901961 0 0 0 0 0.0901961 0 0 0 0.17 0" />
+      <feColorMatrix values="1 0 0 0 1 0 1 0 0 1 0 0 0 1 0 0 0 0 0.17 0" />
       <feBlend in2="effect1_innerShadow_104_2007" result="effect2_innerShadow_104_2007" />
       <feColorMatrix in="SourceAlpha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
       <feOffset dy="2" />

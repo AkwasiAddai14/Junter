@@ -76,15 +76,20 @@ bedrijfCheck()
           </p>
         </div>
 
-        <div className="flex-between w-full">
-          <p className="p-medium-16 p-medium-18 text-grey-500">
-          {new Date(shift.begindatum).toLocaleDateString('nl-NL')}
-          </p> 
-          <p className="p-medium-16 p-medium-18 text-grey-500">
-          {shift.begintijd} - {shift.eindtijd}
-          </p>
-        </div>
-       
+
+        {
+        shift.beschikbaar && (
+             <div className="flex-between w-full">
+                <p className="p-medium-16 p-medium-18 text-grey-500">
+                  {new Intl.DateTimeFormat('nl-NL', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(shift.begindatum))}
+                </p>
+                <p className="p-medium-16 p-medium-18 text-grey-500">
+                  {shift.begintijd} - {shift.eindtijd}
+                </p>
+            </div>
+                  )
+                }
+        
         
         { isEenBedrijf ? (
           <Link href={`/dashboard/shift/bedrijf/${shift._id}`}>

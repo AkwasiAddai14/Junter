@@ -8,26 +8,29 @@ import ShiftArray, {IShiftArray} from '../models/shiftArray.model';
 import Shift, { ShiftType } from '@/app/lib/models/shift.model';
 import Freelancer from '@/app/lib/models/freelancer.model';
 import { currentUser } from '@clerk/nextjs/server'
+import cron from 'node-cron';
 
 
 
-export const haalShifts = async (): Promise<IShiftArray[] | ShiftType[] | null> => {
+export const haalShifts = async (clerkId : string) => {
   try {
     // Connect to the database
     await connectToDB();
-    const shiftArrays = await ShiftArray.find(); // Ensure shifts are populated with full details
-    // Filter out any shiftArrays that have empty shifts arrays
-    const nonEmptyShiftArrays = shiftArrays.filter((shiftArray) => 
-      Array.isArray(shiftArray.shifts) && shiftArray.shifts.length > 0
-    );
-
-    // If we find non-empty shift arrays, return them
-    if (nonEmptyShiftArrays.length > 0) {
-      return nonEmptyShiftArrays as IShiftArray[] | ShiftType[]; // Cast to IShiftArray[]
+    const freelancer = await Freelancer.findOne({clerkId: clerkId}).populate('shifts').exec();;
+    if (!freelancer) {
+      throw new Error(`Freelancer with ID ${clerkId} not found`);
     }
-
-    // If no non-empty shifts array found, return an empty array
-    return [];
+        // Extract shiftArrayIds from the freelancer's shifts
+        const freelancerShiftArrayIds = freelancer.shifts.map((shift: any) => shift.shiftArrayId.toString());
+        console.log(freelancerShiftArrayIds)
+        // Find all ShiftArray documents
+        const allShiftArrays = await ShiftArray.find();
+    
+        // Filter ShiftArrays that do not match any shiftArrayId in the freelancer's shifts
+        const filteredShiftArrays = allShiftArrays.filter((shiftArray: any) => 
+          !freelancerShiftArrayIds.includes(shiftArray._id.toString())
+        );
+        return filteredShiftArrays;
   } catch (error) {
     console.error('Error fetching shifts:', error);
     throw new Error('Failed to fetch shifts');
@@ -51,7 +54,7 @@ export const haalShift = async (freelancerId: Types.ObjectId) => {
     const freelancerShiftArrayIds = freelancer.shifts.map((shift: any) => shift.shiftArrayId.toString());
     console.log(freelancerShiftArrayIds)
     // Find all ShiftArray documents
-    const allShiftArrays = await ShiftArray.find();
+    const allShiftArrays = await ShiftArray.find({beschikbaar: true});
 
     // Filter ShiftArrays that do not match any shiftArrayId in the freelancer's shifts
     const filteredShiftArrays = allShiftArrays.filter((shiftArray: any) => 
@@ -73,7 +76,7 @@ export const haalGeplaatsteShifts = async ({ bedrijfId }: { bedrijfId: string })
       throw new Error(`Bedrijf with ID ${bedrijfId} not found or shifts not available`);
     }
 
-    const shiftArrays = await ShiftArray.find({ _id: { $in: bedrijf.shifts } })
+    const shiftArrays = await ShiftArray.find({ _id: { $in: bedrijf.shifts } }, {beschikbaar: true})
       .populate('shifts')
       .lean(); // Use lean to return plain JS objects
 
@@ -85,6 +88,46 @@ export const haalGeplaatsteShifts = async ({ bedrijfId }: { bedrijfId: string })
     throw new Error('Failed to fetch geplaatste shifts');
   }
 };
+
+export const haalOngepubliceerdeShifts = async ({ bedrijfId }: { bedrijfId: string }) => {
+  try {
+    const bedrijf = await Bedrijf.findById(bedrijfId);
+
+    if (!bedrijf || !bedrijf.shifts) {
+      throw new Error(`Bedrijf with ID ${bedrijfId} not found or shifts not available`);
+    }
+
+    const shiftArrays = await ShiftArray.find({ _id: { $in: bedrijf.shifts } }, {beschikbaar: false})
+      .populate('shifts')
+      .lean(); // Use lean to return plain JS objects
+
+    console.log("ShiftArrays: ", JSON.stringify(shiftArrays, null, 2)); // Pretty print the objects for better readability
+
+    return shiftArrays;
+  } catch (error) {
+    console.error('Error fetching geplaatste shifts:', error);
+    throw new Error('Failed to fetch geplaatste shifts');
+  }
+};
+
+export const fetchUnpublishedShifts = async (bedrijfId: string) => {
+  try {
+    const bedrijf = await Bedrijf.findOne({clerkId: bedrijfId});
+    let shiftArrays;
+    if (bedrijf){
+      const id = bedrijf._id;
+      shiftArrays = await ShiftArray.find(
+        { opdrachtgever: id }, 
+        { beschikbaar: false }
+      )
+    }
+
+    return shiftArrays;
+  } catch (error: any){
+    console.error('Error fetching unpublished shifts:', error);
+    throw error;
+  }
+}
 
 export const fetchBedrijfShiftsByClerkId = async (clerkId: string) => {
   try {
@@ -168,3 +211,30 @@ export const haalReserves = async (shiftId: any) => {
     throw new Error(`Failed to fetch reserves: ${error.message}`);
   }
 };
+
+cron.schedule('0 * * * *', async () => {
+  try {
+    const currentDate = new Date();
+    const currentTimeString = currentDate.toTimeString().slice(0, 5); // Get current time in HH:MM format
+
+    // Find shifts where the date is today and time has passed
+    const shiftsToUpdate = await ShiftArray.find({
+      begindatum: {
+        $gte: new Date(currentDate.setHours(0, 0, 0, 0)), // today's date at midnight
+        $lte: new Date(currentDate.setHours(23, 59, 59, 999)) // today's date at 23:59:59
+      },
+      begintijd: { $lte: currentTimeString }, // shifts where begintijd has passed
+      beschikbaar: true // only update if still available
+    });
+
+    // Update shifts
+    await Promise.all(shiftsToUpdate.map(async (shift) => {
+      shift.beschikbaar = false;
+      await shift.save();
+    }));
+
+    console.log(`${shiftsToUpdate.length} shifts updated to beschikbaar: false.`);
+  } catch (error) {
+    console.error('Error updating shifts:', error);
+  }
+});

@@ -18,6 +18,10 @@ import DropdownPauze from '@/app/components/shared/DropdownPauze';
 import { useRouter } from 'next/navigation'
 import DashNav from '@/app/components/shared/DashNav';
 import { haalShiftMetIdCard } from '@/app/lib/actions/shift.actions';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+
+
 export type SearchParamProps = {
   params: { id: string }
   searchParams: { [key: string]: string | string[] | undefined }
@@ -80,6 +84,7 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
 
   return (
     <>
+     <LocalizationProvider dateAdapter={AdapterDateFns}>
     <DashNav />
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="fixed inset-0 mt-14 bg-black bg-opacity-25 backdrop-blur-sm flex justify-center items-center overflow-hidden w-auto">
@@ -224,7 +229,9 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
           </div>
         </div>
       </form>
-    </Form></>
+    </Form>
+    </LocalizationProvider>
+    </>
 
   )
 }

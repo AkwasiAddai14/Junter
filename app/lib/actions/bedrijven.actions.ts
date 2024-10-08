@@ -4,7 +4,59 @@ import { connectToDB} from "../mongoose";
 import mongoose from "mongoose";
 import Bedrijf from "../models/bedrijf.model";
 import { currentUser } from "@clerk/nextjs/server";
+import nodemailer from 'nodemailer';
 
+
+interface EmailContent {
+  subject: string;
+  text: string;
+}
+
+// Nodemailer configuration
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // Use your email provider, e.g., Gmail, SendGrid, etc.
+  auth: {
+      user: process.env.EMAIL_USER, // Your email
+      pass: process.env.EMAIL_PASS, // Your email password or app-specific password
+  },
+});
+
+export async function sendEmailBasedOnStatus(Email: string, bedrijfDetails: any, ) {
+  const emailContent = generateEmailContent(bedrijfDetails);
+
+  const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: Email,
+      subject: emailContent.subject,
+      text: emailContent.text,
+  };
+
+  try {
+      await transporter.sendMail(mailOptions);
+      console.log('Email sent to ' + Email);
+  } catch (error) {
+      console.error('Error sending email:', error);
+  }
+}
+
+function generateEmailContent(bedrijfDetails: any): EmailContent {
+
+          return {
+              subject: `Gefeliciteerd! Een nieuw bedrijf heeft zich aangemeld: ${bedrijfDetails.displaynaam}`,
+              text: `
+              Gefeliciteerd! Een nieuw bedrijf heeft zich aangemeld:
+              Contactpersoon: ${bedrijfDetails.naam}
+              emailadres: ${bedrijfDetails.emailadres}
+              telefoonnummer: ${bedrijfDetails.telefoonnummer}
+              KVK-nummmer: ${bedrijfDetails.kvknr}
+              Straat: ${bedrijfDetails.straat}
+              Huisnummer: ${bedrijfDetails.huisnummer}
+              postcode: ${bedrijfDetails.postcode}
+              stad: ${bedrijfDetails.stad}
+              Maak ze helemaal wegwijs op het platform!
+              `,
+          };
+}
 
 type bedrijf = {
     clerkId: string,
@@ -41,7 +93,7 @@ export async function maakBedrijf(organization: bedrijf) {
         
         await newBedrijf.save();
         console.log("Document saved successfully:", newBedrijf);
-
+        await sendEmailBasedOnStatus('akwasivdsm@gmail.com', newBedrijf);
         return newBedrijf;
     } catch (error) {
         console.error('Error creating bedrijf:', error);

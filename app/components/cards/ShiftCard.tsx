@@ -34,7 +34,6 @@ bedrijfCheck();
 
   const backgroundImageUrl = shift.afbeelding;
   const opdrachtgeverName = shift.opdrachtgeverNaam || 'Junter';
-  const opdrachtgeverStad = shift.adres || 'Amsterdam';
   const flexpoolTitle = shift.inFlexpool ? "✅ flexpool" : '❎ flexpool';
   const opdrachtnemerId = typeof shift.opdrachtnemer === 'string' ? shift.opdrachtnemer : shift.opdrachtnemer?._id?.toString();
 
@@ -49,7 +48,7 @@ bedrijfCheck();
           case 'afgezegd':
             return 'bg-red-500'
       default:
-        return 'bg-gray-300'; // Default background if no status matches
+        return 'bg-sky-500'; // Default background if no status matches
     }
   };
 
@@ -73,19 +72,22 @@ bedrijfCheck();
     }
   };
 
+  const linkHref = isEenBedrijf 
+  ? `/dashboard/shift/bedrijf/${shift._id}` 
+  : shift.status === 'voltooi checkout' 
+    ? `/dashboard/checkout/freelancer/${shift._id}` 
+    : `/dashboard/shift/freelancer/${shift._id}`;
+
   return (
     <div className="group relative flex min-h-[380px] w-full max-w-[400px] flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all hover:shadow-lg md:min-h-[438px]">
-      { isEenBedrijf ? (
-          <Link 
-          href={`/dashboard/shift/bedrijf/${shift._id}`}
-          style={{ backgroundImage: `url(${backgroundImageUrl})` }}
-          className="flex-center flex-grow bg-gray-50 bg-cover bg-center text-grey-500"
-        />
-      ):   <Link 
-      href={`/dashboard/shift/freelancer/${shift._id}`}
-      style={{ backgroundImage: `url(${backgroundImageUrl})` }}
-      className="flex-center flex-grow bg-gray-50 bg-cover bg-center text-grey-500"
-    />}
+      
+      <Link 
+    href={linkHref}
+    style={{ backgroundImage: `url(${backgroundImageUrl})` }}
+    className="flex-center flex-grow bg-gray-50 bg-cover bg-center text-grey-500"
+      />
+
+
       {!isEenBedrijf && (shift.status === "aangenomen" || shift.status === "aangemeld") && (
         <button onClick={() => opdrachtnemerId && handleFreelanceRejection(opdrachtnemerId)} className="absolute items-stretch right-2 top-2 flex flex-col gap-4 rounded-xl bg-white p-3 shadow-sm transition-all">
             <Image src={del} alt="delete" width={20} height={20} />
@@ -119,11 +121,6 @@ bedrijfCheck();
       ):   <Link href={`/dashboard/shift/freelancer/${shift.shiftArrayId}`}>
       <p className="p-medium-16 md:p-medium-20 line-clamp-1 flex-1 text-black">{shift.titel}</p>
     </Link>}
-        <div className="flex-between w-full"></div>
-        <p className="line-clamp-1 p-medium-14 md:p-medium-16 text-grey-600">
-          {opdrachtgeverStad}
-          </p> 
-          
         <div className="flex-between w-full">
           <p className="line-clamp-1 p-medium-14 md:p-medium-16 text-grey-600">
             {opdrachtgeverName}
@@ -132,9 +129,19 @@ bedrijfCheck();
         <div className="flex-between w-full">
           <p className="p-medium-14 md:p-medium-16 text-grey-600">{flexpoolTitle}</p>
        <div className={`rounded-md px-4 py-2 ${getStatusColor(shift.status)}`}>
-          <p className="p-medium-14 md:p-medium-16 text-grey-600">
+        {shift.status === 'voltooi checkout' ? 
+        <Link href={`/dashboard/checkout/freelancer/${shift._id}`}>
+        <p className="p-medium-14 md:p-medium-16 text-grey-600">
           {shift.status}
           </p>
+        </Link> :
+        <Link href={`/dashboard/shift/freelancer/${shift._id}`}>
+        <p className="p-medium-14 md:p-medium-16 text-grey-600">
+        {shift.status}
+        </p>
+        </Link>
+        
+        }  
           </div>
         </div>
       </div>

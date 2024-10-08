@@ -42,7 +42,7 @@ export async function maakFlexpool({
     company.flexpools.push(savedFlexpool._id as unknown as mongoose.Types.ObjectId); // Ensure the ID is of correct type
     await company.save(); // Save the updated company document
 
-    return savedFlexpool;
+    return [savedFlexpool._id, savedFlexpool.titel];
   } catch (error) {
     console.error('Error creating flexpool:', error);
     throw new Error('Error creating flexpool');
@@ -74,9 +74,9 @@ export async function voegAanFlexpool({
     freelancer.flexpools.push(flexpool._id);
     await freelancer.save();
     // Save the updated flexpool
-    const updatedFlexpool = await flexpool.save();
+    await flexpool.save();
     // Return the updated flexpool
-    return updatedFlexpool;
+    return { success: true, message: "Freelancer successfully added to flexpool." };
   } catch (error) {
     console.error("Error adding freelancers to flexpool:", error);
     throw new Error("Error adding freelancers to flexpool");
@@ -106,10 +106,10 @@ export const verwijderUitFlexpool = async ({
       );
   
       // Save the updated flexpool
-      const updatedFlexpool = await flexpool.save();
+       await flexpool.save();
   
       // Return the updated flexpool
-      return updatedFlexpool;
+      return { success: true, message: "Freelancer successfully removed from flexpool." };
     } catch (error) {
       console.error("Error removing freelancer from flexpool:", error);
       throw new Error("Error removing freelancer from flexpool");

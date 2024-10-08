@@ -5,14 +5,14 @@ import { AppDemo } from '@/app/components/shared/AppDemo.tsx'
 import { AppStoreLink } from '@/app/components/shared/AppStoreLink.tsx'
 import { Container } from '@/app/components/shared/Container.tsx'
 import {PhoneFrame }from '@/app/components/shared/PhoneFrame'
-import logoBbc from '/Users/georgeaddai/Desktop/thejunter/thejunter/app/assets/images/logos/bbc.svg'
-import logoCbs from '/Users/georgeaddai/Desktop/thejunter/thejunter/app/assets/images/logos/cbs.svg'
-import logoCnn from '/Users/georgeaddai/Desktop/thejunter/thejunter/app/assets/images/logos/cnn.svg'
-import logoFastCompany from '/Users/georgeaddai/Desktop/thejunter/thejunter/app/assets/images/logos/fast-company.svg'
-import logoForbes from '/Users/georgeaddai/Desktop/thejunter/thejunter/app/assets/images/logos/forbes.svg'
-import logoHuffpost from '/Users/georgeaddai/Desktop/thejunter/thejunter/app/assets/images/logos/huffpost.svg'
-import logoTechcrunch from '/Users/georgeaddai/Desktop/thejunter/thejunter/app/assets/images/logos/techcrunch.svg'
-import logoWired from '/Users/georgeaddai/Desktop/thejunter/thejunter/app/assets/images/logos/wired.svg'
+import logoBbc from '@/app/assets/images/logos/forbes.svg'
+import logoCbs from '@/app/assets/images/logos/mirage.svg'
+import logoCnn from '@/app/assets/images/logos/facebook.svg'
+import logoFastCompany from '@/app/assets/images/logos/fast-company.svg'
+import logoForbes from '@/app/assets/images/logos/forbes.svg'
+import logoHuffpost from '@/app/assets/images/logos/huffpost.svg'
+import logoTechcrunch from '@/app/assets/images/logos/techcrunch.svg'
+import logoWired from '@/app/assets/images/logos/wired.svg'
 import playlink from '@/app/assets/images/logos/D1494B17-D1A5-4171-B81B-A5E5CAC41D44.png'
 
 
@@ -138,11 +138,9 @@ export function Hero() {
               </PhoneFrame>
             </div>
           </div>
-{/*           <div className="relative -mt-4 lg:col-span-7 lg:mt-0 xl:col-span-6">
-            <p className="text-center text-sm font-semibold text-gray-900 lg:text-left">
-              Deze bedrijven vindt je onder meer in de app:
-            </p>
-            <ul
+          <div className="relative -mt-4 lg:col-span-7 lg:mt-0 xl:col-span-6">
+            {/* 5[[[p-=]]] */}
+            {/* <ul
               role="list"
               className="mx-auto mt-8 flex max-w-xl flex-wrap justify-center gap-x-10 gap-y-8 lg:mx-0 lg:justify-start"
             >
@@ -165,8 +163,8 @@ export function Hero() {
                   />
                 </li>
               ))}
-            </ul>
-          </div> */}
+            </ul> */}
+          </div> 
         </div>
       </Container>
     </div>

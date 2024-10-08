@@ -97,7 +97,7 @@ export const updateFreelancer = async  (user: Freelancer ) => {
             { new: true } // Return the updated document
         );
 
-        return updatedUser;
+        return { success: true, message: 'Freelancer successfully updated.' };
     } catch (error) {
         console.error('Error updating freelancer:', error);
         throw new Error('Error updating freelancer');
@@ -128,6 +128,17 @@ export const haalFreelancer = async  (clerkId: string) => {
         console.error('Error retrieving freelancers:', error);
         throw new Error('Error retrieving freelancers');
     }
+}
+
+export const haalFreelancerFlexpool = async  (clerkId: string) => {
+    
+  try {
+      const freelancer = await Freelancer.findById(clerkId);
+      return freelancer;
+  } catch (error) {
+      console.error('Error retrieving freelancers:', error);
+      throw new Error('Error retrieving freelancers');
+  }
 }
 
 export const haalFreelancers = async ({
@@ -197,3 +208,141 @@ export const haalAlleFreelancers = async (): Promise<Freelancer[]> => {
         throw new Error('Failed to fetch freelancers');
     }
 };
+
+export const updateKorregeling = async (clerkId: string, value: any) => {
+    try {
+        const freelancer = await Freelancer.findOneAndUpdate({clerkId : clerkId}
+            ,{ korregeling: value, },
+  { new: true, runValidators: true });
+
+    if (!freelancer) {
+      throw new Error('Freelancer not found');
+    }
+
+    return freelancer;  // Return the updated freelancer object
+  } catch (error) {
+    console.error('Error updating freelancer:', error);
+    throw new Error('Failed to update freelancer');
+  }
+} 
+export const updateBio = async (clerkId: string, value: any) => {
+    try {
+        const freelancer = await Freelancer.findOneAndUpdate({clerkId : clerkId}
+            ,{ bio: value, },
+  { new: true, runValidators: true });
+
+    if (!freelancer) {
+      throw new Error('Freelancer not found');
+    }
+
+    return freelancer;  // Return the updated freelancer object
+  } catch (error) {
+    console.error('Error updating freelancer:', error);
+    throw new Error('Failed to update freelancer');
+  }
+} 
+export const updateWerkervaring = async (clerkId: string, value: any) => {
+    try {
+        const freelancer = await Freelancer.findOneAndUpdate(
+            { clerkId: clerkId },  // Find freelancer by clerkId
+            { 
+              $addToSet: { werkervaring: value }  // Properly wrap $addToSet inside an object
+            },
+            { 
+              new: true,  // Return the updated document
+              runValidators: true  // Ensure schema validation is run
+            }
+          );
+
+    if (!freelancer) {
+      throw new Error('Freelancer not found');
+    }
+
+    return freelancer;  // Return the updated freelancer object
+  } catch (error) {
+    console.error('Error updating freelancer:', error);
+    throw new Error('Failed to update freelancer');
+  }
+}
+export const updateOpleiding = async (clerkId: string, value: any) => {
+    try {
+        const freelancer = await Freelancer.findOneAndUpdate(
+            { clerkId: clerkId },  // Find freelancer by clerkId
+            { 
+              $addToSet: { opleidingen: value }  // Properly wrap $addToSet inside an object
+            },
+            { 
+              new: true,  // Return the updated document
+              runValidators: true  // Ensure schema validation is run
+            }
+          );
+
+    if (!freelancer) {
+      throw new Error('Freelancer not found');
+    }
+
+    return freelancer;  // Return the updated freelancer object
+  } catch (error) {
+    console.error('Error updating freelancer:', error);
+    throw new Error('Failed to update freelancer');
+  }
+} 
+export const updateProfielfoto  = async (clerkId: string, value: any) => {
+    try {
+        const freelancer = await Freelancer.findOneAndUpdate({clerkId : clerkId},
+            
+            { profielfoto: value, },
+            { new: true, runValidators: true }
+            
+            );
+
+    if (!freelancer) {
+      throw new Error('Freelancer not found');
+    }
+
+    return freelancer;  // Return the updated freelancer object
+  } catch (error) {
+    console.error('Error updating freelancer:', error);
+    throw new Error('Failed to update freelancer');
+  }
+}
+export const updateAdres = async (clerkId: string, value: any) => {
+    try {
+        const freelancer = await Freelancer.findOneAndUpdate({clerkId : clerkId},
+            
+            { 
+              straatnaam: value[0],
+              huisnummer: value[1]
+            },
+            { new: true, runValidators: true }
+  
+  );
+
+    if (!freelancer) {
+      throw new Error('Freelancer not found');
+    }
+
+    return freelancer;  // Return the updated freelancer object
+  } catch (error) {
+    console.error('Error updating freelancer:', error);
+    throw new Error('Failed to update freelancer');
+  }
+} 
+export const updateTelefoonnummer = async (clerkId: string, value: any) => {
+    try {
+        const freelancer = await Freelancer.findOneAndUpdate({clerkId : clerkId},
+            { telefoonnummer: value, },
+  { new: true, runValidators: true });
+
+    if (!freelancer) {
+      throw new Error('Freelancer not found');
+    }
+
+    return freelancer;  // Return the updated freelancer object
+  } catch (error) {
+    console.error('Error updating freelancer:', error);
+    throw new Error('Failed to update freelancer');
+  }
+} 
+
+
