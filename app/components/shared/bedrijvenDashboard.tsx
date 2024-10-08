@@ -27,7 +27,13 @@ import { haalFacturen } from '@/app/lib/actions/factuur.actions';
 import { IShiftArray } from '@/app/lib/models/shiftArray.model';
 import mongoose from 'mongoose';
 import { IFlexpool } from '@/app/lib/models/flexpool.model';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
+import { AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, AlertDialogContent, 
+  AlertDialogDescription, AlertDialogFooter, 
+  AlertDialogHeader, AlertDialogTitle,
+   AlertDialogTrigger
+   } from '../ui/alert-dialog';
 
 
 
@@ -58,7 +64,6 @@ const Dashboard =  () => {
   const [fullName, setFullName] = useState<string | null>(null);
   const [showLogOut, setShowLogOut] = useState(false);
   const [bedrijfiD, setBedrijfiD] = useState<string>("");
-/*   const [flexpools, setFlexpools] = useState<IFlexpool[]>([]) */
   const [newFlexpoolTitle, setNewFlexpoolTitle] = useState('');
   const [showCheckout, setShowCheckout] = useState(false);
 
@@ -73,7 +78,7 @@ const Dashboard =  () => {
   useEffect(() => {
     const getBedrijfId = async () => {
       try {
-        const bedrijf = await fetchBedrijfByClerkId("user_2ky1tsL6QGL5S2YHO2Bfc2qDZBm");
+        const bedrijf = await fetchBedrijfByClerkId(user!.id);
         if (bedrijf && bedrijf._id) {
           setBedrijfiD(bedrijf._id.toString());
         }
@@ -112,7 +117,7 @@ const Dashboard =  () => {
           setUnpublished(shifts || []);  // Ensure shifts is always an array
         } catch (error) {
           console.error('Error fetching shifts:', error);
-          setShift([]);  // Handle error by setting an empty array
+          setUnpublished([]);  // Handle error by setting an empty array
         }
       };
       fetchShifts();
@@ -183,6 +188,8 @@ const Dashboard =  () => {
               console.error("Error creating flexpool:", error);
             }
           };
+
+          console.log(shift, unpublished);
           
   return (
     <Fragment>
