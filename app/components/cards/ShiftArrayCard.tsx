@@ -1,7 +1,8 @@
+"use client"
 
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { DeleteConfirmation } from '@/app/components/shared/DeleteConfirmation';
 import { ApplyConfirmation } from '../shared/ApplyConfirmation';
 import { IShiftArray } from '@/app/lib/models/shiftArray.model';
@@ -16,16 +17,18 @@ const Card = ({ shift }: CardProps) => {
 
   const [isEenBedrijf, setIsEenBedrijf] = useState<boolean | undefined>(false);;
 
-  const bedrijfCheck = async () => {
-  try {
-    const isEventCreator = await isBedrijf() // Assuming isBedrijf is a function that returns a boolean
-    setIsEenBedrijf(isEventCreator); // Set the state with the boolean result
-  } catch (error) {
-    console.error("Error checking if user is a bedrijf:", error);
-  }
-};
-
-bedrijfCheck()
+  useEffect(() => {
+    const bedrijfCheck = async () => {
+      try {
+        const isEventCreator = await isBedrijf();
+        setIsEenBedrijf(isEventCreator);
+      } catch (error) {
+        console.error("Error checking if user is a bedrijf:", error);
+      }
+    };
+  
+    bedrijfCheck();
+  }, []);
 
 
   const backgroundImageUrl = shift.afbeelding;

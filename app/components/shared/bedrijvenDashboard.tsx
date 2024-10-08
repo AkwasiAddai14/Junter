@@ -94,17 +94,16 @@ const Dashboard =  () => {
   
 
   useEffect(() => {
-    if (bedrijfiD) {  // Only fetch shifts if bedrijfId is available
+    if (bedrijfiD) {
       const fetchShifts = async () => {
         try {
           const shifts = await haalGeplaatsteShifts({ bedrijfId: bedrijfiD });
-          setShift(shifts || []);  // Ensure shifts is always an array
+          setShift(shifts || []);
         } catch (error) {
           console.error('Error fetching shifts:', error);
-          setShift([]);  // Handle error by setting an empty array
+          setShift([]);
         }
       };
-  
       fetchShifts();
     }
   }, [bedrijfiD]); 
