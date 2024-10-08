@@ -36,7 +36,7 @@ const features = [
   const stats = [
       { label: 'verschillende opdrachtgevers', value: 'Honderden' },
       { label: 'verschillende diensten', value: 'Wekelijks 2000' },
-    { label: 'pilot wekelijkse betaling van start', value: 'In September' },
+    { label: 'pilot wekelijkse betaling van start', value: 'In November' },
   ]
 const page = () => {
   return (
@@ -53,7 +53,7 @@ const page = () => {
                     Om je kansen op acceptatie te verbeteren, zorg ervoor dat je profiel compleet en professioneel is. Voeg een duidelijke profielfoto toe, vul al je gegevens nauwkeurig in, en beschrijf je vaardigheden en ervaring uitvoerig. Referenties van eerdere opdrachtgevers kunnen ook helpen. En dan kan je meteen aan de slag! 
                     </p>
                     <p className="mt-10">
-                    Na het indienen van je gewerkte uren, ontvang je (voorlopig) aan het eind van de maand je betalingen. In September gaat de pilot van start waar je ook voor wekelijkse betalingen kunt kiezen.  Deze betalingen worden rechtstreeks naar je bankrekening overgemaakt. 
+                    Na het indienen van je gewerkte uren, ontvang je (voorlopig) aan het eind van de maand je betalingen. In November kun je ook voor wekelijkse betalingen kiezen.  Deze betalingen worden rechtstreeks naar je bankrekening overgemaakt. 
                     </p>
                 </div>
             </div>
