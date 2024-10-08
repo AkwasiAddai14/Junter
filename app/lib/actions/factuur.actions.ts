@@ -302,8 +302,19 @@ export async function maakFactuur({ shiftId }: FactuurParams) {
         
         if (opdrachtnemer && opdrachtgever) {
         // Calculate total amount to be paid
-        const workedHours = (new Date(checkout.eindtijd).getTime() - new Date(checkout.begintijd).getTime()) / (1000 * 60 * 60) - (/* checkout.pauze */  30 || 0) / 60;
-        const totalAmount = workedHours * checkout.uurtarief * 1.21;
+        let workedHours;
+        if (checkout.begintijd && checkout.eindtijd) {
+             workedHours = 
+              (new Date(checkout.eindtijd).getTime() - new Date(checkout.begintijd).getTime()) / (1000 * 60 * 60) -
+              (0 / 60);
+            
+          } else {
+             workedHours = 
+              (new Date(checkout.eindtijd).getTime() - new Date(checkout.begintijd).getTime()) / (1000 * 60 * 60) -
+              (0 / 60);
+            console.warn("Invalid begintijd or eindtijd:", checkout.begintijd, checkout.eindtijd);
+          }
+          const totalAmount = workedHours * checkout.uurtarief * 1.21;
 
         // Create a PDF document
         const doc = new PDFDocument();
