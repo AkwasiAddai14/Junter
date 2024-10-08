@@ -672,45 +672,66 @@ function generateEmailContent(shiftDetails: any, status: string): EmailContent {
   
   export async function annuleerAanmeldingen({
     shiftArrayId,
-    freelancerId
+    freelancerId,
   }: AnnuleerAanmeldingenParams) {
     try {
       await connectToDB();
-
-      const shiftArrayObjectId = new mongoose.Types.ObjectId(shiftArrayId);
-      const freelancerObjectId = new mongoose.Types.ObjectId(freelancerId);
   
-      // Find the ShiftsArray by ID
+      const shiftArrayObjectId = new mongoose.Types.ObjectId(shiftArrayId);
+      
+      // Attempt to create an ObjectId from freelancerId
+      let freelancer: any = null;
+      if (mongoose.Types.ObjectId.isValid(freelancerId)) {
+        freelancer = await Freelancer.findById(freelancerId);
+      }
+  
+      // If freelancer wasn't found by ObjectId, try finding by clerkId
+      if (!freelancer) {
+        freelancer = await Freelancer.findOne({ clerkId: freelancerId });
+      }
+  
+      // Throw an error if the freelancer wasn't found by either method
+      if (!freelancer) {
+        throw new Error(`Freelancer with ID ${freelancerId} not found`);
+      }
+  
+      // Find the shift array by ID
       const shiftArray = await ShiftArray.findById(shiftArrayObjectId);
       if (!shiftArray) {
         throw new Error(`ShiftsArray with ID ${shiftArrayId} not found`);
       }
   
-      // Find the freelancer by ID
-      let freelancer = await Freelancer.findById(freelancerId);
-      if (!freelancer) {
-        freelancer = await Freelancer.findOne({clerkId : freelancerId});
-      } else {
-        throw new Error(`Freelancer with ID ${freelancerId} not found`);
-      }
-  
       // Check if the freelancer is in the aanmeldingen array
+      const freelancerObjectId = freelancer._id;
       if (!shiftArray.aanmeldingen.includes(freelancerObjectId)) {
-        return { success: false, message: "Freelancer is not applied for this ShiftsArray" };
+        return {
+          success: false,
+          message: "Freelancer is not applied for this ShiftsArray",
+        };
       }
   
-      // Remove the freelancer from the aanmeldingen array
+      // Remove the freelancer from the shift array's aanmeldingen
+      shiftArray.aanmeldingen = shiftArray.aanmeldingen.filter(
+        (id: mongoose.Types.ObjectId) => !id.equals(freelancerObjectId)
+      );
+      await shiftArray.save();
+  
+      // Remove shifts with status 'aangemeld' from the freelancer's shifts array
       freelancer.shifts = freelancer.shifts.filter(
-        (shift: { shift: mongoose.Types.ObjectId; status: string; shiftArrayId: mongoose.Types.ObjectId }) =>
-          !(shift.shiftArrayId.toString() === shiftArrayId && shift.status === 'aangemeld')
+        (shift: { shiftArrayId: mongoose.Types.ObjectId; status: string }) =>
+          !(shift.shiftArrayId?.equals(shiftArrayObjectId) && shift.status === 'aangemeld')
       );
       await freelancer.save();
   
-      return { success: true, message: "Freelancer successfully removed from the ShiftsArray's aanmeldingen and shift removed from the freelancer's shifts array" };
+      return {
+        success: true,
+        message: "Freelancer successfully removed from the ShiftsArray's aanmeldingen and shift removed from the freelancer's shifts array",
+      };
     } catch (error: any) {
       throw new Error(`Failed to remove freelancer from ShiftsArray and shift from freelancer: ${error.message}`);
     }
   }
+  
 
 
 interface AccepteerFreelancerParams {
