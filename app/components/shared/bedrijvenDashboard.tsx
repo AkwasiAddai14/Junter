@@ -115,7 +115,6 @@ const Dashboard =  () => {
           setShift([]);  // Handle error by setting an empty array
         }
       };
-  
       fetchShifts();
     }
   }, [bedrijfiD]); 
@@ -344,16 +343,16 @@ const Dashboard =  () => {
                       <>
                       <ScrollArea>
                     <div className="grid grid-cols-3 gap-4">
-                      {shift.slice(0, shift.length).map((shiftItem, index) => (
-                        <ShiftCard key={index} shift={shiftItem} />
-                      ))}
+                      {unpublished.slice(0, unpublished.length).map((unpublishedItem, index) => (
+                          <ShiftCard key={index} shift={unpublishedItem} />
+                        ))}
                     </div>
                   </ScrollArea>
                   <ScrollArea>
                       <div className="grid grid-cols-3 gap-4">
-                        {unpublished.slice(0, unpublished.length).map((unpublishedItem, index) => (
-                          <ShiftCard key={index} shift={unpublishedItem} />
-                        ))}
+                      {shift.slice(0, shift.length).map((shiftItem, index) => (
+                        <ShiftCard key={index} shift={shiftItem} />
+                      ))}
                       </div>
                     </ScrollArea>
                     </>

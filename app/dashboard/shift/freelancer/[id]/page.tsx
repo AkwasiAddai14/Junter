@@ -1,4 +1,3 @@
-"use client"
 
 import AanmeldButton from '@/app/components/shared/AanmeldButton';
 import Collection from '@/app/components/shared/Collection';

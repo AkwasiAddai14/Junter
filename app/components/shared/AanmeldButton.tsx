@@ -5,21 +5,21 @@ import { Button } from '../ui/button'
 import { reageerShift } from '@/app/lib/actions/shift.actions'
 import { IShiftArray } from '@/app/lib/models/shiftArray.model'
 import { useToast } from '@/app/components/ui/use-toast';
-import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs'
 
 
-const AanmeldButton = async ({ shift }: { shift: IShiftArray }) => {
-  const [userId, setUserId] = useState<string>("");
+
+
+const AanmeldButton = ({ shift }: { shift: IShiftArray }) => {
+  const [userId, setUserId] = useState('');
   const { toast } = useToast();
   const hasShiftFinished = /* new Date(shift.begindatum) < new Date(); */ false;
   const shiftArrayId = shift._id as string;
-  const router = useRouter();
-  const {isLoaded, user} = useUser();
-
+  const { isLoaded, user } = useUser();
+  
   useEffect(() => {
     if (isLoaded && user) {
-      setUserId(user?.id)
+      setUserId(user.id);
     }
   }, [isLoaded, user]);
   
@@ -34,7 +34,7 @@ const AanmeldButton = async ({ shift }: { shift: IShiftArray }) => {
           description: "Aangemeld voor de shift! 👍"
         });
       }
-      router.back();
+      
     } catch (error: any) {
       toast({
         variant: 'destructive',
