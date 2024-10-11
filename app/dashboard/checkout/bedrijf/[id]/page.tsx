@@ -18,7 +18,7 @@ import DropdownPauze from '@/app/components/shared/DropdownPauze';
 import { useRouter } from 'next/navigation';
 import DashNav from '@/app/components/shared/DashNav';
 import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 export type SearchParamProps = {
   params: { id: string }
@@ -90,7 +90,7 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
 
   return (
     <>
-    <LocalizationProvider dateAdapter={AdapterDateFns}>
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="nl">
     <DashNav />
     <Form {...form}>
   <form

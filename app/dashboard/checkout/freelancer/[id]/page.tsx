@@ -19,7 +19,7 @@ import { useRouter } from 'next/navigation'
 import DashNav from '@/app/components/shared/DashNav';
 import { haalShiftMetIdCard } from '@/app/lib/actions/shift.actions';
 import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { toast } from '@/app/components/ui/use-toast';
 
 
@@ -97,7 +97,7 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
 
   return (
     <>
-     <LocalizationProvider dateAdapter={AdapterDateFns}>
+     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="nl">
     <DashNav />
     <Form {...form}>
   <form
