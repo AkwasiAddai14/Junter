@@ -28,7 +28,7 @@ const generateYearCalendar = (year: number): { name: string; days: Day[]; startD
   for (let month = 0; month < 12; month++) {
     const start = startOfMonth(new Date(year, month));
     const end = endOfMonth(start);
-    let startDayOfWeek = getDay(start);
+    let startDayOfWeek = getDay(start) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
     startDayOfWeek = (startDayOfWeek === 0 ? 6 : startDayOfWeek - 1) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
     
