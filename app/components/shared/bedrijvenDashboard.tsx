@@ -187,8 +187,6 @@ const Dashboard =  () => {
               console.error("Error creating flexpool:", error);
             }
           };
-
-          console.log(shift, unpublished);
           
   return (
     <Fragment>

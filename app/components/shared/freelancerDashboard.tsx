@@ -38,22 +38,22 @@ const MIN = 0;
 const euromarks = [
   {
     value: MIN,
-    label: '€',
+    label: '',
   },
   {
     value: MAX,
-    label: '€',
+    label: '',
   },
 ];
 
 const distancemarks = [
   {
     value: MIN,
-    label: 'km',
+    label: '',
   },
   {
     value: MAX,
-    label: 'km',
+    label: '',
   },
 ];
 
@@ -305,7 +305,6 @@ export default function Example() {
     return naam.includes(query.toLowerCase());
   });
  
-console.log(aangemeld, checkout, freelancerId, user?.id);
 const bedrijfsnaam = "Junter";
   
   return (
