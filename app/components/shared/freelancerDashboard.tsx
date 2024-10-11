@@ -122,12 +122,14 @@ export default function Example() {
   const [geaccepteerd, setGeaccepteerd] = useState<any[]>([]);
   const [adres, setAdres] = useState<any>(null);
   const [euroVal, setEuroVal] = React.useState<number>(MIN);
-  const handleChange = (_: Event, newValue: number | number[]) => {
+  const handleUurtariefChange = (_: Event, newValue: number | number[]) => {
     setEuroVal(newValue as number);
+    setTarief(euroVal);
   };
   const [distanceVal, setDistanceVal] = React.useState<number>(MIN);
-  const handleChange = (_: Event, newValue: number | number[]) => {
+  const handleAfstandChange = (_: Event, newValue: number | number[]) => {
     setDistanceVal(newValue as number);
+    setAfstand(distanceVal)
   };
   
   
@@ -651,25 +653,25 @@ const bedrijfsnaam = "Junter";
           </p>
             <Box sx={{ width: 250 }}>
       <Slider
-        marks={marks}
+        marks={euromarks}
         step={10}
-        value={val}
+        value={euroVal}
         valueLabelDisplay="auto"
         min={MIN}
         max={MAX}
-        onChange={(value) => setTarief(value as unknown as number)}
+        onChange={handleUurtariefChange}
       />
       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography
           variant="body2"
-          onClick={() => setVal(MIN)}
+          onClick={() => setEuroVal(MIN)}
           sx={{ cursor: 'pointer' }}
         >
           €{MIN} min
         </Typography>
         <Typography
           variant="body2"
-          onClick={() => setVal(MAX)}
+          onClick={() => setEuroVal(MAX)}
           sx={{ cursor: 'pointer' }}
         >
           €{MAX} 
@@ -682,25 +684,25 @@ const bedrijfsnaam = "Junter";
          </p>
            <Box sx={{ width: 250 }}>
       <Slider
-        marks={marks}
+        marks={distancemarks}
         step={10}
-        value={val}
+        value={distanceVal}
         valueLabelDisplay="auto"
         min={MIN}
         max={MAX}
-        onChange={(value) => setAfstand(value as unknown as number)}
+        onChange={handleAfstandChange}
       />
       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography
           variant="body2"
-          onClick={() => setVal(MIN)}
+          onClick={() => setDistanceVal(MIN)}
           sx={{ cursor: 'pointer' }}
         >
           {MIN} km
         </Typography>
         <Typography
           variant="body2"
-          onClick={() => setVal(MAX)}
+          onClick={() => setDistanceVal(MAX)}
           sx={{ cursor: 'pointer' }}
         >
           {MAX} km
