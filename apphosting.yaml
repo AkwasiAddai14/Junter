@@ -8,15 +8,15 @@ runConfig:
   memoryMiB: 1024
 
   # Environment variables and secrets
-env:
-  - variable: STORAGE_BUCKET
-    value: mybucket.appspot.com
-    availability:
-      - BUILD
-      - RUNTIME
+# env:
+#   - variable: STORAGE_BUCKET
+#     value: mybucket.appspot.com
+#     availability:
+#       - BUILD
+#       - RUNTIME
 
-  - variable: API_KEY
-    secret: myApiKeySecret
+#   - variable: API_KEY
+#     secret: myApiKeySecret
 
 # Environment variables and secrets.
 # env:
