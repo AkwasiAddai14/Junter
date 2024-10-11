@@ -24,6 +24,7 @@ export interface IShiftArray extends Document {
     vaardigheden?: string[];
     kledingsvoorschriften?: string[];
     beschikbaar: boolean;
+    status: string;
     inFlexpool: boolean;
 }
 
@@ -79,6 +80,7 @@ const shiftArraySchema: Schema<IShiftArray> = new mongoose.Schema({
     vaardigheden: [{ type: String, required: false }],
     kledingsvoorschriften: [{ type: String, required: false }],
     beschikbaar: { type: Boolean, required: true, default: true },
+    status: { type: String, default: 'beschikbaar'},
     inFlexpool: { type: Boolean, default: false }
 });
 

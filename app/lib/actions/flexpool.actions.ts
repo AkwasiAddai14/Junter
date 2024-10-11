@@ -4,7 +4,8 @@ import { connectToDB} from "../mongoose";
 import Flexpool, { IFlexpool } from "../models/flexpool.model";
 import Bedrijf, { IBedrijf } from "../models/bedrijf.model";
 import Freelancer, { IFreelancer } from "../models/freelancer.model";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
+import { currentUser } from "@clerk/nextjs/server";
 
 
 
@@ -136,32 +137,54 @@ export const verwijderFlexpool = async (flexpoolId: mongoose.Types.ObjectId) => 
     }
 };
 
-export const haalFlexpoolFreelancer = async (userId: string): Promise<IFlexpool[]> => {
+export const haalFlexpoolFreelancer = async (userId: Types.ObjectId | string ): Promise<IFlexpool[] | []> => {
     try {
       await connectToDB();
         // Zoek de freelancer op basis van het gegeven ID
-        const freelancer: IFreelancer | null  = await Freelancer.findById(userId)
-        .populate('flexpools') // Populate the flexpools field
-        .lean(); // Convert to plain JS objects to avoid circular references
-
+        let freelancer;
+        let flexpools;
+    if(mongoose.Types.ObjectId.isValid(userId)){
+         freelancer = await Freelancer.findById(userId)
         if (freelancer && freelancer.flexpools && freelancer.flexpools.length > 0) {
           // Fetch the related Flexpool documents
-          const flexpools = await Flexpool.find({ _id: { $in: freelancer.flexpools } })
-            .lean(); // Convert to plain JS objects
-    
+          flexpools = await Flexpool.find({ _id: { $in: freelancer.flexpools } })
+          console.log(flexpools)
           console.log("Flexpools fetched successfully.");
-    
           return flexpools;
-        } else {
-          console.log('No flexpools found for this Bedrijf.');
-          return [];
         }
-        // Retourneer de flexpools van de freelancer
-    } catch (error) {
-        console.error('Error fetching flexpools:', error);
-        throw new Error('Failed to fetch flexpools');
     }
-};
+        // Case 2: If freelancerId is not provided, use the logged-in user (Clerk)
+        if(userId.toString() !== ""){
+          freelancer = await Freelancer.findOne({clerkId : userId});
+          if (freelancer && freelancer.flexpools && freelancer.flexpools.length > 0) {
+            // Fetch the related Flexpool documents
+            flexpools = await Flexpool.find({ _id: { $in: freelancer.flexpools } })
+            console.log(flexpools)
+            console.log("Flexpools fetched successfully.");
+            return flexpools;
+          }
+        } else {
+          const user = await currentUser();
+          if (user) {
+             freelancer = await Freelancer.findOne({ clerkId: user.id });
+            if (freelancer && freelancer.flexpools && freelancer.flexpools.length > 0) {
+              // Fetch the related Flexpool documents
+              flexpools = await Flexpool.find({ _id: { $in: freelancer.flexpools } })
+              console.log(flexpools)
+              console.log("Flexpools fetched successfully.");
+              return flexpools;
+            }
+        } else {
+          console.log('No flexpools found for this freelancer.');
+          return [];
+        }   
+    }
+    return flexpools || [];// Retourneer de flexpools van de freelancer
+  } catch (error) {
+  console.error('Error fetching flexpools:', error);
+  throw new Error('Failed to fetch flexpools');
+  }
+}
 
 export const haalFlexpool = async (flexpoolId: string) => {
   try {

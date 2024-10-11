@@ -3,7 +3,8 @@
 import { connectToDB} from "../mongoose";
 import Freelancer from "../models/freelancer.model";
 import { revalidatePath } from "next/cache";
-import { SortOrder } from "mongoose";
+import mongoose, { SortOrder } from "mongoose";
+import { currentUser } from "@clerk/nextjs/server";
 
 
 connectToDB();
@@ -77,7 +78,7 @@ export const updateFreelancer = async  (user: Freelancer ) => {
 
     try {
         
-        const updatedUser = await Freelancer.findOneAndUpdate(
+        await Freelancer.findOneAndUpdate(
             { clerkId: user.clerkId },
             {
                 telefoonnummer: user.telefoonnummer,
@@ -120,9 +121,23 @@ export async function verwijderFreelancer(clerkId: string): Promise<Freelancer |
 }
 
 export const haalFreelancer = async  (clerkId: string) => {
-    
     try {
-        const freelancer = await Freelancer.findOne({clerkId: clerkId});
+      await connectToDB();
+      let freelancer;
+      if(mongoose.Types.ObjectId.isValid(clerkId)){
+        freelancer = await Freelancer.findById(clerkId);
+      }
+      if (clerkId.toString() !== ""){
+        freelancer = await Freelancer.findOne({clerkId: clerkId});
+      } else {
+        const user = await currentUser();
+        if(user){
+          freelancer = await Freelancer.findOne({clerkId: user!.id})
+        }
+        else {
+          console.log("No user logged in or found!")
+        }
+      }
         return freelancer;
     } catch (error) {
         console.error('Error retrieving freelancers:', error);

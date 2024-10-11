@@ -93,165 +93,149 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
     <LocalizationProvider dateAdapter={AdapterDateFns}>
     <DashNav />
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="fixed inset-0 mt-14 bg-black bg-opacity-25 backdrop-blur-sm flex justify-center items-center overflow-hidden w-auto">
-        <div className="fixed inset-0 bg-black bg-opacity-25 backdrop-blur-sm flex justify-center items-center overflow-hidden w-auto">
-          <div className="lg:col-start-3 lg:row-end-1 max-w-lg w-full">
-            <div className="rounded-lg bg-gray-50 shadow-sm ring-1 ring-gray-900/5">
-              <dl className="flex flex-wrap">
-                <div className="flex-none justify-center items-center self-end px-6 pt-4">
-                  <Image
-                    className="object-cover rounded-full"
-                    src={checkout.opdrachtnemer.profielfoto}
-                    alt="profielfoto"
-                    width={32}
-                    height={32} />
-                </div>
-              </dl>
-              <dl className="flex flex-wrap border-b  border-gray-900/5 px-6 pb-6">
-                <div className="mt-6 flex w-full flex-auto gap-x-4  border-t border-gray-900/5 px-6 pt-6">
-                  <p className="text-sm font-semibold leading-6 text-gray-900">{checkout.opdrachtnemer.voornaam}, {checkout.opdrachtnemer.achternaam}</p>
-                  <dd className="text-sm leading-6 text-gray-500">{checkout.opdrachtnemer.ratingCount} </dd>
-                </div>
-                <div className="mt-4 flex w-full flex-auto gap-x-4 px-6">
-                  <span className="text-sm font-semibold leading-6 text-gray-900">{checkout.datum}, {checkout.begintijd} - {checkout.eindtijd}</span>
-                  <dd className="text-sm leading-6 text-gray-500">
-                    <p className="text-sm leading-6 text-gray-500">{checkout.pauze} minuten</p>
-                  </dd>
-                </div>
-                <div className="mt-4 flex w-full flex-auto gap-x-4 px-6">
-                  <p className="text-sm font-semibold leading-6 text-gray-900">€{checkout.uurtarief}</p>
-                  <dd className="text-sm leading-6 text-gray-500">p/u</dd>
-                </div>
-              </dl>
-              {!accepteer && (
-                <><div className="px-6 py-4 space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="pauze"
-                    render={({ field }) => (
-                      <FormItem className="w-full">
-                        <FormControl>
-                          <DropdownPauze onChangeHandler={field.onChange} value={field.value} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                </div><div className="flex flex-col gap-5 md:flex-row">
-                    <Controller
-                      control={control}
-                      name="begintijd"
-                      render={({ field }) => (
-                        <div className="w-full">
-                          <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-grey-50 px-4 py-2">
-                            <Image
-                              src="/assets/icons/calendar.svg"
-                              alt="calendar"
-                              width={24}
-                              height={24}
-                              className="filter-grey" />
-                            <p className="ml-3 whitespace-nowrap text-grey-600">Begintijd:</p>
-                            <TimePicker
-                              label="Begintijd"
-                              value={begintijd}
-                              onChange={(newValue) => {
-                                console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "08:00");
-                                const formattedTime = newValue ? newValue.format("HH:mm") : "08:00";
-                                setBegintijd(newValue); // Update local state for display
-                                field.onChange(formattedTime); // Update form state
-                              } } />
-                          </div>
-                        </div>
-                      )} />
-
-                    <Controller
-                      control={control}
-                      name="eindtijd"
-                      render={({ field }) => (
-                        <div className="w-full">
-                          <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-grey-50 px-4 py-2">
-                            <Image
-                              src="/assets/icons/calendar.svg"
-                              alt="calendar"
-                              width={24}
-                              height={24}
-                              className="filter-grey" />
-                            <p className="ml-3 whitespace-nowrap text-grey-600">Eindtijd:</p>
-                            <TimePicker
-                              label="Eindtijd"
-                              value={eindtijd}
-                              onChange={(newValue) => {
-                                console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "08:00");
-                                const formattedTime = newValue ? newValue.format("HH:mm") : "08:00";
-                                setEindtijd(newValue);
-                                field.onChange(formattedTime); // Convert to ISO string
-                              } } />
-                          </div>
-                        </div>
-                      )} />
-                  </div>
-                </>
-              )}
-
-              <div className="flex flex-col gap-5 md:flex-row">
-                <FormField
-                  control={form.control}
-                  name="rating"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormControl className="h-72">
-                        <ReactStars
-                          count={5}
-                          size={24}
-                          isHalf={true}
-                          emptyIcon={<i className="far fa-star"></i>}
-                          halfIcon={<i className="fa fa-star-half-alt"></i>}
-                          fullIcon={<i className="fa fa-star"></i>}
-                          activeColor="#ffd700"
-                          {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-
-                <FormField
-                  control={form.control}
-                  name="feedback"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormControl className="h-72">
-                        <Textarea placeholder="opmerking" {...field} className="textarea rounded-2xl" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-
-                <Button className="bg-red-500 text-white border-2 border-red-500 hover:text-black" onClick={() => handleNoShow(id)}>
-                  No show
-                </Button>
-
-              </div>
-              <div className="border-t border-gray-900/5 px-6 py-6 flex justify-between">
-                <Button className="bg-white text-black border-2 border-black hover:text-white" onClick={() => setAccepteer(false)}>
-                  Weigeren
-                </Button>
-                <Button
-                  type="submit"
-                  size="lg"
-                  disabled={form.formState.isSubmitting}
-                  className="bg-sky-500"
-                >
-                  {form.formState.isSubmitting
-                    ? 'Checkout indienen...'
-                    : accepteer
-                      ? 'Versturen'
-                      : 'Accepteren'}
-                </Button>
-              </div>
-            </div>
-          </div>
+  <form
+    onSubmit={form.handleSubmit(onSubmit)}
+    className="fixed inset-0 mt-14 bg-black bg-opacity-25 backdrop-blur-lg flex justify-center items-center w-auto p-4 md:p-0"
+  >
+    <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6">
+      {/* Header Section */}
+      <div className="flex items-center gap-4 pb-4 border-b border-gray-200">
+        <Image
+          className="object-cover rounded-full"
+          src={checkout.opdrachtnemer.profielfoto}
+          alt="profielfoto"
+          width={64}
+          height={64}
+        />
+        <div>
+          <p className="text-lg font-semibold text-gray-800">{checkout.opdrachtnemer.voornaam} {checkout.opdrachtnemer.achternaam}</p>
+          <p className="text-gray-500">Ratings: {checkout.opdrachtnemer.ratingCount}</p>
         </div>
-      </form>
-    </Form>
+      </div>
+
+      {/* Date and Time Information */}
+      <div className="my-4">
+        <p className="text-sm font-semibold leading-6 text-gray-900">{checkout.datum}, {checkout.begintijd} - {checkout.eindtijd}</p>
+        <p className="text-gray-500 text-sm mt-1">{checkout.pauze} minuten pauze</p>
+        <p className="text-gray-500 text-sm mt-1">Uurtarief: €{checkout.uurtarief} p/u</p>
+      </div>
+
+      {/* Conditional Form Fields */}
+      {!accepteer && (
+        <>
+          <div className="my-4">
+            <FormField
+              control={form.control}
+              name="pauze"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <DropdownPauze onChangeHandler={field.onChange} value={field.value} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Time Pickers */}
+          <div className="flex gap-4 my-4">
+            <Controller
+              control={control}
+              name="begintijd"
+              render={({ field }) => (
+                <div className="w-full">
+                  <div className="flex items-center h-[54px] w-full overflow-hidden rounded-full bg-gray-100 px-4 py-2">
+                    <Image src="/assets/icons/calendar.svg" alt="calendar" width={24} height={24} className="mr-2" />
+                    <TimePicker
+                      label="Begintijd"
+                      value={begintijd}
+                      onChange={(newValue) => {
+                        const formattedTime = newValue ? newValue.format("HH:mm") : "08:00";
+                        setBegintijd(newValue); // Update local state for display
+                        field.onChange(formattedTime); // Update form state
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="eindtijd"
+              render={({ field }) => (
+                <div className="w-full">
+                  <div className="flex items-center h-[54px] w-full overflow-hidden rounded-full bg-gray-100 px-4 py-2">
+                    <Image src="/assets/icons/calendar.svg" alt="calendar" width={24} height={24} className="mr-2" />
+                    <TimePicker
+                      label="Eindtijd"
+                      value={eindtijd}
+                      onChange={(newValue) => {
+                        const formattedTime = newValue ? newValue.format("HH:mm") : "08:00";
+                        setEindtijd(newValue);
+                        field.onChange(formattedTime); // Update form state
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            />
+          </div>
+        </>
+      )}
+
+      {/* Rating, Feedback, and Actions */}
+      <div className="my-4">
+        <FormField
+          control={form.control}
+          name="rating"
+          render={({ field }) => (
+            <FormItem className="w-full">
+              <FormControl>
+                <ReactStars count={5} size={24} isHalf={true} activeColor="#ffd700" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="feedback"
+          render={({ field }) => (
+            <FormItem className="w-full">
+              <FormControl>
+                <Textarea placeholder="Opmerking" {...field} className="textarea rounded-lg" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex flex-wrap gap-4 mt-6">
+        <Button className="bg-red-500 text-white border-2 border-red-500 hover:text-black" onClick={() => handleNoShow(id)}>
+          No show
+        </Button>
+
+        <Button className="bg-white text-gray-700 border-2 border-gray-300 hover:bg-gray-100" onClick={() => setAccepteer(false)}>
+          Weigeren
+        </Button>
+
+        <Button
+          type="submit"
+          size="lg"
+          disabled={form.formState.isSubmitting}
+          className="bg-blue-500 text-white hover:bg-blue-600"
+        >
+          {form.formState.isSubmitting ? 'Checkout indienen...' : accepteer ? 'Versturen' : 'Accepteren'}
+        </Button>
+      </div>
+    </div>
+  </form>
+</Form>
     </LocalizationProvider>
     </>
   )

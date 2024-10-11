@@ -16,15 +16,15 @@ import { TimePicker } from '@mui/x-date-pickers/TimePicker/TimePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import ReactStars from "react-rating-stars-component";
 import DropdownPauze from '../shared/DropdownPauze';
+import { ShiftType } from '@/app/lib/models/shift.model';
 
 
 
-export default function CheckoutCard({isVisible, onClose, shiftId} : {isVisible: boolean, onClose: any, shiftId: string}) {
+export default function CheckoutCard({isVisible, onClose, shift} : {isVisible: boolean, onClose: any, shift: ShiftType}) {
     if (!isVisible) return null;
     const { control } = useForm();
     const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T08:00'));
     const [eindtijd, setEindtijd] = useState<Dayjs | null>(dayjs('2022-04-17T16:30'));
-    const [checkout, setCheckout] = useState<any>(null);
 
 
   const DefaultValues = {
@@ -41,27 +41,16 @@ export default function CheckoutCard({isVisible, onClose, shiftId} : {isVisible:
       defaultValues: DefaultValues,
     })
 
-    useEffect(() => {
-        const fetchCheckout = async () => {
-            try {
-                const data = await haalShiftMetIdCard(shiftId);
-                setCheckout(data);
-            } catch (error) {
-                console.error('Failed to fetch checkout data:', error);
-            }
-        };
 
-        fetchCheckout();
-    }, [shiftId]);
 
     async function onSubmit(values: z.infer<typeof CheckoutValidation>) {
         try {
             await vulCheckout({
-                shiftId,
+                shiftId: shift._id,
                 rating: values.rating || 5,
-                begintijd: values.begintijd || checkout?.begintijd,
-                eindtijd: values.eindtijd || checkout?.eindtijd,
-                pauze: values.pauze || checkout?.pauze,
+                begintijd: values.begintijd || shift?.begintijd,
+                eindtijd: values.eindtijd || shift?.eindtijd,
+                pauze: values.pauze || shift?.pauze,
                 feedback: values.feedback || "",
                 opmerking: values.opmerking || ""
             });
@@ -70,7 +59,7 @@ export default function CheckoutCard({isVisible, onClose, shiftId} : {isVisible:
         }
     }
 
-    if (!checkout) {
+    if (!shift) {
         return <div>Loading...</div>;
     }
 
@@ -84,7 +73,7 @@ export default function CheckoutCard({isVisible, onClose, shiftId} : {isVisible:
                         <div className="flex-none justify-center items-center self-end px-6 pt-4">
                             <Image
                                 className="object-cover rounded-lg"
-                                src={checkout?.shift?.afbeelding || ''}
+                                src={shift?.afbeelding || ''}
                                 alt="profielfoto"
                                 width={32}
                                 height={32}
@@ -93,18 +82,18 @@ export default function CheckoutCard({isVisible, onClose, shiftId} : {isVisible:
                     </dl>
                     <dl className="flex flex-wrap border-b  border-gray-900/5 px-6 pb-6">
           <div className="mt-6 flex w-full flex-auto gap-x-4  border-t border-gray-900/5 px-6 pt-6">
-              <p className="text-sm font-semibold leading-6 text-gray-900"> {checkout?.opdrachtgever?.voornaam || 'Opdrachtgever naam'}, {checkout?.shift?.functie || 'Functie'}</p>
-            <dd className="text-sm leading-6 text-gray-500">{checkout?.opdrachtgever?.stad || 'Stad'}</dd>
+              <p className="text-sm font-semibold leading-6 text-gray-900"> {shift.opdrachtgeverNaam|| 'Opdrachtgever naam'}, {shift?.functie || 'Functie'}</p>
+            <dd className="text-sm leading-6 text-gray-500">{shift.adres || 'Stad'}</dd>
           </div>
           <div className="mt-4 flex w-full flex-auto gap-x-4 px-6">
-              <span className="text-sm font-semibold leading-6 text-gray-900">{checkout?.datum ? new Date(checkout.datum).toLocaleDateString() : 'Datum'}, {checkout?.begintijd ? new Date(checkout.begintijd).toLocaleTimeString() : 'Begintijd'} - {checkout?.eindtijd ? new Date(checkout.eindtijd).toLocaleTimeString() : 'Eindtijd'}
+              <span className="text-sm font-semibold leading-6 text-gray-900">{shift?.begindatum ? new Date(shift.begindatum).toLocaleDateString() : 'Datum'}, {shift?.begintijd ? new Date(shift.begintijd).toLocaleTimeString() : 'Begintijd'} - {shift?.eindtijd ? new Date(shift.eindtijd).toLocaleTimeString() : 'Eindtijd'}
         </span>
             <dd className="text-sm leading-6 text-gray-500">
-              <p className="text-sm leading-6 text-gray-500">{checkout?.pauze || 0} minuten</p>
+              <p className="text-sm leading-6 text-gray-500">{shift?.pauze || 0} minuten</p>
             </dd>
           </div>
           <div className="mt-4 flex w-full flex-auto gap-x-4 px-6">
-              <p className="text-sm font-semibold leading-6 text-gray-900">€{checkout?.uurtarief || '14.00'}</p>
+              <p className="text-sm font-semibold leading-6 text-gray-900">€{shift?.uurtarief || '14.00'}</p>
             <dd className="text-sm leading-6 text-gray-500">p/u</dd>
           </div>
         </dl>

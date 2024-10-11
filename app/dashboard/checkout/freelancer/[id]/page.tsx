@@ -20,6 +20,7 @@ import DashNav from '@/app/components/shared/DashNav';
 import { haalShiftMetIdCard } from '@/app/lib/actions/shift.actions';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { toast } from '@/app/components/ui/use-toast';
 
 
 export type SearchParamProps = {
@@ -64,7 +65,7 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
 
     async function onSubmit(values: z.infer<typeof CheckoutValidation>) {
         try {
-            await vulCheckout({
+          const response = await vulCheckout({
                 shiftId : id,
                 rating: values.rating || 5,
                 begintijd: values.begintijd || checkout?.begintijd,
@@ -73,6 +74,18 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
                 feedback: values.feedback || "",
                 opmerking: values.opmerking || ""
             });
+            if (response.success) {
+              toast({
+                variant: 'succes',
+                description: "Checkout verstuurd! 👍"
+              });
+              router.back();
+            } else {
+              toast({
+                variant: 'destructive',
+                description: "Actie is niet toegestaan! ❌"
+              });
+            }
         } catch (error) {
             console.error('Failed to submit checkout:', error);
         }
@@ -87,152 +100,142 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
      <LocalizationProvider dateAdapter={AdapterDateFns}>
     <DashNav />
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="fixed inset-0 mt-14 bg-black bg-opacity-25 backdrop-blur-sm flex justify-center items-center overflow-hidden w-auto">
-        <div className="fixed inset-0 bg-black bg-opacity-25 backdrop-blur-sm flex justify-center items-center overflow-hidden w-auto">
-          <div className="lg:col-start-3 lg:row-end-1 max-w-lg w-full">
-            <div className="rounded-lg bg-gray-50 shadow-sm ring-1 ring-gray-900/5">
-              <dl className="flex flex-wrap">
-                <div className="flex-none justify-center items-center self-end px-6 pt-4">
-                  <Image
-                    className="object-cover rounded-lg"
-                    src={checkout?.shift?.afbeelding || ''}
-                    alt="profielfoto"
-                    width={32}
-                    height={32} />
-                </div>
-              </dl>
-              <dl className="flex flex-wrap border-b  border-gray-900/5 px-6 pb-6">
-                <div className="mt-6 flex w-full flex-auto gap-x-4  border-t border-gray-900/5 px-6 pt-6">
-                  <p className="text-sm font-semibold leading-6 text-gray-900"> {checkout?.opdrachtgever?.voornaam || 'Opdrachtgever naam'}, {checkout?.shift?.functie || 'Functie'}</p>
-                  <dd className="text-sm leading-6 text-gray-500">{checkout?.opdrachtgever?.stad || 'Stad'}</dd>
-                </div>
-                <div className="mt-4 flex w-full flex-auto gap-x-4 px-6">
-                  <span className="text-sm font-semibold leading-6 text-gray-900">{checkout?.datum ? new Date(checkout.datum).toLocaleDateString() : 'Datum'}, {checkout?.begintijd ? new Date(checkout.begintijd).toLocaleTimeString() : 'Begintijd'} - {checkout?.eindtijd ? new Date(checkout.eindtijd).toLocaleTimeString() : 'Eindtijd'}
-                  </span>
-                  <dd className="text-sm leading-6 text-gray-500">
-                    <p className="text-sm leading-6 text-gray-500">{checkout?.pauze || 0} minuten</p>
-                  </dd>
-                </div>
-                <div className="mt-4 flex w-full flex-auto gap-x-4 px-6">
-                  <p className="text-sm font-semibold leading-6 text-gray-900">€{checkout?.uurtarief || '14.00'}</p>
-                  <dd className="text-sm leading-6 text-gray-500">p/u</dd>
-                </div>
-              </dl>
-              <div className="px-6 py-4 space-y-4">
-                <FormField
-                  control={form.control}
-                  name="pauze"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormControl>
-                        <DropdownPauze onChangeHandler={field.onChange} value={field.value} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-              </div>
-              <div className="flex flex-col gap-5 md:flex-row">
-                <Controller
-                  control={control}
-                  name="begintijd"
-                  render={({ field }) => (
-                    <div className="w-full">
-                      <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-grey-50 px-4 py-2">
-                        <Image
-                          src="/assets/icons/calendar.svg"
-                          alt="calendar"
-                          width={24}
-                          height={24}
-                          className="filter-grey" />
-                        <p className="ml-3 whitespace-nowrap text-grey-600">Begintijd:</p>
-                        <TimePicker
-                          label="Begintijd"
-                          value={begintijd}
-                          onChange={(newValue) => setBegintijd(newValue)} />
-                      </div>
-                    </div>
-                  )} />
+  <form
+    onSubmit={form.handleSubmit(onSubmit)}
+    className="fixed inset-0 mt-14 bg-black bg-opacity-25 backdrop-blur-lg flex justify-center items-center overflow-hidden w-auto px-4 md:px-0"
+  >
+    <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6">
+      {/* Image & Title Section */}
+      <div className="flex items-center gap-4 pb-4 border-b border-gray-200">
+        <Image
+          className="object-cover rounded-lg w-16 h-16"
+          src={checkout?.afbeelding || ''}
+          alt="afbeelding"
+          width={64}
+          height={64}
+        />
+        <div>
+          <p className="text-lg font-semibold text-gray-800">{checkout?.opdrachtgeverNaam || 'Opdrachtgever naam'}, {checkout?.shift?.functie || 'Functie'}</p>
+          <p className="text-gray-500">{checkout?.opdrachtgever?.stad || 'Stad'}</p>
+        </div>
+      </div>
 
-                <Controller
-                  control={control}
-                  name="eindtijd"
-                  render={({ field }) => (
-                    <div className="w-full">
-                      <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-grey-50 px-4 py-2">
-                        <Image
-                          src="/assets/icons/calendar.svg"
-                          alt="calendar"
-                          width={24}
-                          height={24}
-                          className="filter-grey" />
-                        <p className="ml-3 whitespace-nowrap text-grey-600">Eindtijd:</p>
-                        <TimePicker
-                          label="Eindtijd"
-                          value={eindtijd}
-                          onChange={(newValue) => setEindtijd(newValue)} />
-                      </div>
-                    </div>
-                  )} />
-              </div>
+      {/* Date & Time Information */}
+      <div className="mt-4 mb-6">
+        <div className="flex justify-between text-gray-700">
+          <span>{checkout?.begindatum ? new Date(checkout.begindatum).toLocaleDateString() : 'Datum'}, {checkout?.begintijd || 'Begintijd'} - {checkout?.eindtijd || 'Eindtijd'}</span>
+          <span>{checkout?.pauze || 0} minuten pauze</span>
+        </div>
+        <div className="text-gray-500 text-sm mt-1">
+          <p>Uurtarief: €{checkout?.uurtarief || '14.00'} p/u</p>
+        </div>
+      </div>
 
-              <div className="flex flex-col gap-5 md:flex-row">
-                <FormField
-                  control={form.control}
-                  name="rating"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormControl className="h-72">
-                        <ReactStars
-                          count={5}
-                          size={24}
-                          isHalf={true}
-                          emptyIcon={<i className="far fa-star"></i>}
-                          halfIcon={<i className="fa fa-star-half-alt"></i>}
-                          fullIcon={<i className="fa fa-star"></i>}
-                          activeColor="#ffd700"
-                          {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-                <div className="border-t border-gray-900/5 px-6 py-6 flex justify-center items-center">
-                  <Button className="bg-red-500 text-white border-2 border-red-500 hover:text-black" onClick={() => router.back()}>
-                    Niet gewerkt
-                  </Button>
-                </div>
-                <FormField
-                  control={form.control}
-                  name="opmerking"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormControl className="h-72">
-                        <Textarea placeholder="opmerking" {...field} className="textarea rounded-2xl" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )} />
-              </div>
-              <div className="border-t border-gray-900/5 px-6 py-6 flex justify-between">
-                <Button className="bg-white text-black border-2 border-black hover:text-white" onClick={() => router.back()}>
-                  Annuleren
-                </Button>
-                <Button
-                  type="submit"
-                  size="lg"
-                  disabled={form.formState.isSubmitting}
-                  className="bg-sky-500"
-                >
-                  {form.formState.isSubmitting ? 'Checkout indienen...' : 'Indienen'}
-                </Button>
+      {/* Dropdown for Pauze */}
+      <div className="mt-4">
+        <FormField
+          control={form.control}
+          name="pauze"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <DropdownPauze onChangeHandler={field.onChange} value={field.value} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      {/* Time Pickers */}
+      <div className="flex gap-4 my-4">
+        <Controller
+          control={control}
+          name="begintijd"
+          render={({ field }) => (
+            <div className="w-full">
+              <div className="flex items-center h-12 rounded-full bg-gray-100 px-4 py-2">
+                <Image
+                  src="/assets/icons/calendar.svg"
+                  alt="calendar"
+                  width={24}
+                  height={24}
+                  className="mr-2"
+                />
+                <TimePicker label="Begintijd" value={begintijd} onChange={(newValue) => setBegintijd(newValue)} />
               </div>
             </div>
-          </div>
-        </div>
-      </form>
-    </Form>
+          )}
+        />
+        <Controller
+          control={control}
+          name="eindtijd"
+          render={({ field }) => (
+            <div className="w-full">
+              <div className="flex items-center h-12 rounded-full bg-gray-100 px-4 py-2">
+                <Image
+                  src="/assets/icons/calendar.svg"
+                  alt="calendar"
+                  width={24}
+                  height={24}
+                  className="mr-2"
+                />
+                <TimePicker label="Eindtijd" value={eindtijd} onChange={(newValue) => setEindtijd(newValue)} />
+              </div>
+            </div>
+          )}
+        />
+      </div>
+
+      {/* Rating and Comments */}
+      <div className="my-4">
+        <FormField
+          control={form.control}
+          name="rating"
+          render={({ field }) => (
+            <FormItem className="w-full">
+              <FormControl>
+                <ReactStars count={5} size={24} isHalf={true} activeColor="#ffd700" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+      <div className="my-4">
+        <FormField
+          control={form.control}
+          name="opmerking"
+          render={({ field }) => (
+            <FormItem className="w-full">
+              <FormControl>
+                <Textarea placeholder="Opmerking" {...field} className="textarea rounded-lg" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      {/* Buttons */}
+      <div className="flex justify-between mt-6">
+        <Button className="bg-white text-gray-800 border border-gray-300 hover:bg-gray-100" onClick={() => router.back()}>
+          Annuleren
+        </Button>
+        <Button
+          type="submit"
+          size="lg"
+          disabled={form.formState.isSubmitting}
+          className="bg-blue-500 text-white hover:bg-blue-600"
+        >
+          {form.formState.isSubmitting ? 'Checkout indienen...' : 'Indienen'}
+        </Button>
+      </div>
+    </div>
+  </form>
+</Form>
     </LocalizationProvider>
     </>
-
   )
 }
        

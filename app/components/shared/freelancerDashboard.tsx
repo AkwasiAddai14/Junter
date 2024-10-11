@@ -3,8 +3,7 @@
 import * as React from "react";
 import ShiftCard from '../cards/ShiftArrayCard';
 import Card from '../cards/ShiftCard';
-import FactuurCard from '../cards/FactuurCard';
-import { Slider } from "@/app/components/ui/slider"  
+import FactuurCard from '../cards/FactuurCard'; 
 import { Button } from '@/app/components/ui/button'
 import { ScrollArea } from "@/app/components/ui/scroll-area"
 import { useUser } from "@clerk/nextjs"
@@ -30,8 +29,33 @@ import { haalFacturenFreelancer } from "@/app/lib/actions/factuur.actions"
 import { haalAlleBedrijven } from "@/app/lib/actions/bedrijven.actions"
 import { filterShift, haalAangemeld, getCoordinatesFromAddress } from "@/app/lib/actions/shift.actions"
 import { IShiftArray } from "@/app/lib/models/shiftArray.model"
+import Box from '@mui/material/Box';
+import Slider from '@mui/material/Slider';
+import Typography from '@mui/material/Typography';
 
+const MAX = 100;
+const MIN = 0;
+const euromarks = [
+  {
+    value: MIN,
+    label: '€',
+  },
+  {
+    value: MAX,
+    label: '€',
+  },
+];
 
+const distancemarks = [
+  {
+    value: MIN,
+    label: 'km',
+  },
+  {
+    value: MAX,
+    label: 'km',
+  },
+];
 
 const navigation = [
   { name: 'Shifts', value: 'Shifts', icon: HomeIcon },
@@ -97,6 +121,14 @@ export default function Example() {
   const [aangemeld, setAangemeld] = useState<any[]>([]);
   const [geaccepteerd, setGeaccepteerd] = useState<any[]>([]);
   const [adres, setAdres] = useState<any>(null);
+  const [euroVal, setEuroVal] = React.useState<number>(MIN);
+  const handleChange = (_: Event, newValue: number | number[]) => {
+    setEuroVal(newValue as number);
+  };
+  const [distanceVal, setDistanceVal] = React.useState<number>(MIN);
+  const handleChange = (_: Event, newValue: number | number[]) => {
+    setDistanceVal(newValue as number);
+  };
   
   
   useEffect(() => {
@@ -125,7 +157,7 @@ export default function Example() {
     if (user && !freelancerId) {  // Only fetch if user exists and freelancerId is not already set
       getFreelancerId();
     }
-  }, [user, freelancerId]);
+  }, [freelancerId]);
 
   useEffect(() => {
     const fetchShifts = async () => {
@@ -158,7 +190,7 @@ export default function Example() {
             if (response) {
               // Filter and separate shifts based on their status
               const geaccepteerdShifts = response.filter((shift: { status: string; }) => shift.status === 'aangenomen');
-              const aangemeldShifts = response.filter((shift: { status: string; }) => shift.status !== 'aangenomen' || 'voltooi checkout');
+              const aangemeldShifts = response.filter((shift: { status: string; }) => shift.status !== 'aangenomen');
               // Set the state with the filtered shifts
               setGeaccepteerd(geaccepteerdShifts);
               setAangemeld(aangemeldShifts);
@@ -178,7 +210,7 @@ export default function Example() {
   useEffect(() => {
     const fetchFactuur = async () => {
       try {
-        const response = await haalFacturenFreelancer(freelancerId);
+        const response = await haalFacturenFreelancer(freelancerId || user!.id);
         setFactuur(response || []);
       } catch (error) {
         console.error('Error fetching factuur:', error);
@@ -193,7 +225,7 @@ export default function Example() {
       try {
         if(freelancerId !== ""){
           const response = await haalCheckouts(freelancerId);
-          setCheckout(response || []);
+          setCheckout(response || aangemeld.filter((shift: { status: string; }) => shift.status === 'voltooi checkout'));
         } else {
           console.log("Freelancer ID invalid")
         }
@@ -208,7 +240,7 @@ export default function Example() {
     useEffect(() => {
       const fetchFlexpool = async () => {
         try {        
-          const flexpools = await haalFlexpoolFreelancer(freelancerId);
+          const flexpools = await haalFlexpoolFreelancer(freelancerId || user?.id as string);
           setFlexpool(flexpools || []);
         } catch (error){
           console.log('Error fetching flexpools:', error);
@@ -271,7 +303,8 @@ export default function Example() {
     return naam.includes(query.toLowerCase());
   });
  
-console.log(aangemeld);
+console.log(aangemeld, checkout, freelancerId, user?.id);
+const bedrijfsnaam = "Junter";
   
   return (
     <Fragment>
@@ -397,7 +430,7 @@ console.log(aangemeld);
                 </ComboboxOption>
                 <ComboboxOption
                 key={"Alle shifts"}
-                value={"Alle shifts"}
+                value={bedrijfsnaam}
                 onClick={() => setPosition('Shifts')}
                 className="group relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 data-[focus]:bg-sky-600 data-[focus]:text-white"
                 >
@@ -616,22 +649,64 @@ console.log(aangemeld);
           <p className="mt-20">
             Tarief
           </p>
-          <Slider
-            defaultValue={[14, 100]}
-            step={5}
-            className="mt-5"
-            onChange={(value) => setTarief(value as unknown as number)}
-            />
+            <Box sx={{ width: 250 }}>
+      <Slider
+        marks={marks}
+        step={10}
+        value={val}
+        valueLabelDisplay="auto"
+        min={MIN}
+        max={MAX}
+        onChange={(value) => setTarief(value as unknown as number)}
+      />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Typography
+          variant="body2"
+          onClick={() => setVal(MIN)}
+          sx={{ cursor: 'pointer' }}
+        >
+          €{MIN} min
+        </Typography>
+        <Typography
+          variant="body2"
+          onClick={() => setVal(MAX)}
+          sx={{ cursor: 'pointer' }}
+        >
+          €{MAX} 
+        </Typography>
+      </Box>
+    </Box>
          </div>
          <p className="mt-20">
             Afstand
          </p>
-         <Slider
-           defaultValue={[5, 100]}
-           step={5}
-           className="mt-5"
-           onChange={(value) => setAfstand(value as unknown as number)} 
-           />
+           <Box sx={{ width: 250 }}>
+      <Slider
+        marks={marks}
+        step={10}
+        value={val}
+        valueLabelDisplay="auto"
+        min={MIN}
+        max={MAX}
+        onChange={(value) => setAfstand(value as unknown as number)}
+      />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Typography
+          variant="body2"
+          onClick={() => setVal(MIN)}
+          sx={{ cursor: 'pointer' }}
+        >
+          {MIN} km
+        </Typography>
+        <Typography
+          variant="body2"
+          onClick={() => setVal(MAX)}
+          sx={{ cursor: 'pointer' }}
+        >
+          {MAX} km
+        </Typography>
+      </Box>
+    </Box>
          <div>
           <div className="justify-between">
           <Button className="mt-20 bg-white text-black border-2 border-black mr-10" onClick={() =>  setPosition("Shifts") } >

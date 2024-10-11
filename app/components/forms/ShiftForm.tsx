@@ -426,7 +426,11 @@ if (files.length > 0) {
               <FormItem className="w-full">
                  <FormLabel className="justify-end font-semibold">Titel</FormLabel>
                 <FormControl>
-                  <Input placeholder="enthousiaste horecatoppers gezocht" {...field} className="input-field" />
+                  <Input 
+                  placeholder={selectedShift ? selectedShift.titel : "enthousiaste horecatoppers gezocht"}
+                  defaultValue={selectedShift ? selectedShift.titel : undefined} 
+                  {...field} 
+                  className="input-field" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -440,7 +444,11 @@ if (files.length > 0) {
                 <FormLabel>Categorie</FormLabel>
                 <FormControl>
                 <div className="flex-center  h-[54px] w-full overflow-hidden rounded-full bg-gray-50 px-4 py-2">
-                <DropdownCategorie onChangeHandler={field.onChange} value={field.value} />
+                <DropdownCategorie 
+                defaultValue={selectedShift ? selectedShift.categorie : undefined}
+                onChangeHandler={field.onChange} 
+                value={field.value} 
+                />
                 </div>
                 </FormControl>
                 <FormMessage />
@@ -456,7 +464,12 @@ if (files.length > 0) {
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormControl className="h-72">
-                  <Textarea placeholder="beschrijving" {...field} className="textarea rounded-2xl" />
+                  <Textarea 
+                  {...field}
+                  placeholder={selectedShift ? selectedShift.beschrijving : "beschrijving"}
+                  defaultValue={selectedShift ? selectedShift.beschrijving : undefined } 
+                  className="textarea rounded-2xl" 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -468,7 +481,7 @@ if (files.length > 0) {
             render={({ field }) => (
               <FormItem className="w-full">
                 <FormControl className="h-72">
-                  <FileUploader onFieldChange={field.onChange} imageUrl={field.value} setFiles={setFiles} />
+                  <FileUploader onFieldChange={field.onChange} imageUrl={selectedShift ? selectedShift.afbeelding : field.value} setFiles={setFiles} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -487,7 +500,11 @@ if (files.length > 0) {
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-6">
                   <path fillRule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />
                   </svg>
-                    <Input placeholder={adres ? adres : "locatie" } {...field} className="input-field" />
+                    <Input
+                     placeholder={selectedShift ? selectedShift.adres : adres : "locatie" } 
+                     defaultValue={ slectedShift ? selectedShift.adres : undefined}
+                     {...field} 
+                     className="input-field" />
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -555,7 +572,7 @@ if (files.length > 0) {
     <div className="w-full">
       <TimePicker
         label="Begintijd"
-        value={begintijd}
+        value={selectedShift ? selectedShift.begintijd : begintijd}
         onChange={(newValue) => {
           console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "08:00");
           const formattedTime = newValue ? newValue.format("HH:mm") : "08:00";
@@ -575,7 +592,7 @@ if (files.length > 0) {
                 <div className="">
                 <TimePicker
           label="Eindtijd"
-          value={eindtijd}
+          value={selectedShift ? selectedShift.eindtijd : eindtijd}
           onChange={(newValue) => {
             console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "08:00");
             const formattedTime = newValue ? newValue.format("HH:mm") : "08:00";
@@ -602,7 +619,7 @@ if (files.length > 0) {
                 <path fillRule="evenodd" d="M7.5 5.25a3 3 0 0 1 3-3h3a3 3 0 0 1 3 3v.205c.933.085 1.857.197 2.774.334 1.454.218 2.476 1.483 2.476 2.917v3.033c0 1.211-.734 2.352-1.936 2.752A24.726 24.726 0 0 1 12 15.75c-2.73 0-5.357-.442-7.814-1.259-1.202-.4-1.936-1.541-1.936-2.752V8.706c0-1.434 1.022-2.7 2.476-2.917A48.814 48.814 0 0 1 7.5 5.455V5.25Zm7.5 0v.09a49.488 49.488 0 0 0-6 0v-.09a1.5 1.5 0 0 1 1.5-1.5h3a1.5 1.5 0 0 1 1.5 1.5Zm-3 8.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clipRule="evenodd" />
                 <path d="M3 18.4v-2.796a4.3 4.3 0 0 0 .713.31A26.226 26.226 0 0 0 12 17.25c2.892 0 5.68-.468 8.287-1.335.252-.084.49-.189.713-.311V18.4c0 1.452-1.047 2.728-2.523 2.923-2.12.282-4.282.427-6.477.427a49.19 49.19 0 0 1-6.477-.427C4.047 21.128 3 19.852 3 18.4Z" />
                </svg>
-               <DropdownPauze onChangeHandler={field.onChange} value={field.value} />
+               <DropdownPauze onChangeHandler={field.onChange} value={selectedShift ? selectedShift.pauze : field.value} />
                   </div>
                 </FormControl>
                 <FormMessage />
@@ -622,8 +639,9 @@ if (files.length > 0) {
                   </svg>
                     <Input
                       type="number"
-                      placeholder="uurtarief"
-                      {...field}
+                      placeholder={selectedShift ? selectedShift.uurtarief : "uurtarief"}
+                      { ...field}
+                      defaultValue={selectedShift ? selectedShift.uurtarief : undefined}
                       className="p-regular-16 border-0 bg-grey-50 outline-offset-0 focus:border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                       onChange={(e) => field.onChange(Number(e.target.value))}
                     />
@@ -645,9 +663,10 @@ if (files.length > 0) {
                   <path d="M5.25 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM2.25 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM18.75 7.5a.75.75 0 0 0-1.5 0v2.25H15a.75.75 0 0 0 0 1.5h2.25v2.25a.75.75 0 0 0 1.5 0v-2.25H21a.75.75 0 0 0 0-1.5h-2.25V7.5Z" />
                   </svg>
                     <Input
-                      type="number"
-                      placeholder="Plekken"
                       {...field}
+                      type="number"
+                      placeholder={selectedShift ? selectedShift.plekken : "Plekken"}
+                      defaultValue={selectedShift ? selectedShift.plekken : undefined}
                       className="p-regular-16 border-0 bg-grey-50 outline-offset-0 focus:border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                       onChange={(e) => field.onChange(Number(e.target.value))}
                     />
@@ -669,7 +688,7 @@ if (files.length > 0) {
                 <FormControl>
                   <Input
                     placeholder="nederlands, engels, met 3 borden lopen, dienblad lopen, wijn presenteren, wijn inschenken, bestellingen opnemen"
-                    {...field}
+                    {selectedShift ? selectedShift.vaardigheden : ...field}
                     className="input-field"
                   />
                 </FormControl>
@@ -686,7 +705,7 @@ if (files.length > 0) {
                 <FormControl>
                   <Input
                     placeholder="zwarte schoenen, zwarte broek/pantalon, wit overhemd"
-                    {...field}
+                    {selectedShift? : selectedShift.kledingsvoorschriften : ...field}
                     className="input-field"
                   />
                 </FormControl>

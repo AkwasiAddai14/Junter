@@ -97,10 +97,13 @@ export const haalOngepubliceerdeShifts = async ({ bedrijfId }: { bedrijfId: stri
       throw new Error(`Bedrijf with ID ${bedrijfId} not found or shifts not available`);
     }
 
-    const shiftArrays = await ShiftArray.find({ _id: { $in: bedrijf.shifts } }, {beschikbaar: false})
+    const shiftArrays = await ShiftArray.find(
+      { _id: { $in: bedrijf.shifts } }, 
+      {beschikbaar: false},
+      { status: 'container' },
+      )
       .populate('shifts')
       .lean(); // Use lean to return plain JS objects
-
     console.log("ShiftArrays: ", JSON.stringify(shiftArrays, null, 2)); // Pretty print the objects for better readability
 
     return shiftArrays;
@@ -118,7 +121,8 @@ export const fetchUnpublishedShifts = async (bedrijfId: string) => {
       const id = bedrijf._id;
       shiftArrays = await ShiftArray.find(
         { opdrachtgever: id }, 
-        { beschikbaar: false }
+        { beschikbaar: false },
+        { status: 'container' }
       )
     }
 

@@ -9,7 +9,7 @@ import Image from 'next/image';
 import { haalFreelancer, updateFreelancer } from '@/app/lib/actions/freelancer.actions';
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/app/components/ui/form";
 import { useForm } from 'react-hook-form';
-import { FreelancerValidation } from "@/app/lib/validations/freelancer";
+import { ProfielValidation } from "@/app/lib/validations/profiel";
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from 'zod';
 import { Input } from '../ui/input';
@@ -54,15 +54,16 @@ export default function ProfielModal({isVisible, onClose} : {isVisible: boolean,
     kvknr: freelancer?.kvknr || "",
     btwid: freelancer?.btwid || "",
     iban: freelancer?.iban || "",
-    bio: freelancer?.bio || ""
+    bio: freelancer?.bio || "",
+    profielfoto: freelancer.profielfoto || "",
   };
 
-    const form = useForm<z.infer<typeof FreelancerValidation>>({
-      resolver: zodResolver(FreelancerValidation),
+    const form = useForm<z.infer<typeof ProfielValidation>>({
+      resolver: zodResolver(ProfielValidation),
       defaultValues: DefaultValues,
     })
 
-    async function onSubmit(values: z.infer<typeof FreelancerValidation>) {
+    async function onSubmit(values: z.infer<typeof ProfielValidation>) {
 
       let uploadedImageUrl = values.profielfoto;
 
@@ -89,34 +90,35 @@ if (files.length > 0) {
 
       try {
 
-        const updateInformatie = updateFreelancer({
-          clerkId: user!.id,
-          voornaam: freelancer.voornaam,
-          tussenvoegsel: freelancer.tussenvoegsel,
-          achternaam: freelancer.achternaam,
-          geboortedatum: freelancer.geboortedatum,
-          emailadres: values?.emailadres || freelancer.emailadres,
-          telefoonnummer: values?.telefoonnummer || freelancer.telefoonnummer,
-          postcode: freelancer.postcode,
-          huisnummer: freelancer.huisnummer,
-          straat: freelancer.straat,
-          stad: freelancer.stad,
-          korregeling: false,
-          btwid: values?.btwid || freelancer.btwid,
-          iban: values?.iban || freelancer.iban,
-          path: freelancer.path,
-          kvk: freelancer.kvknr,
-          bio: values?.bio || freelancer.bio,
-          profielfoto: values?.profielfoto || freelancer.profielfoto || user!.imageUrl,
-          werkervaring: freelancer.werkervaring,
-          vaardigheden: freelancer.vaardigheden,
-          opleidingen: freelancer.opleidingen,
-          cv: undefined,
-          bsn: '',
-          onboarded: true
-      })
+        const { voornaam, tussenvoegsel, achternaam, geboortedatum, postcode, huisnummer, straat, stad, kvknr, path, werkervaring, vaardigheden, opleidingen, profielfoto } = freelancer;
+        const { emailadres, telefoonnummer, btwid, iban, bio } = values || {};
 
-      if ((await updateInformatie).success) {
+const updateInformatie = await updateFreelancer({
+    clerkId: user!.id,
+    voornaam,
+    tussenvoegsel,
+    achternaam,
+    geboortedatum,
+    emailadres: emailadres || freelancer.emailadres,
+    telefoonnummer: telefoonnummer || freelancer.telefoonnummer,
+    postcode,
+    huisnummer,
+    straat,
+    stad,
+    korregeling: false,
+    btwid: btwid || freelancer.btwid,
+    iban: iban || freelancer.iban,
+    path,
+    kvk: kvknr,
+    bio: bio || freelancer.bio,
+    profielfoto: profielfoto || user!.imageUrl,
+    werkervaring,
+    vaardigheden,
+    opleidingen,
+    onboarded: true
+});
+
+      if (updateInformatie.success) {
         setTimeout(() => {
           toast({
             variant: 'succes', // Ensure you use 'success' (correct spelling)
@@ -135,6 +137,7 @@ if (files.length > 0) {
       }
     }
   
+    console.log(freelancer);
 
   return (
     <Form {...form}>
@@ -149,15 +152,14 @@ if (files.length > 0) {
               <dd className="mt-1 text-base font-semibold leading-6 text-gray-900">{freelancer?.stad} {freelancer?.leeftijd}</dd>
             </div>
             <div className="flex-none justify-center items-center self-end px-6 pt-4">
-            
-            <Image
-  className="h-8 w-8 rounded-full"
-  src={freelancer?.profielfoto || user?.imageUrl}
-  alt="profielfoto"
-  width={32}
-  height={32}
-  onClick={() => setOpen(true)}
-/>
+                  <Image
+                    className="h-8 w-8 rounded-full"
+                    src={freelancer?.profielfoto || user?.imageUrl}
+                    alt="profielfoto"
+                    width={32}
+                    height={32}
+                    onClick={() => setOpen(true)}
+                  />
 {open && (
   <FormField
     control={form.control}

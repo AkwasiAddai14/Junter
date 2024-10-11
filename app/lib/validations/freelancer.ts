@@ -20,7 +20,7 @@ export const FreelancerValidation = z.object({
     emailadres: z.string().optional(),
     korregeling: z.boolean().optional(),
     bsn: z.string().optional(),
-    btwid: z.string().min(12, "Voer een geldig BTW-ID nummer in."),
+    btwid: z.string().optional(),
     iban: z.string().min(18, "Voer een geldig IBAN in."),
     postcode: z.string().min(6, "Voer een geldig postcode in."),
     huisnummer: z.string(),

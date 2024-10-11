@@ -5,7 +5,7 @@ import cron from 'node-cron';
 import Shift from '../models/shift.model';
 import Bedrijf from "../models/bedrijf.model";
 import Freelancer, { IFreelancer } from "../models/freelancer.model";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { sendEmailBasedOnStatus } from '@/app/lib/actions/shift.actions.ts'
 import { currentUser } from "@clerk/nextjs/server";
 
@@ -44,7 +44,7 @@ export async function updateShiftsAndMoveToCheckout() {
             freelancer.checkouts = []; // Initialize the checkouts array if it doesn't exist
           }
           freelancer.checkouts.push(new mongoose.Types.ObjectId(shift._id));
-          await sendEmailBasedOnStatus(freelancer.emailadres as string, shift, 'voltooi checkout');
+          await sendEmailBasedOnStatus(freelancer.emailadres as string, shift, 'voltooi checkout', freelancer, shift.opdrachtgever);
           // Step 6: Save the updated shift and freelancer
           await shift.save();
           await freelancer.save();
@@ -71,13 +71,13 @@ export const vulCheckout = async ({ shiftId, rating, begintijd, eindtijd, pauze,
     try {
         await connectToDB();
 
-        const checkout = await Shift.findOne({ shift: shiftId });
+        const checkout = await Shift.findById( shiftId );
 
         if (!checkout) {
             throw new Error(`Checkout not found for shift ID: ${shiftId}`);
         }
 
-        const opdrachtgever = await Bedrijf.findById(checkout.opdrachtgever._id);
+        const opdrachtgever = await Bedrijf.findById(checkout.opdrachtgever);
 
             if (opdrachtgever) {
             const allRatings = await Shift.find({ opdrachtgever: opdrachtgever._id }).select('ratingBedrijf');
@@ -116,8 +116,8 @@ export const vulCheckout = async ({ shiftId, rating, begintijd, eindtijd, pauze,
         checkout.status = "checkout ingevuld"
         // Save the updated checkout document
         await checkout.save();
-
         console.log('Checkout fields updated successfully.');
+        return { success: true, message: "Checkout fields updated successfully."}
     } catch (error: any) {
         throw new Error(`Failed to update checkout: ${error.message}`);
     }
@@ -127,13 +127,18 @@ export const vulCheckout = async ({ shiftId, rating, begintijd, eindtijd, pauze,
 export const accepteerCheckout = async ({ shiftId, rating, feedback }: { shiftId: string; rating: number; feedback: string }) => {
     try {
         // Find the checkout document by shiftId
-        const checkout = await Shift.findOne({ shift: shiftId });
+        const checkout = await Shift.findById(shiftId);
         
         
         await Shift.updateOne(
-                { _id: shiftId },
-            { $set: { feedback: feedback } }
-        );
+          { _id: shiftId },
+          {
+              $set: {
+                  feedback: feedback,
+                  status: 'checkout geaccepteerd'
+              }
+          }
+      );
             
         if (!checkout) {
             throw new Error(`Checkout not found for shift ID: ${shiftId}`);
@@ -144,17 +149,17 @@ export const accepteerCheckout = async ({ shiftId, rating, feedback }: { shiftId
         const opdrachtnemerId = checkout.opdrachtnemer;
         const opdrachtgeverId = checkout.opdrachtgever
         // Update the shift status in the opdrachtnemer's shifts array
-        await Freelancer.updateOne(
+        /* await Freelancer.updateOne(
             { _id: opdrachtnemerId, 'shifts.shift': shiftId },
             { $set: { 'shifts.$.status': 'checkout geaccepteerd' } }
         );
         await Bedrijf.updateOne(
             { _id: opdrachtgeverId, 'shifts.shift': shiftId },
             { $set: { 'shifts.$.status': 'checkout geaccepteerd' } }
-        );
+        ); */
         // Get the opdrachtnemer's current rating and the total number of ratings
         const opdrachtnemer = await Freelancer.findById(opdrachtnemerId);
-        const currentRating = opdrachtnemer.rating || 0;
+        const currentRating = opdrachtnemer.rating || 5;
         const totalRatings = opdrachtnemer.ratingCount || 0;
 
         // Calculate the new average rating
@@ -167,7 +172,7 @@ export const accepteerCheckout = async ({ shiftId, rating, feedback }: { shiftId
             { _id: opdrachtnemerId },
             { $set: { rating: newAverageRating, ratingCount: newRatingCount } }
         );
-        await sendEmailBasedOnStatus(opdrachtnemer.emailadres as string, checkout, 'voltooi checkout');
+        await sendEmailBasedOnStatus(opdrachtnemer.emailadres as string, checkout, 'voltooi checkout', "freelancer", "shift.opdrachtgever");
         console.log('Checkout accepted successfully.');
     } catch (error: any) {
         throw new Error(`Failed to accept checkout: ${error.message}`);
@@ -177,7 +182,7 @@ export const accepteerCheckout = async ({ shiftId, rating, feedback }: { shiftId
 export const weigerCheckout = async ({ shiftId, rating, begintijd, eindtijd, pauze, feedback, opmerking } : CheckoutParams) => {
     try {
         // Find the checkout document by shiftId
-        const checkout = await Shift.findOne({ shift: shiftId });
+        const checkout = await Shift.findById(shiftId);
 
         if (!checkout) {
             throw new Error(`Checkout not found for shift ID: ${shiftId}`);
@@ -203,7 +208,7 @@ export const weigerCheckout = async ({ shiftId, rating, begintijd, eindtijd, pau
         }
 
         // Update the shift's status to 'Checkout geweigerd'
-        await Shift.updateOne({ shift: shiftId }, { $set: { status: 'Checkout geweigerd' } });
+        await Shift.updateOne({ _id: shiftId }, { $set: { status: 'Checkout geweigerd' } });
 
         console.log('Checkout geweigerd successfully.');
     } catch (error: any) {
@@ -229,40 +234,52 @@ export const noShowCheckout = async ({ shiftId }: { shiftId: string }) =>{
     }
 };
 
-export const haalCheckouts = async (userId: string) => {
+export const haalCheckouts = async (freelancerId: Types.ObjectId | string ) => {
   try {
     await connectToDB();
-
+    let freelancer;
+    if(mongoose.Types.ObjectId.isValid(freelancerId)){
+      freelancer = await Freelancer.findById(freelancerId);
     // Case 1: If freelancerId is provided
-    if (userId.toString() !== "") {
-      const freelancer = await Freelancer.findById(userId);
       if (freelancer) {
         // Find shifts where the freelancer is 'opdrachtnemer' and 'status' is 'voltooi checkout'
-        const filteredShifts = await Shift.find({ opdrachtnemer: freelancer._id, status: 'voltooi checkout' });
-       
+        const filteredShifts = await Shift.find({ 
+          opdrachtnemer: freelancer._id,
+          status: { $in: ['voltooi checkout', 'checkout geweigerd', 'checkout geaccepteerd'] }
+      });
+      console.log(filteredShifts);
         return filteredShifts;
-      } else {
-        console.log("Freelancer not found");
-        return [];
-      }
+      } 
     }
-
-    // Case 2: If freelancerId is not provided, use the logged-in user (Clerk)
-    const user = await currentUser();
-
-    if (user) {
-      const freelancer = await Freelancer.findOne({ clerkId: user.id });
-
-      if (freelancer) {
-        // Find shifts where the logged-in freelancer is 'opdrachtnemer' and 'status' is 'voltooi checkout'
-        const filteredShifts = await Shift.find({ opdrachtnemer: freelancer._id, status: 'voltooi checkout' });
-        return filteredShifts;
+      // Case 2: If freelancerId is not provided, use the logged-in user (Clerk)
+      if(freelancerId.toString() !== ""){
+        freelancer = await Freelancer.findOne({clerkId : freelancerId});
+        if (freelancer) {
+          // Find shifts where the logged-in freelancer is 'opdrachtnemer' and 'status' is 'voltooi checkout'
+          const filteredShifts = await Shift.find({ opdrachtnemer: freelancer._id,
+            status: { $in: ['voltooi checkout', 'checkout geweigerd', 'checkout geaccepteerd'] }
+            });
+          return filteredShifts;
+        } 
       } else {
-        console.log("No freelancer found for the current user");
-        return [];
+        const user = await currentUser();
+        if (user) {
+          freelancer = await Freelancer.findOne({ clerkId: user.id });
+          if (freelancer) {
+            // Find shifts where the logged-in freelancer is 'opdrachtnemer' and 'status' is 'voltooi checkout'
+            const filteredShifts = await Shift.find({ opdrachtnemer: freelancer._id,
+              status: { $in: ['voltooi checkout', 'checkout geweigerd', 'checkout geaccepteerd'] }
+               });
+            return filteredShifts;
+          } else {
+            console.log("No freelancer found for the current user");
+            return [];
+          }
+        } else {
+          console.log("Freelancer not found");
+          return [];
+        }
       }
-    }
-
     console.log("No user or freelancer found");
     return [];
   } catch (error: any) {
@@ -276,27 +293,22 @@ export const updateNoShowCheckouts = async () => {
       await connectToDB();
   
       // Find all freelancers
-      const freelancers = await Freelancer.find();
+      await connectToDB();
+      const twoDaysAgo = new Date();
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+      // Find all shifts with status 'checkout ingevuld'
+      const shifts = await Shift.find({ 
+        status: 'voltooi checkout', 
+        begindatum: { $lte: twoDaysAgo } 
+    });
   
-      // Iterate over each freelancer
-      for (const freelancer of freelancers) {
-        // Check each checkout in the freelancer's checkouts array
-        let hasUpdates = false;
-        for (const checkout of freelancer.checkouts) {
-          // Assuming checkout is a populated document, not just an ObjectId
-          if (checkout.status === 'voltooi checkout') {
-            checkout.status = 'no show';
-            hasUpdates = true; // Track if we need to save the freelancer
-          }
-        }
-  
-        // Save freelancer if any checkouts were updated
-        if (hasUpdates) {
-          await freelancer.save();
-          console.log(`Updated checkouts for freelancer ${freelancer._id}`);
+      if (shifts.length > 0) {
+        // Iterate over all shifts and update their status to 'checkout geaccepteerd'
+        for (const shift of shifts) {
+          shift.status = 'no show';
+          await shift.save(); // Save the updated shift
         }
       }
-  
       console.log('All relevant checkouts updated to no show.');
     } catch (error) {
       console.error('Error updating checkouts:', error);
@@ -308,9 +320,13 @@ export const updateNoShowCheckouts = async () => {
     try {
       // Ensure the DB is connected
       await connectToDB();
-  
+      const twoDaysAgo = new Date();
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
       // Find all shifts with status 'checkout ingevuld'
-      const shifts = await Shift.find({ status: 'checkout ingevuld' });
+      const shifts = await Shift.find({ 
+        status: 'checkout ingevuld', 
+        begindatum: { $lte: twoDaysAgo } 
+    });
   
       if (shifts.length > 0) {
         // Iterate over all shifts and update their status to 'checkout geaccepteerd'
@@ -328,7 +344,7 @@ export const updateNoShowCheckouts = async () => {
     }
   };
 
-  cron.schedule('0 0 * * 3', async () => {
+  cron.schedule('0 0 * * 4', async () => {
     try {
       console.log('Running updateNoShowCheckouts job at midnight on Wednesday');
   
@@ -345,7 +361,7 @@ export const updateNoShowCheckouts = async () => {
     }
   });
 
-cron.schedule('59 23 * * 3', async () => {
+cron.schedule('0 * * * *', async () => {
     try {
       const result = await updateShiftsAndMoveToCheckout();
       console.log(result.message);

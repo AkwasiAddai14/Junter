@@ -14,6 +14,9 @@ import dayjs from 'dayjs';
 import nodemailer from 'nodemailer';
 import { currentUser } from '@clerk/nextjs/server'
 import axios from "axios";
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+const path = require('path');
 
 
 export type voegAangepastParams = {
@@ -268,6 +271,7 @@ export const maakOngepubliceerdeShift = async ({
       vaardigheden,
       kledingsvoorschriften,
       beschikbaar: false,
+      status: 'container',
     });
 
      await shiftArray.save();
@@ -575,8 +579,83 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-export async function sendEmailBasedOnStatus(freelancerEmail: string, shiftDetails: any, status: string) {
+export async function sendEmailBasedOnStatus(freelancerEmail: string, shiftDetails: any, status: string, freelancerDetails: any, bedrijfsDetails: any,) {
     const emailContent = generateEmailContent(shiftDetails, status);
+
+    if (status === 'aangenomen') {
+      const pdfPath = path.join(__dirname, 'arbeidsovereenkomst.pdf');
+      const doc = new PDFDocument();
+  
+      doc.pipe(fs.createWriteStream(pdfPath));
+  
+      // Add content to PDF
+      doc.fontSize(16).text('Arbeidsovereenkomst', { align: 'center' });
+      doc.moveDown();
+      
+      doc.fontSize(12).text(`Titel: ${shiftDetails.titel}`);
+      doc.text(`Opdrachtgever: ${shiftDetails.opdrachtgeverNaam}`);
+      doc.text(`Datum: ${new Date(shiftDetails.begindatum).toLocaleDateString('nl-NL')}`);
+      doc.text(`Adres: ${shiftDetails.adres}`);
+      doc.text(`Uurtarief: €${shiftDetails.uurtarief}`);
+      doc.text(`Begintijd: ${shiftDetails.begintijd} Eindtijd: ${shiftDetails.eindtijd}`);
+      doc.text(`Pauze: ${shiftDetails.pauze} minuten`);
+      
+      doc.moveDown();
+  
+      doc.text(`ARBEIDSOVEREENKOMST VOOR FREELANCE DIENSTVERLENING`, { underline: true });
+      doc.text(`
+      Partijen:
+      
+      Junter, gevestigd te Termini 21, ingeschreven bij de Kamer van Koophandel onder nummer 70249032, hierna te noemen Bemiddelaar,
+      ${freelancerDetails.voornaam} ${freelancerDetails.achternaam}, woonachtig te ${freelancerDetails.stad}, ${freelancerDetails.straat} ${freelancerDetails.huisnummer}, hierna te noemen Opdrachtnemer,
+      ${bedrijfsDetails.displaynaam}, gevestigd te ${bedrijfsDetails.adres}, ingeschreven bij de Kamer van Koophandel onder nummer ${bedrijfsDetails.kvknr}, hierna te noemen Opdrachtgever.
+      
+      IN AANMERKING NEMENDE DAT:
+      
+      1. Diensten: ${shiftDetails.functie}
+      
+      2. Looptijd en Werktijden:
+         - Deze overeenkomst treedt in werking op ${new Date(shiftDetails.begindatum).toLocaleDateString('nl-NL')} en eindigt op ${new Date(shiftDetails.einddatum).toLocaleDateString('nl-NL')}.
+      
+      3. Vergoeding en Betaling:
+         - De Opdrachtgever betaalt de Freelancer een vergoeding van €${shiftDetails.uurtarief} per uur.
+         - Betalingen verlopen via de Bemiddelaar.
+      
+      4. Bemiddelingskosten:
+         - De Bemiddelaar ontvangt een bemiddelingsvergoeding van 3% voor het matchen van de Freelancer met de Opdrachtgever.
+      
+      5. Rechten en Verantwoordelijkheden:
+         - De Freelancer blijft verantwoordelijk voor de kwaliteit van zijn/haar werk.
+      
+      6. Geheimhouding en Vertrouwelijkheid:
+         - Beide partijen zullen alle vertrouwelijke informatie die ze in het kader van deze overeenkomst ontvangen strikt vertrouwelijk behandelen.
+      
+      7. Aansprakelijkheid:
+         - De Freelancer is aansprakelijk voor schade die voortvloeit uit opzet of grove nalatigheid bij de uitvoering van de werkzaamheden.
+      
+      8. Beëindiging van de Overeenkomst:
+         - Deze overeenkomst kan door beide partijen schriftelijk worden beëindigd met een opzegtermijn van 2 dagen.
+      
+      9. Toepasselijk Recht en Geschillen:
+         - Op deze overeenkomst is Nederlands recht van toepassing.
+      `);
+  
+      doc.moveDown();
+      doc.text(`Ondertekend te Amsterdam, op ${new Date().toLocaleDateString('nl-NL')}`, { align: 'right' });
+      
+      doc.moveDown();
+      doc.text(`Naam: Junter BV`, { indent: 20 });
+      doc.text(`Functie: Bemiddelaar`, { indent: 20 });
+      doc.moveDown();
+      doc.text(`Naam: ${freelancerDetails.voornaam} ${freelancerDetails.achternaam}`, { indent: 20 });
+      doc.text(`Naam: ${bedrijfsDetails.displaynaam}`, { indent: 20 });
+      doc.text(`Functie: Opdrachtgever`, { indent: 20 });
+      
+      doc.end();
+    }
+    
+
+
 
     const mailOptions = {
         from: process.env.EMAIL_USER,
@@ -857,10 +936,10 @@ export async function accepteerFreelancer({
 
       await removeFreelancerFromAanmeldingen({ shiftId, freelancerId });
 
-
+      const bedrijf = await Bedrijf.findById(firstShift.opdrachtgever);
       shiftArray.shifts.shift();
       await shiftArray.save();
-      await sendEmailBasedOnStatus(freelancer.emailadres, firstShift, 'aangenomen');
+      await sendEmailBasedOnStatus(freelancer.emailadres, firstShift, 'aangenomen', freelancer, bedrijf );
       await checkAndUpdateConflictingShifts({
         freelancerId: freelancerObjectId,
         acceptedShift: firstShift,
@@ -1167,6 +1246,7 @@ export async function haalGerelateerdShiftsMetCategorie({
 export const haalShiftMetIdCard = async (id: string) => {
   try {
     const shift = await Shift.findById(id)
+    console.log(shift)
     return shift;
   } catch (error) {
     console.error('Error fetching shift:', error);
@@ -1338,10 +1418,10 @@ export async function freelancerAfzeggen({
       checkoutEndTime.setHours(checkoutEndTime.getHours() + 4); // Set checkout time to 4 hours later
       shift.checkouteindtijd = `${checkoutEndTime.getHours().toString().padStart(2, '0')}:${checkoutEndTime.getMinutes().toString().padStart(2, '0')}`;
     }
-
+    const bedrijf = await Bedrijf.findById(shift.opdrachtgever)
     // Step 4: Save the updated shift
     await shift.save();
-    await sendEmailBasedOnStatus(freelancer.emailadres, shift, 'geannuleerd');
+    await sendEmailBasedOnStatus(freelancer.emailadres, shift, 'geannuleerd', freelancer, bedrijf);
     return { success: true, message: "Shift status successfully updated" };
   } catch (error: any) {
     throw new Error(`Failed to update shift status: ${error.message}`);
