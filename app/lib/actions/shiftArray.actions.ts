@@ -37,6 +37,18 @@ export const haalShifts = async (clerkId : string) => {
   }
 };
 
+export const haalAlleShifts = async () => {
+  try {
+    await connectToDB();
+
+    const allShiftArrays = await ShiftArray.find();
+
+    return allShiftArrays;
+  } catch (error) {
+    console.error('Error fetching shifts:', error);
+    throw new Error('Failed to fetch shifts');
+  }
+};
 
 
 export const haalShift = async (freelancerId: Types.ObjectId) => {

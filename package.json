@@ -12,6 +12,7 @@
         "@babel/core": "^7.24.5",
         "@babel/preset-env": "^7.24.5",
         "@babel/preset-react": "^7.24.1",
+        "@clerk/clerk-js": "^5.26.4",
         "@clerk/nextjs": "^5.2.8",
         "@date-io/date-fns": "^3.0.0",
         "@emotion/react": "^11.13.0",
