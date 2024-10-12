@@ -2,7 +2,7 @@
 # See https://firebase.google.com/docs/app-hosting/configure#cloud-run
 runConfig:
   minInstances: 0
-  maxInstances: 2
+  maxInstances: 1
   concurrency: 100
   cpu: 8
   memoryMiB: 16384
@@ -17,7 +17,38 @@ runConfig:
 
 #   - variable: API_KEY
 #     secret: myApiKeySecret
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_Y2xlcmsuanVudGVyLmV1JA
+CLERK_SECRET_KEY=sk_live_hEUWpfMYNnfUlApiG6l6b8uJLEatla9vrl3lyhvssW
 
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=../dashboard
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=../onboarding
+
+WEBHOOK_SECRET=whsec_PzZNJKnhGfzd89aTlvk/Q57ogmR24Hgm
+
+MONGODB_URL=mongodb+srv://akwasivdsm:Drve33REtwzIqqXo@thejunter.83qsl.mongodb.net/?retryWrites=true&w=majority&appName=thejunter
+
+NEXT_PUBLIC_KVK_API_KEY=l7119ed6bde5474075bfa02bb7507d9d28
+NEXT_PUBLIC_POSTCODE_API_KEY=VKORFv9vT86rFHlV80MgGaDVPE3BdEnq7jD7cMl8
+
+NEXT_PUBLIC_GEOCODE_API_KEY=AIzaSyA1tkEQeFSZ0ZXlw8sixTBxjcIdaOA2O0g
+
+UPLOADTHING_SECRET=sk_live_55bd572286d9a692f24c756638be4f61c79871fb87126f461a02a913e031efa3
+UPLOADTHING_APP_ID=4hsuaee5tl
+
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=noreply@junter.works
+EMAIL_PASS=crcw bigm ewno xhjs
+
+FIREBASE_API_KEY="AIzaSyDipsD5OWV6bR9Tlz9GXgf4wy1Vsg_16ZI"
+
+INVOICE_TEMPLATE_PATH = @/thejunter/public/Invoice_junter.pdf
+
+
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY_TEST=pk_test_Y29tbXVuYWwtc2hlZXBkb2ctNzEuY2xlcmsuYWNjb3VudHMuZGV2JA
+CLERK_SECRET_KEY_TEST=sk_test_FAYUaz6dweTkZpCHtIhHSPrstmgXC6lxY7Yd1JFezn
 # Environment variables and secrets.
 # env:
   # Configure environment variables.
