@@ -29,9 +29,6 @@ runConfig:
   #     - BUILD
   #     - RUNTIME
 
-  env:
-  variable: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-  value: pk_live_Y2xlcmsuanVudGVyLmV1JA
 
   # Grant access to secrets in Cloud Secret Manager.
   # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
