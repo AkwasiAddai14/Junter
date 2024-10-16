@@ -613,7 +613,7 @@ const bedrijfsnaam = "Junter";
                   </div>
                   </ScrollArea>
                 ) : ( 
-                <div>Nog geen facturen</div>
+                <div>Geen facturen gevonden</div>
                                )
                              : null
                             } 
