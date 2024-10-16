@@ -2,7 +2,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { connectToDB } from '@/app/lib/mongoose';
 import { useUser } from '@clerk/nextjs';
-import { haalFlexpool } from '@/app/lib/actions/flexpool.actions';
+import { haalFlexpoolFreelancer } from '@/app/lib/actions/flexpool.actions';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     await connectToDB();
@@ -15,10 +15,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
   
       try {
-        const shifts = await haalFlexpool(clerkId as string); // Use clerkId
+        const shifts = await haalFlexpoolFreelancer(clerkId as string); // Use clerkId
         res.status(200).json(shifts);
       } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch shifts' });
+        res.status(500).json({ error: 'Failed to fetch flexpools' });
       }
     } else {
       res.setHeader('Allow', ['GET']);
