@@ -6,7 +6,7 @@ import nodemailer from 'nodemailer';
 
   
   export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method === 'POST') {
+    if (req.method === 'GET' || req.method === 'POST') {
       const { clerkId,  message } = req.body;
         let freelancer;
       try {

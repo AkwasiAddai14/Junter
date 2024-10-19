@@ -203,7 +203,7 @@ console.log(freelancers)
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
-                        <div className="text-gray-900">{opdrachtnemer.rating} sterren</div>
+                        <div className="text-gray-900">{opdrachtnemer.rating.toFixed(2)} sterren</div>
                         <div className="mt-1 text-gray-500">{opdrachtnemer.klussen} klussen</div>
                       </td>
                       <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{opdrachtnemer.opkomst} %</td>
@@ -269,7 +269,7 @@ console.log(freelancers)
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
-                        <div className="text-gray-900">{reserve.rating} sterren</div>
+                        <div className="text-gray-900">{reserve.rating.toFixed(2)} sterren</div>
                         <div className="mt-1 text-gray-500">{reserve.klussen} klussen</div>
                       </td>
                       <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{reserve.opkomst} %</td>

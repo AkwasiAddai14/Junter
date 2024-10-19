@@ -11,7 +11,7 @@ import cron from 'node-cron';
 import { connectToDB } from '../mongoose';
 import Shift, { ShiftType } from '../models/shift.model';
 import { getWeek } from 'date-fns'; // Assuming you have date-fns installed
-import Freelancer from '../models/freelancer.model';
+import Freelancer, { IFreelancer } from '../models/freelancer.model';
 import Bedrijf from '../models/bedrijf.model';
 import { currentUser } from '@clerk/nextjs/server';
 
@@ -478,6 +478,34 @@ export async function haalFacturenFreelancer(id:string){
         throw new Error(`Failed to retrieve facturen: ${error.message}`);
     }
 }
+
+export async function haalAfgerondeShifts(clerkId: string){
+    try{
+        const freelancer = await Freelancer.findOne({clerkId: clerkId})
+
+        const shifts = await Shift.find(
+            {opdrachtnemer: freelancer._id},
+            { status: 'afgerond'}
+        )
+
+        return shifts;
+    } catch (error: any) {
+        console.error('Error retrieving shifts:', error);
+        throw new Error(`Failed to retrieve shifts: ${error.message}`);
+    }
+};
+
+export async function haalInShiftsFacturen(factuurId: any){
+    try {
+        const factuur = await Factuur.findById(factuurId);
+        const shiftIds = factuur.shifts;
+
+        const shifts = await Shift.find({ _id: { $in: shiftIds } });
+        return shifts;
+    } catch (error) {
+        
+    }
+};
 
 export async function haalFactuur (id: string){
     try{

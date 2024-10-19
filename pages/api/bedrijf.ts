@@ -5,7 +5,7 @@ import { fetchBedrijfByClerkId } from '@/app/lib/actions/bedrijven.actions';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     await connectToDB();
 
-    if (req.method === 'GET') {
+    if (req.method === 'GET' || req.method === 'POST') {
         const { clerkId } = req.query; // Get clerkId from query parameters
 
     if (!clerkId) {

@@ -6,6 +6,7 @@ import Bedrijf, { IBedrijf } from "../models/bedrijf.model";
 import Freelancer, { IFreelancer } from "../models/freelancer.model";
 import mongoose, { Types } from "mongoose";
 import { currentUser } from "@clerk/nextjs/server";
+import Shift from "../models/shift.model";
 
 
 
@@ -184,6 +185,25 @@ export const haalFlexpoolFreelancer = async (userId: Types.ObjectId | string ): 
   console.error('Error fetching flexpools:', error);
   throw new Error('Failed to fetch flexpools');
   }
+}
+
+export const haalShiftsInFlexpool =async (flexpoolId: string) => {
+  try {
+    await connectToDB();
+    const flexpool = await Flexpool.findById(flexpoolId);
+if (flexpool) {
+    const shifts = await Shift.find({ _id: { $in: flexpool.shifts } });
+    return shifts;
+    // Now you can safely use `shifts`
+} else {
+    console.error('Flexpool not found');
+}
+   
+  } catch(error) {
+    console.error('Error fetching shifts:', error);
+  throw new Error('Failed to fetch shifts');
+  }
+  
 }
 
 export const haalFlexpool = async (flexpoolId: string) => {

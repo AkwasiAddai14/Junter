@@ -8,8 +8,8 @@ export interface IFactuur extends Document {
     datum: Date;
     tijd: string;
     werkdatum: string;
-    totaalbedrag: string;
-    isVoltooid: string;
+    totaalbedrag: number; // Update to number
+    isVoltooid: boolean;  // Update to boolean
   }
 
 const factuurSchema = new mongoose.Schema({
@@ -29,7 +29,7 @@ const factuurSchema = new mongoose.Schema({
     datum: {type: Date, default: Date.now},
     tijd: {type: String, required: true},
     werkdatum: {type: String, required: true},
-    totaalbedrag: {type: String, required: true},
+    totaalbedrag: {type: Number, required: true},
     isVoltooid: {type: Boolean, default: false}
 });
 

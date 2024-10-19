@@ -1,10 +1,10 @@
 "use client"
 
 import Image from 'next/image';
-import foodDelivery from '@/app/assets/images/DALL·E 2024-07-20 12.58.16 - A food delivery driver biking through the city. The scene shows a vibrant urban environment with modern buildings, shops, and busy streets. The delive.webp';
-import forkliftDriver from '@/app/assets/images/DALL·E 2024-07-20 12.56.34 - A forklift driver working in a big warehouse. The scene shows a spacious industrial warehouse with tall shelves filled with various goods and pallets.webp';
-import clothingStore from '@/app/assets/images/DALL·E 2024-07-20 13.00.25 - Enthusiastic people working in a clothing store from a distance. The scene shows a vibrant urban environment with modern buildings and a bustling stre.webp';
-import footballStadium from '@/app/assets/images/DALL·E 2024-07-20 13.15.39 - A food station in the hallway of a football stadium during a sports event, with a view from the hallway to the pitch. The food station is positioned o.webp';
+import foodDelivery from '@/app/assets/images/logos/A food delivery driver biking through the city.jpg';
+import forkliftDriver from '@/app/assets/images/logos/ A forklift driver working in a big warehouse.jpg';
+import clothingStore from '@/app/assets/images/logos/ Enthusiastic people working in a clothing store from a distance.jpg';
+import footballStadium from '@/app/assets/images/A food station in the hallway of a football stadium during a sports event.jpg';
 export default function Example() {
   return (
       <main>

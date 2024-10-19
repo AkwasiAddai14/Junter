@@ -287,6 +287,16 @@ export const haalCheckouts = async (freelancerId: Types.ObjectId | string ) => {
   }
 };
 
+export const haalcheckout = async ({ shiftId }: { shiftId: string}) =>{
+  try {
+    await connectToDB();
+    const shift = await Shift.findById(shiftId);
+    return shift;
+  } catch (error: any) {
+    throw new Error(`Failed to find shift: ${error.message}`);
+  }
+}
+
 export const updateNoShowCheckouts = async () => {
     try {
       // Connect to the database

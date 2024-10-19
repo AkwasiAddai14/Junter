@@ -17,6 +17,7 @@ import { Textarea } from '../ui/textarea';
 import { useToast } from '@/app/components/ui/use-toast';
 import { useUploadThing } from "@/app/lib/uploadthing";
 import { FileUploader } from './FileUploader';
+import  browser  from 'app/assets/images/browser.png';
 
 
 
@@ -99,19 +100,19 @@ const updateInformatie = await updateFreelancer({
     tussenvoegsel,
     achternaam,
     geboortedatum,
-    emailadres: emailadres || freelancer.emailadres,
-    telefoonnummer: telefoonnummer || freelancer.telefoonnummer,
+    emailadres: emailadres || freelancer.emailadres || "emailadres",
+    telefoonnummer: telefoonnummer || freelancer.telefoonnummer || "telefoonnummer",
     postcode,
     huisnummer,
     straat,
     stad,
     korregeling: false,
-    btwid: btwid || freelancer.btwid,
-    iban: iban || freelancer.iban,
+    btwid: btwid || freelancer.btwid || "btwid",
+    iban: iban || freelancer.iban || "iban",
     path,
     kvk: kvknr,
     bio: bio || freelancer.bio,
-    profielfoto: profielfoto || user!.imageUrl,
+    profielfoto: profielfoto || user!.imageUrl || browser || "profielfoto",
     werkervaring,
     vaardigheden,
     opleidingen,
@@ -181,7 +182,7 @@ const updateInformatie = await updateFreelancer({
 
               <dt className="sr-only">rating</dt>
               <dd className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                {freelancer?.rating || "nog geen rating"}
+                {freelancer?.rating.toFixed(2) || "nog geen rating"}
                 <StarIcon aria-hidden="true" className="h-4 w-5 text-gray-400" />
               </dd>
             </div>

@@ -46,9 +46,9 @@ type Werkervaring = {
     kvk?: string;
     profielfoto?: any;
     cv?: any;
-    werkervaring: Werkervaring[];
-    vaardigheden: Vaardigheid[];
-    opleidingen: Opleiding[];
+    werkervaring?: Werkervaring[];
+    vaardigheden?: Vaardigheid[];
+    opleidingen?: Opleiding[];
     bsn?: string; // Ensure bsn is included as it is required in the schema
   };
 

@@ -1,11 +1,11 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { connectToDB } from '@/app/lib/mongoose';
-import { haalFreelancer, updateAdres, updateBio, updateKorregeling, updateOpleiding, updateProfielfoto, updateTelefoonnummer, updateWerkervaring } from '@/app/lib/actions/freelancer.actions';
+import { haalFreelancer, maakFreelancer, updateAdres, updateBio, updateKorregeling, updateOpleiding, updateProfielfoto, updateTelefoonnummer, updateWerkervaring } from '@/app/lib/actions/freelancer.actions';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     await connectToDB();
 
-    if (req.method === 'GET') {
+    if (req.method === 'GET' || req.method === 'POST') {
        
   const { clerkId, action } = req.query; // Get clerkId and actie from query parameters
   const { value } = req.body; // Get bio from the request body
@@ -97,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             case 'maakFreelancer':
                 try {
-                    const shifts = await updateTelefoonnummer(clerkId as string, value);
+                    const shifts = await maakFreelancer(value);
                     res.status(200).json(shifts);
                     console.log(shifts)
                 } catch (error) {

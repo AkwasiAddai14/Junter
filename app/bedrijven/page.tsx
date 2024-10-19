@@ -1,8 +1,8 @@
 import React from 'react'
 import { CurrencyEuroIcon, UserGroupIcon, UsersIcon } from '@heroicons/react/24/outline'
-import dashboardLogo from '@/app/assets/images/DALL·E 2024-07-19 20.45.15 - A sleek modern dashboard displayed on a computer screen in a compact office space. The dashboard features a clean, minimalist design with various char.webp'
-import officeLogo from '@/app/assets/images/DALL·E 2024-07-19 20.44.34 - A smaller office with people working very fast. The scene shows a compact office space with employees at desks and computers, moving quickly and effic.webp'
-import euroBillsLogo from '@/app/assets/images/DALL·E 2024-07-19 20.41.56 - Euro bills flying around in the air. The scene captures various denominations of euro notes fluttering freely against a clear blue sky, with some palm.webp'
+import dashboardLogo from '@/app/assets/images/logos/A sleek modern dashboard displayed on a computer screen in a compact office space.jpg'
+import officeLogo from '@/app/assets/images/logos/A smaller office with people working very fast.jpg'
+import euroBillsLogo from '@/app/assets/images/logos/Euro bills flying around in the air.jpg'
 import Image from 'next/image'
 
 

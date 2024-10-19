@@ -6,7 +6,7 @@ import { annuleerAanmeldingen, haalAangemeld, reageerShift } from '@/app/lib/act
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     await connectToDB();
 
-    if (req.method === 'GET') {
+    if (req.method === 'GET' || req.method === 'POST') {
         const { clerkId, shiftArrayId, action } = req.query; // Get clerkId from query parameters
 
     if (!clerkId) {

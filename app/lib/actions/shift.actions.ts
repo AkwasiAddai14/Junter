@@ -1241,7 +1241,16 @@ export async function haalGerelateerdShiftsMetCategorie({
   }
 }
 
-
+export const haalEnkeleShift = async (id:string) => {
+  try {
+    await connectToDB();
+    const shift = await Shift.findById(id);
+    return shift;
+  } catch (error: any) {
+    console.error('Error fetching shift:', error);
+    throw error;
+  }
+}
 
 export const haalShiftMetIdCard = async (id: string) => {
   try {
