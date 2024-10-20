@@ -17,7 +17,7 @@ import { Textarea } from '../ui/textarea';
 import { useToast } from '@/app/components/ui/use-toast';
 import { useUploadThing } from "@/app/lib/uploadthing";
 import { FileUploader } from './FileUploader';
-import  browser  from 'app/assets/images/browser.png';
+import  browser  from '@/app/assets/images/browser.png';
 
 
 
