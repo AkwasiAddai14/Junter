@@ -56,28 +56,45 @@ export const haalShift = async (freelancerId: Types.ObjectId) => {
     await connectToDB();
 
     // Find the freelancer by their ObjectId
-    const freelancer = await Freelancer.findById(freelancerId).populate('shifts').exec();
-    
-    if (!freelancer) {
-      throw new Error(`Freelancer with ID ${freelancerId} not found`);
-    }
-
-    // Extract shiftArrayIds from the freelancer's shifts
-    const freelancerShiftArrayIds = freelancer.shifts.map((shift: any) => shift.shiftArrayId.toString());
-    console.log(freelancerShiftArrayIds)
+    let freelancer; 
+    let shiftsArrayIds: string | any[];
+    if(mongoose.Types.ObjectId.isValid(freelancerId)){
+      freelancer = await Freelancer.findById(freelancerId);
+      if (freelancer && freelancer.shifts && freelancer.shifts.length > 0) {
+        // Fetch the related Flexpool documents
+        const shifts = await Shift.find({ _id: { $in: freelancer.shifts } }).lean() as ShiftType[];
+        // Extract shiftArrayIds from each shift
+        shiftsArrayIds = shifts.map(shift => shift.shiftArrayId);
+    } else {
+      const user = await currentUser();
+      if (user) {
+         freelancer = await Freelancer.findOne({ clerkId: user.id });
+         if (freelancer && freelancer.shifts && freelancer.shifts.length > 0) {
+          // Fetch the related Flexpool documents
+          const shifts = await Shift.find({ _id: { $in: freelancer.shifts } }) as ShiftType[];
+          // Extract shiftArrayIds from each shift
+          shiftsArrayIds = shifts.map(shift => shift.shiftArrayId);
+        }
+    } else {
+      console.log('No flexpools found for this freelancer.');
+      return [];
+    }   
+}
     // Find all ShiftArray documents
     const allShiftArrays = await ShiftArray.find({beschikbaar: true});
 
     // Filter ShiftArrays that do not match any shiftArrayId in the freelancer's shifts
     const filteredShiftArrays = allShiftArrays.filter((shiftArray: any) => 
-      !freelancerShiftArrayIds.includes(shiftArray._id.toString())
+      !shiftsArrayIds.includes(shiftArray._id.toString())
     );
+    console.log(filteredShiftArrays)
     return filteredShiftArrays;
-  } catch (error) {
-    console.error('Error fetching shifts:', error);
-    throw new Error('Failed to fetch shifts');
+  } 
+} catch (error) {
+  console.error('Error fetching shifts:', error);
+  throw new Error('Failed to fetch shifts');
   }
-};
+}
 
 
 export const haalGeplaatsteShifts = async ({ bedrijfId }: { bedrijfId: string }) => {
@@ -154,7 +171,6 @@ export const fetchBedrijfShiftsByClerkId = async (clerkId: string) => {
     
     if (bedrijf) {
       const shiftArrays = await ShiftArray.find({ _id: { $in: bedrijf.shifts } })
-      .populate('shifts')
       .lean(); // Use lean to return plain JS objects
 
     console.log("ShiftArrays: ", JSON.stringify(shiftArrays, null, 2)); // Pretty print the objects for better readability

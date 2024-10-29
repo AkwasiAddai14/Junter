@@ -289,8 +289,8 @@ export async function maakFactuur({ shiftId }: FactuurParams) {
     try {
         // Fetch checkout information
         const checkout = await Shift.findOne({ shift: shiftId })
-            .populate('opdrachtgever')
-            .populate('opdrachtnemer')
+        .populate('opdrachtgever')
+        .populate('opdrachtnemer')
             
 
         if (!checkout) {
@@ -465,7 +465,7 @@ export async function haalFacturenFreelancer(id:string){
     try {
         await connectToDB();
         if (id !== ""){
-        const freelancer = await Freelancer.findById(id);
+        const freelancer = await Freelancer.findOne({clerkId: id});
         const facturen = freelancer.facturen;
         return facturen;
         } else {

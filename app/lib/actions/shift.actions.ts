@@ -1089,18 +1089,28 @@ export async function afrondenShift({ shiftId} :afrondenShiftParams) {
 };
 
 interface FilterParams {
+    id: string;
     tarief?: number;
     range?: number;
     dates?: Date | Date[];
     freelancerLocation?: { lat: number, lng: number };
 }
 
-export async function filterShift({ tarief, range, dates, freelancerLocation }: FilterParams) {
+export async function filterShift({ tarief, range, dates, freelancerLocation, id }: FilterParams) {
   try {
       await connectToDB();
-
+      const user =  await currentUser();
+      let freelancer;
+      if (!user) {
+         freelancer = await Freelancer.findOne({clerkId : user!.id});
+    }
+         freelancer = await Freelancer.findOne({clerkId : id});
+      const freelancerId = freelancer._id;
       // Initialize the query object
-      const query: any = {};
+      const query: any = {
+        beschikbaar: true,
+        aangemeld: { $ne: freelancerId }, // Exclude shifts where freelancerId is in aangemeld
+    };
 
       // Filter by tarief (hourly rate)
       if (tarief !== undefined) {

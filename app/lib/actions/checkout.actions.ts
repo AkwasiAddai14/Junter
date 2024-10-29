@@ -8,54 +8,58 @@ import Freelancer, { IFreelancer } from "../models/freelancer.model";
 import mongoose, { Types } from "mongoose";
 import { sendEmailBasedOnStatus } from '@/app/lib/actions/shift.actions.ts'
 import { currentUser } from "@clerk/nextjs/server";
+import { ObjectId } from 'mongoose';
 
 export async function updateShiftsAndMoveToCheckout() {
-    try {
-      await connectToDB();
-  
-      // Step 1: Find shifts with the status 'aangenomen'
-      const shifts = await Shift.find({ status: 'aangenomen' });
-  
-      const currentTime = new Date();
-  
-      for (const shift of shifts) {
-        const shiftStartDateTime = new Date(shift.begindatum);
-        const [hours, minutes] = shift.begintijd.split(':').map(Number);
-        shiftStartDateTime.setHours(hours, minutes, 0, 0);
-  
-        const timeDifference = currentTime.getTime() - shiftStartDateTime.getTime();
-        const hoursDifference = timeDifference / (1000 * 60 * 60);
-  
-        if (hoursDifference >= 1) {
-          // Step 2: Change status to 'voltooi checkout'
-          shift.status = 'voltooi checkout';
-  
-          // Step 3: Find the freelancer associated with the shift
-          const freelancer = await Freelancer.findById(shift.opdrachtnemer) as IFreelancer;
-          if (!freelancer) {
-            throw new Error(`Freelancer with ID ${shift.opdrachtnemer} not found`);
-          }
-  
-          // Step 4: Remove the shift from the freelancer's shifts array
-          freelancer.shifts = freelancer.shifts.filter((s: mongoose.Types.ObjectId) => !s.equals(shift._id));
-  
-          // Step 5: Push the shift into the freelancer's checkouts array
-          if (!freelancer.checkouts) {
-            freelancer.checkouts = []; // Initialize the checkouts array if it doesn't exist
-          }
-          freelancer.checkouts.push(new mongoose.Types.ObjectId(shift._id));
-          await sendEmailBasedOnStatus(freelancer.emailadres as string, shift, 'voltooi checkout', freelancer, shift.opdrachtgever);
-          // Step 6: Save the updated shift and freelancer
-          await shift.save();
-          await freelancer.save();
+  try {
+    await connectToDB();
+
+    // Step 1: Find shifts with the status 'aangenomen'
+    const shifts = await Shift.find({ status: 'aangenomen' });
+
+    const currentTime = new Date();
+
+    for (const shift of shifts) {
+      const shiftStartDateTime = new Date(shift.begindatum);
+      const [hours, minutes] = shift.begintijd.split(':').map(Number);
+      shiftStartDateTime.setHours(hours, minutes, 0, 0);
+
+      const timeDifference = currentTime.getTime() - shiftStartDateTime.getTime();
+      const hoursDifference = timeDifference / (1000 * 60 * 60);
+
+      if (hoursDifference >= 1) {
+        // Step 2: Change status to 'voltooi checkout'
+        shift.status = 'voltooi checkout';
+
+        // Step 3: Find the freelancer associated with the shift
+        const freelancer = await Freelancer.findById(shift.opdrachtnemer) as IFreelancer;
+        if (!freelancer) {
+          throw new Error(`Freelancer with ID ${shift.opdrachtnemer} not found`);
         }
+
+        // Step 4: Remove the shift from the freelancer's shifts array
+        freelancer.shifts = freelancer.shifts.filter((s) => (s as mongoose.Types.ObjectId).toString() !== shift._id.toString());
+
+        // Step 5: Push the shift into the freelancer's checkouts array
+        if (!freelancer.checkouts) {
+          freelancer.checkouts = []; // Initialize the checkouts array if it doesn't exist
+        }
+        freelancer.checkouts.push(new mongoose.Types.ObjectId(shift._id));
+
+        // Send an email notification
+        await sendEmailBasedOnStatus(freelancer.emailadres as string, shift, 'voltooi checkout', freelancer, shift.opdrachtgever);
+
+        // Step 6: Save the updated shift and freelancer
+        await shift.save();
+        await freelancer.save();
       }
-  
-      return { success: true, message: "Shifts successfully updated and moved to checkout where applicable" };
-    } catch (error: any) {
-      throw new Error(`Failed to update shifts and move to checkout: ${error.message}`);
     }
+
+    return { success: true, message: "Shifts successfully updated and moved to checkout where applicable" };
+  } catch (error: any) {
+    throw new Error(`Failed to update shifts and move to checkout: ${error.message}`);
   }
+}
 
 interface CheckoutParams {
     shiftId: string;
@@ -287,16 +291,17 @@ export const haalCheckouts = async (freelancerId: Types.ObjectId | string ) => {
   }
 };
 
-export const haalcheckout = async ({ shiftId }: { shiftId: string}) =>{
+export const haalcheckout = async ({ shiftId }: { shiftId: string }) => {
   try {
     await connectToDB();
-    const shift = await Shift.findById(shiftId);
+    const shift = await Shift.findById(shiftId).lean();
+
     return shift;
+
   } catch (error: any) {
     throw new Error(`Failed to find shift: ${error.message}`);
   }
-}
-
+};
 export const updateNoShowCheckouts = async () => {
     try {
       // Connect to the database

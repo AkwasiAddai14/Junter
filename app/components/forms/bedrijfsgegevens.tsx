@@ -62,6 +62,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
     const { isLoaded, user } = useUser();
     const [files, setFiles] = useState<File[]>([]);
     const { startUpload } = useUploadThing("media");
+    const [loading, setLoading] = useState(false);
 
     const haalBedrijfsData = async (kvkNummer: string) => {
         try {
@@ -138,18 +139,29 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
 
         let uploadedImageUrl = data.profielfoto;
 
-         if (files.length > 0) {
-            const uploadedImages = await startUpload(files);
-
-         if (!uploadedImages) {
-             return;
-             }
-
+// Check if there are files to upload
+if (files.length > 0) {
+    try {
+      // Start the upload and wait for the response
+      const uploadedImages = await startUpload(files);
+  
+      // Check if the upload was successful
+      if (!uploadedImages || uploadedImages.length === 0) {
+        console.error('Failed to upload images');
+        return;
+      }
+  
+      // Use the URL provided by the upload service
       uploadedImageUrl = uploadedImages[0].url;
+      console.log("Final URL:", uploadedImageUrl);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      return;
     }
+  }
 
         
-            console.log("Function invoked")
+            setLoading(true)
             console.log(data)
             try {
                 const result =  await maakBedrijf({
@@ -178,6 +190,7 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
                 if (pathname === 'profiel/wijzigen') {
                     router.back();
                 } else {
+                    setLoading(false)
                     router.push('../dashboard');
                 }
             } catch (error:any) {
@@ -211,6 +224,10 @@ const BedrijfsForm = ({ bedrijven }: Props) => {
             setCurrentStep((step) => step - 1);
         }
     };
+
+    if (loading) {
+        return  <div>Loading...</div>
+      }
 
     return (
         <section className="flex flex-col justify-between p-24">

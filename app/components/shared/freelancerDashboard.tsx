@@ -21,7 +21,7 @@ import logo from '@/app/assets/images/178884748_padded_logo.png';
 import Image from 'next/image'; 
 import { Calendar } from "../ui/calendar"
 import { Dialog, Menu, MenuButton, MenuItems, } from '@headlessui/react'
-import { haalFreelancer } from "@/app/lib/actions/freelancer.actions"
+import { haalFreelancer, haalFreelancerVoorAdres } from "@/app/lib/actions/freelancer.actions"
 import FlexpoolCard from "../cards/FlexpoolCard"
 import mongoose from "mongoose"
 import { haalCheckouts } from "@/app/lib/actions/checkout.actions"
@@ -143,7 +143,7 @@ export default function Example() {
   useEffect(() => {
     const getFreelancerId = async () => {
       try {
-        const freelancer = await haalFreelancer(user!.id);
+        const freelancer = await haalFreelancerVoorAdres(user!.id);
         if (freelancer && freelancer._id) {
           setFreelancerId(freelancer._id.toString());
           const freelancerAdres = await getCoordinatesFromAddress(`${freelancer.huisnummer}+${freelancer.straat}+${freelancer.stad}+the+netherlands`);
@@ -278,7 +278,7 @@ export default function Example() {
             } else if (dateRange.from) {
             data = dateRange.from; // Pass the 'from' date if only 'from' is defined
         }
-        const shifts = await filterShift({ tarief, range: afstand, dates: data, freelancerLocation: adres });
+        const shifts = await filterShift({ tarief, range: afstand, dates: data, freelancerLocation: adres, id: user!.id });
         setFilteredShifts(shifts);  // This should now work correctly
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -306,6 +306,14 @@ export default function Example() {
   });
  
 const bedrijfsnaam = "Junter";
+
+
+
+const MenuSluiten = (value: string) => {
+  setPosition(value);
+  setSidebarOpen(false);
+}
+
   
   return (
     <Fragment>
@@ -335,7 +343,7 @@ const bedrijfsnaam = "Junter";
                     {navigation.map((item) => (
                       <li key={item.name}>
                         <button
-                          onClick={() => setPosition(item.value)}
+                          onClick={() => MenuSluiten(item.value)}
                           className={classNames(
                             position === item.value ? 'bg-gray-800 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white',
                             'group flex w-full items-center gap-x-3 rounded-md p-2 text-sm font-semibold'
@@ -513,7 +521,7 @@ const bedrijfsnaam = "Junter";
 
             shift.length > 0 ? (
               <ScrollArea>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {shift.slice(0, shift.length).map((shiftItem, index) => (
                 <ShiftCard key={index} shift={shiftItem} />
                 ))}
@@ -530,7 +538,7 @@ const bedrijfsnaam = "Junter";
               {position === 'Filter' ?
             filteredShifts.length > 0 ? (
               <ScrollArea>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {filteredShifts.slice(0, filteredShifts.length).map((shiftItem, index) => (
                 <ShiftCard key={index} shift={shiftItem} />
                 ))}
@@ -545,7 +553,7 @@ const bedrijfsnaam = "Junter";
               {position === 'Bedrijf' ?
             businessShifts.length > 0 ? (
               <ScrollArea>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {businessShifts.slice(0, businessShifts.length).map((shiftItem, index) => (
                 <ShiftCard key={index} shift={shiftItem} />
                 ))}
@@ -560,7 +568,7 @@ const bedrijfsnaam = "Junter";
                          {position === 'Aanmeldingen' ?
             aangemeld.length > 0 ? (
               <ScrollArea>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {aangemeld.slice(0, aangemeld.length).map((shiftItem, index) => (
                 <Card key={index} shift={shiftItem} />
                 ))}
@@ -575,7 +583,7 @@ const bedrijfsnaam = "Junter";
                 {position === 'Geaccepteerde shifts' ?
             geaccepteerd.length > 0 ? (
               <ScrollArea>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {geaccepteerd.slice(0, geaccepteerd.length).map((shiftItem, index) => (
                 <Card key={index} shift={shiftItem} />
                 ))}

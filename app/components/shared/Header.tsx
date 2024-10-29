@@ -23,14 +23,14 @@ export default function Example() {
     <div className="bg-white">
       <header className="absolute inset-x-0 top-0 z-50">
         <div className="mx-auto max-w-7xl">
-            <nav className="flex-grow items-align place-items-center justify-evenly lg:justify-start" aria-label="Global"> <a href="/" className="-m-1.5 p-1.5">
+            <nav className="flex-grow items-align place-items-center justify-evenly lg:justify-end" aria-label="Global"> <a href="/" className="-m-1.5 p-1.5">
                 <span className="sr-only">Junter</span>
                 <Image
                   alt="Junter Logo"
-                  className="h-32 w-auto"
+                  className="lg:h-32 w-auto md:h-24 sm:h-8"
                   src={require('@/app/assets/images/178884748_padded_logo.png')}
-                  width={72}
-                  height={56}
+                  /* width={72}
+                  height={56} */
                   />
               </a>
               <button
@@ -59,7 +59,7 @@ export default function Example() {
               <a href="#" className="-m-1.5 p-1.5">
                 <span className="sr-only">Junter</span>
                 <Image
-                  className="h-8 w-auto"
+                  className="h-16 w-auto"
                   src={require('@/app/assets/images/178884748_padded_logo.png')}
                   alt=""
                 />
@@ -105,6 +105,7 @@ export default function Example() {
           </Dialog.Panel>
         </Dialog>
       </header>
+                 
 
       <div className="relative">
         <div className="mx-auto max-w-7xl">

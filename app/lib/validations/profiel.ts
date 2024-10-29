@@ -12,6 +12,6 @@ export const ProfielValidation = z.object({
     profielfoto: z.string().optional(), // Assuming this is processed elsewhere and you have the URL or path as a string
     cv: z.string().optional(), // Assuming this is processed elsewhere and you have the URL or path as a string
     bio: z.string().optional(),
-    kvk: z.string().optional(),
+    kvknr: z.string().optional(),
 
 });

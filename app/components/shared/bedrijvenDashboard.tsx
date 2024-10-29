@@ -34,6 +34,7 @@ import { AlertDialog,
   AlertDialogHeader, AlertDialogTitle,
    AlertDialogTrigger
    } from '../ui/alert-dialog';
+import FactuurCard from '../cards/FactuurCard';
 
 
 
@@ -187,6 +188,11 @@ const Dashboard =  () => {
               console.error("Error creating flexpool:", error);
             }
           };
+
+          const MenuSluiten = (value: string) => {
+            setPosition(value);
+            setSidebarOpen(false);
+          }
           
   return (
     <Fragment>
@@ -346,14 +352,14 @@ const Dashboard =  () => {
                     shift.length > 0 ? (
                       <>
                       <ScrollArea>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                       {unpublished.slice(0, unpublished.length).map((unpublishedItem, index) => (
                           <ShiftCard key={index} shift={unpublishedItem} />
                         ))}
                     </div>
                   </ScrollArea>
                   <ScrollArea>
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                       {shift.slice(0, shift.length).map((shiftItem, index) => (
                         <ShiftCard key={index} shift={shiftItem} />
                       ))}
@@ -369,7 +375,7 @@ const Dashboard =  () => {
               {position === 'Checkouts' ? 
               checkout.length > 0 ? (
                 <ScrollArea>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {checkout.slice(0, 9).map((checkoutItem, index) => (
                       <ShiftCard key={index} shift={checkoutItem} />
                     ))}
@@ -384,9 +390,9 @@ const Dashboard =  () => {
               {position === 'Facturen' ? 
               factuur.length > 0 ? (
                 <ScrollArea>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {factuur.slice(0, 9).map((factuurItem, index) => (
-                      <div>Facturen</div> // ****
+                      <FactuurCard key={index} factuur={factuurItem} /> // ****
                     ))}
                   </div>
                 </ScrollArea>

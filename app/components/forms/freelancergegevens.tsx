@@ -56,6 +56,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
   const { startUpload } = useUploadThing("media");
   const pathname = usePathname();
   const {user, isLoaded} = useUser()
+  const [loading, setLoading] = useState(false);
 
   const fetchAddressData = async (postcode: string, huisnummer: string) => {
     try {
@@ -122,7 +123,7 @@ const Page: React.FC<Props> = ({ freelancer }) => {
     resolver: zodResolver(FreelancerValidation),
     defaultValues: {
       freelancerID: freelancer?.freelancerID || user?.id || "",
-      profielfoto: user?.imageUrl || undefined,
+      profielfoto: user?.imageUrl || "",
       voornaam: freelancer?.voornaam || user?.firstName || user?.fullName || "",
       tussenvoegsel: freelancer?.tussenvoegsel || "",
       achternaam: freelancer?.achternaam || user?.lastName ||"",
@@ -154,18 +155,27 @@ const Page: React.FC<Props> = ({ freelancer }) => {
 
     let uploadedImageUrl = data.profielfoto;
 
-    if (files.length > 0) {
-      const uploadedImages = await startUpload(files);
+// Check if there are files to upload
+if (files.length > 0) {
+  try {
+    // Start the upload and wait for the response
+    const uploadedImages = await startUpload(files);
 
-      if (!uploadedImages) {
-        return;
-      }
-
-      uploadedImageUrl = uploadedImages[0].url;
+    // Check if the upload was successful
+    if (!uploadedImages || uploadedImages.length === 0) {
+      console.error('Failed to upload images');
+      return;
     }
 
-    console.log("Form is submitting", data);
-
+    // Use the URL provided by the upload service
+    uploadedImageUrl = uploadedImages[0].url;
+    console.log("Final URL:", uploadedImageUrl);
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    return;
+  }
+}
+    setLoading(true)
     await maakFreelancer({
 
 
@@ -189,16 +199,20 @@ const Page: React.FC<Props> = ({ freelancer }) => {
       werkervaring: [], // Pass an empty array
       vaardigheden: [], // Pass an empty array
       opleidingen: [], // Pass an empty array
-      bio: '',
-      kvk: '',
+      bio: data.bio || "",
+      kvknr: '',
       cv: data.cv || "" || undefined,
       bsn: ""  // Ensure bsn is provided
 
 
     });
-
+    setLoading(false)
     router.push("../dashboard")
   };
+
+  if (loading) {
+    return  <div>Loading...</div>
+  }
 
   return (
     <main>
@@ -303,10 +317,12 @@ const Page: React.FC<Props> = ({ freelancer }) => {
                       <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
                     <label htmlFor="geboortedatum" className="block text-sm font-medium leading-6 text-gray-900 sm:pt-1.5">
                       Geboortedatum
+                    <p className="text-sm text-slate-400">(MM/dd/yyyy)</p>
                     </label>
+                    
                     <div className="mt-2 sm:col-span-2 sm:mt-0">
                     <DatePicker
-                        selected={selectedDate || null} // Assign selectedDate or null to the selected attribute
+                        selected={selectedDate} // Assign selectedDate or null to the selected attribute
                         onChange={(date: Date | null) => setValue('geboortedatum', date as Date, { shouldValidate: true })} // Update the form state
                         dateFormat="MM/dd/yyyy"
                         wrapperClassName="datePicker"

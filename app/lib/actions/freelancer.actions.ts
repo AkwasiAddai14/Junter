@@ -43,7 +43,7 @@ type Werkervaring = {
     iban: string;
     path: string;
     bio?: string;
-    kvk?: string;
+    kvknr?: string;
     profielfoto?: any;
     cv?: any;
     werkervaring?: Werkervaring[];
@@ -91,7 +91,7 @@ export const updateFreelancer = async  (user: Freelancer ) => {
                 werkervaring: user.werkervaring,
                 vaardigheden: user.vaardigheden,
                 opleidingen: user.opleidingen,
-                kvk: user.kvk,
+                kvknr: user.kvknr,
                 bio: user.bio,
                 onboarded: true
             },
@@ -125,24 +125,51 @@ export const haalFreelancer = async  (clerkId: string) => {
       await connectToDB();
       let freelancer;
       if(mongoose.Types.ObjectId.isValid(clerkId)){
-        freelancer = await Freelancer.findById(clerkId);
+        freelancer = await Freelancer.findById(clerkId).lean();
       }
       if (clerkId.toString() !== ""){
-        freelancer = await Freelancer.findOne({clerkId: clerkId});
+        freelancer = await Freelancer.findOne({clerkId: clerkId}).lean();
       } else {
         const user = await currentUser();
-        if(user){
-          freelancer = await Freelancer.findOne({clerkId: user!.id})
+        if (user) {
+          freelancer = await Freelancer.findOne({clerkId: user!.id}).lean();
         }
         else {
           console.log("No user logged in or found!")
         }
       }
+      console.log(freelancer)
         return freelancer;
     } catch (error) {
         console.error('Error retrieving freelancers:', error);
         throw new Error('Error retrieving freelancers');
     }
+}
+
+export const haalFreelancerVoorAdres = async  (clerkId: string) => {
+  try {
+    await connectToDB();
+    let freelancer;
+    if(mongoose.Types.ObjectId.isValid(clerkId)){
+      freelancer = await Freelancer.findById(clerkId);
+    }
+    if (clerkId.toString() !== ""){
+      freelancer = await Freelancer.findOne({clerkId: clerkId});
+    } else {
+      const user = await currentUser();
+      if (user) {
+        freelancer = await Freelancer.findOne({clerkId: user!.id});
+      }
+      else {
+        console.log("No user logged in or found!")
+      }
+    }
+    console.log(freelancer)
+      return freelancer;
+  } catch (error) {
+      console.error('Error retrieving freelancers:', error);
+      throw new Error('Error retrieving freelancers');
+  }
 }
 
 export const haalFreelancerFlexpool = async  (clerkId: string) => {

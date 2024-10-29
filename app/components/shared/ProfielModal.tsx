@@ -18,6 +18,7 @@ import { useToast } from '@/app/components/ui/use-toast';
 import { useUploadThing } from "@/app/lib/uploadthing";
 import { FileUploader } from './FileUploader';
 import  browser  from '@/app/assets/images/browser.png';
+import { format, parse } from 'date-fns';
 
 
 
@@ -25,7 +26,7 @@ import  browser  from '@/app/assets/images/browser.png';
 export default function ProfielModal({isVisible, onClose} : {isVisible: boolean, onClose: any}) {
     if (!isVisible) return null;
     const [open, setOpen] = useState(false);
-    const [freelancer, setFreelancer] = useState<any>(null);
+    const [freelancer, setFreelancer] = useState<any>("");
     const { isLoaded, user } = useUser();
     const { toast } = useToast();
     const [files, setFiles] = useState<File[]>([]);
@@ -42,11 +43,14 @@ export default function ProfielModal({isVisible, onClose} : {isVisible: boolean,
           }
         })();
       }
-    }, [isLoaded, user]);
+    }, []);
 
+    console.log(freelancer, "freelancer")
    
-  if (!user /* || !freelancer */) {
-    return null; {/* <div>Gebruiker informatie niet beschikbaar...</div>; */}
+  if (!user ) {
+    return (
+      <div>Gebruiker informatie niet beschikbaar...</div>
+    )
   }
 
   const DefaultValues = {
@@ -91,8 +95,8 @@ if (files.length > 0) {
 
       try {
 
-        const { voornaam, tussenvoegsel, achternaam, geboortedatum, postcode, huisnummer, straat, stad, kvknr, path, werkervaring, vaardigheden, opleidingen, profielfoto } = freelancer;
-        const { emailadres, telefoonnummer, btwid, iban, bio } = values || {};
+        const { voornaam, tussenvoegsel, achternaam, geboortedatum, postcode, huisnummer, straat, stad, path, werkervaring, vaardigheden, opleidingen } = freelancer;
+        const { emailadres, telefoonnummer, btwid, iban, bio, kvknr, profielfoto } = values || {};
 
 const updateInformatie = await updateFreelancer({
     clerkId: user!.id,
@@ -110,7 +114,7 @@ const updateInformatie = await updateFreelancer({
     btwid: btwid || freelancer.btwid || "btwid",
     iban: iban || freelancer.iban || "iban",
     path,
-    kvk: kvknr,
+    kvknr: kvknr || "geen kvk nummer",
     bio: bio || freelancer.bio,
     profielfoto: profielfoto || user!.imageUrl || browser || "profielfoto",
     werkervaring,
@@ -134,9 +138,37 @@ const updateInformatie = await updateFreelancer({
           variant: 'destructive',
           description: `Actie is niet toegestaan!\n${error}\n❌`
         });
+        onClose()
         console.log(error)
       }
     }
+    const parseShiftTime = (date: Date): Date => {
+      // Format the date to 'yyyy-MM-dd'
+      const datePart = format(date, 'MM-dd-yyyy');
+      // Combine the date part with the time
+     console.log(datePart)
+      const parsedDate = parse(datePart, 'MM-dd-yyyy', new Date());
+     console.log(parsedDate)
+      // Check if the date is valid
+      if (isNaN(parsedDate.getTime())) {
+        throw new Error(`Invalid date: ${datePart}`);
+      }
+      console.log(parsedDate)
+      return parsedDate;
+    };
+  
+    const calculateAge = (dateOfBirth: string | number | Date) => {
+      // If dateOfBirth is a string in the format dd/MM/yyyy, parse it
+      if (typeof dateOfBirth === 'string') {
+        const [day, month, year] = dateOfBirth.split('/').map(Number);
+        dateOfBirth = new Date(year, month - 1, day);
+        console.log(dateOfBirth)
+      }
+    
+      const diff = Date.now() - new Date(dateOfBirth).getTime();
+      const age = new Date(diff).getUTCFullYear() - 1970;
+      return age;
+    };
   
     console.log(freelancer);
 
@@ -149,12 +181,14 @@ const updateInformatie = await updateFreelancer({
         <div className="rounded-lg bg-gray-50 shadow-sm ring-1 ring-gray-900/5">
           <dl className="flex flex-wrap">
             <div className="flex-auto pl-6 pt-6">
-              <dt className="text-sm font-semibold leading-6 text-gray-900">{user.fullName}</dt>
-              <dd className="mt-1 text-base font-semibold leading-6 text-gray-900">{freelancer?.stad} {freelancer?.leeftijd}</dd>
+              <dd className="mt-1 text-base font-semibold leading-6 text-gray-900">
+              {freelancer && freelancer.voornaam ? `${freelancer.voornaam} ${freelancer.tussenvoegsel} ${freelancer.achternaam}` : user?.fullName}  
+                    </dd>
+              <dt className="text-sm font-semibold leading-6 text-gray-900">{freelancer.stad}, {calculateAge(freelancer.geboortedatum)}</dt>
             </div>
             <div className="flex-none justify-center items-center self-end px-6 pt-4">
                   <Image
-                    className="h-8 w-8 rounded-full"
+                    className="h-16 w-16 mb-4 rounded-full"
                     src={freelancer?.profielfoto || user?.imageUrl}
                     alt="profielfoto"
                     width={32}
@@ -182,7 +216,7 @@ const updateInformatie = await updateFreelancer({
 
               <dt className="sr-only">rating</dt>
               <dd className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                {freelancer?.rating.toFixed(2) || "nog geen rating"}
+                {freelancer?.rating ?  freelancer?.rating.toFixed(2) : 5}
                 <StarIcon aria-hidden="true" className="h-4 w-5 text-gray-400" />
               </dd>
             </div>
@@ -208,7 +242,7 @@ const updateInformatie = await updateFreelancer({
           <div className="px-6 py-4 space-y-4">
             <FormField
               control={form.control}
-              name="kvk"
+              name="kvknr"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
