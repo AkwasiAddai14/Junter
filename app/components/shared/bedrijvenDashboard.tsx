@@ -18,7 +18,7 @@ import Image from 'next/image';
 import Calender from './Calender';
 import UitlogModal from './UitlogModal';
 import { fetchBedrijfByClerkId } from "@/app/lib/actions/bedrijven.actions";
-import { haalCheckouts } from '@/app/lib/actions/checkout.actions';
+import { haalBedrijvenCheckouts, haalCheckouts } from '@/app/lib/actions/checkout.actions';
 import { haalFlexpools, maakFlexpool } from "@/app/lib/actions/flexpool.actions";
 import { haalGeplaatsteShifts, haalOngepubliceerdeShifts } from '@/app/lib/actions/shiftArray.actions';
 import ShiftCard from '../cards/ShiftArrayCard';
@@ -143,8 +143,8 @@ const Dashboard =  () => {
             const fetchCheckout = async () => {
               try {
                 if (bedrijfiD) {
-                  const fetchedCheckout = await haalCheckouts(bedrijfiD);
-                  setCheckout(fetchedCheckout); // Set the fetched checkouts to state
+                  const fetchedCheckout = await haalBedrijvenCheckouts(bedrijfiD);
+                  setCheckout(fetchedCheckout ?? []); // Set the fetched checkouts to state
                   console.log(checkout)
                 }
               } catch (error) {
@@ -193,6 +193,8 @@ const Dashboard =  () => {
             setPosition(value);
             setSidebarOpen(false);
           }
+
+          console.log(shift, unpublished, checkout, flexpool)
           
   return (
     <Fragment>
@@ -447,7 +449,6 @@ const Dashboard =  () => {
             <ScrollArea className="h-full overflow-auto">
                 {shift.map((shiftItem, index) => (
                   <li key={index} className="col-span-1 flex rounded-md shadow-sm">
-                    
                     <div className="flex flex-1 items-center justify-between truncate border-b border-gray-200 bg-white">
                       <div className="flex-1 truncate px-4 py-2 text-sm">
                         <a href={`/dashboard/shift/bedrijf/${shiftItem._id}`} className="font-medium text-gray-900 hover:text-gray-600">
@@ -482,6 +483,9 @@ const Dashboard =  () => {
               <ScrollArea className="h-full overflow-auto">
                 {checkout.map((checkoutItem, index) => (
                   <li key={index} className="col-span-1 flex rounded-md shadow-sm">
+                    <a href={`/dashboard/checkout/bedrijf/${checkoutItem._id}`} className="font-medium text-gray-900 hover:text-gray-600">
+                          {checkoutItem.titel}
+                    </a>
                     <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white">
                       {checkoutItem?.datum ? new Date(checkoutItem.datum).toLocaleDateString() : 'Datum'}, {checkoutItem?.begintijd ? new Date(checkoutItem.begintijd).toLocaleTimeString() : 'Begintijd'} - {checkoutItem?.eindtijd ? new Date(checkoutItem.eindtijd).toLocaleTimeString() : 'Eindtijd'}
                     </div>
@@ -507,10 +511,9 @@ const Dashboard =  () => {
                         <a href={`/dashboard/shift/bedrijf/${factuurItem._id}`} className="font-medium text-gray-900 hover:text-gray-600">
                           Week {factuurItem.week} 
                         </a>
-                        <p> {factuurItem.shifts?.length} shifts</p>
                         <p className="text-gray-500">{factuurItem.shifts?.length} shifts</p>
                         <div className="flex flex-1 items-center justify-between">
-                        <p className="text-gray-500">€{factuurItem.totaalbedrag} shifts</p>
+                        <p className="text-gray-500">€{factuurItem.totaalbedrag} </p>
                         {factuurItem.isVoltooid ? (
                         <p className="text-green-600">Betaald</p>
                         ) : (

@@ -27,10 +27,10 @@ export default function Example() {
                 <span className="sr-only">Junter</span>
                 <Image
                   alt="Junter Logo"
-                  className="lg:h-32 w-auto md:h-24 sm:h-8"
+                  className="block lg:h-32 w-auto"
                   src={require('@/app/assets/images/178884748_padded_logo.png')}
-                  /* width={72}
-                  height={56} */
+                  width={72}
+                  height={56}
                   />
               </a>
               <button

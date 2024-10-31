@@ -165,7 +165,7 @@ export const haalFreelancerVoorAdres = async  (clerkId: string) => {
       }
     }
     console.log(freelancer)
-      return freelancer;
+      return freelancer.toObject();
   } catch (error) {
       console.error('Error retrieving freelancers:', error);
       throw new Error('Error retrieving freelancers');

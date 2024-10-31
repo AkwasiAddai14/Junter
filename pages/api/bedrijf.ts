@@ -11,7 +11,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!clerkId) {
             return res.status(400).json({ error: 'clerkId is required' });
         }
-
         try {
             const shifts = await fetchBedrijfByClerkId(clerkId as string);
             res.status(200).json(shifts);

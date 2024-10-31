@@ -24,7 +24,7 @@ import { Dialog, Menu, MenuButton, MenuItems, } from '@headlessui/react'
 import { haalFreelancer, haalFreelancerVoorAdres } from "@/app/lib/actions/freelancer.actions"
 import FlexpoolCard from "../cards/FlexpoolCard"
 import mongoose from "mongoose"
-import { haalCheckouts } from "@/app/lib/actions/checkout.actions"
+import { haalCheckouts, haalCheckoutsMetClerkId } from "@/app/lib/actions/checkout.actions"
 import { haalFacturenFreelancer } from "@/app/lib/actions/factuur.actions"
 import { haalAlleBedrijven } from "@/app/lib/actions/bedrijven.actions"
 import { filterShift, haalAangemeld, getCoordinatesFromAddress } from "@/app/lib/actions/shift.actions"
@@ -32,6 +32,7 @@ import { IShiftArray } from "@/app/lib/models/shiftArray.model"
 import Box from '@mui/material/Box';
 import Slider from '@mui/material/Slider';
 import Typography from '@mui/material/Typography';
+import { ShiftType } from "@/app/lib/models/shift.model";
 
 const MAX = 100;
 const MIN = 0;
@@ -143,10 +144,11 @@ export default function Example() {
   useEffect(() => {
     const getFreelancerId = async () => {
       try {
-        const freelancer = await haalFreelancerVoorAdres(user!.id);
-        if (freelancer && freelancer._id) {
-          setFreelancerId(freelancer._id.toString());
-          const freelancerAdres = await getCoordinatesFromAddress(`${freelancer.huisnummer}+${freelancer.straat}+${freelancer.stad}+the+netherlands`);
+        const freelancer = await haalFreelancer(user!.id);
+        const opdrachtnemer = await haalFreelancerVoorAdres(user!.id);
+        if (freelancer) {
+          setFreelancerId(opdrachtnemer._id.toString());
+          const freelancerAdres = await getCoordinatesFromAddress(`${opdrachtnemer.huisnummer}+${opdrachtnemer.straat}+${opdrachtnemer.stad}+the+netherlands`);
           setAdres(freelancerAdres)
         } else{
           console.log("geen freelancerId gevonden.")
@@ -172,7 +174,7 @@ export default function Example() {
           const sortedShifts = response.sort((a: any, b: any) => {
             return new Date(a.begindatum).getTime() - new Date(b.begindatum).getTime(); // Ascending order
           });
-
+          console.log(sortedShifts)
           setShift(sortedShifts); // Set the sorted shifts
         } else {
           setShift([]); // Handle case where response is empty or null
@@ -227,9 +229,12 @@ export default function Example() {
       try {
         if(freelancerId !== ""){
           const response = await haalCheckouts(freelancerId);
-          setCheckout(response || aangemeld.filter((shift: { status: string; }) => shift.status === 'voltooi checkout'));
+          setCheckout(response);
         } else {
-          console.log("Freelancer ID invalid")
+          if(user && user.id){
+            const response = await haalCheckoutsMetClerkId(user.id);
+            setCheckout(response ?? []);
+          }
         }
       } catch (error) {
         console.error('Error fetching checkouts:', error);
@@ -306,8 +311,6 @@ export default function Example() {
   });
  
 const bedrijfsnaam = "Junter";
-
-
 
 const MenuSluiten = (value: string) => {
   setPosition(value);

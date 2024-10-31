@@ -697,3 +697,45 @@ cron.schedule('0 1 * * 5', async () => {
     timezone: "Europe/Amsterdam" // Adjust timezone as per your requirement
 });
 
+export const cloudFactuur = async () => {
+    cron.schedule('0 1 * * 4', async () => {
+        try {
+            console.log('Running scheduled tasks for creating facturen...');
+    
+            // Create facturen for all freelancers
+            await createFacturenForAllFreelancers();
+    
+            // Create facturen for all bedrijven
+            await createFacturenForAllBedrijven();
+    
+            console.log('Scheduled tasks completed successfully.');
+        } catch (error) {
+            console.error('Error running scheduled tasks:', error);
+        }
+    }, {
+        timezone: "Europe/Amsterdam" // Adjust timezone as per your requirement
+    });
+    
+    cron.schedule('0 1 * * 5', async () => {
+        try {
+            console.log('Running scheduled tasks for creating facturen...');
+    
+            // Create facturen for all freelancers
+            await createFacturenForAllFreelancers();
+    
+            // Create facturen for all bedrijven
+            await createFacturenForAllBedrijven();
+    
+            console.log('Scheduled tasks completed successfully.');
+        } catch (error) {
+            console.error('Error running scheduled tasks:', error);
+        }
+    }, {
+        timezone: "Europe/Amsterdam" // Adjust timezone as per your requirement
+    });
+}
+
+export const cloudFacturen = async () => {
+    await createFacturenForAllFreelancers();
+    await createFacturenForAllBedrijven();
+}

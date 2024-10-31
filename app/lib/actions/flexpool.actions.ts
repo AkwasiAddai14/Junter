@@ -187,23 +187,24 @@ export const haalFlexpoolFreelancer = async (userId: Types.ObjectId | string ): 
   }
 }
 
-export const haalShiftsInFlexpool =async (flexpoolId: string) => {
+export const haalShiftsInFlexpool = async (flexpoolId: string) => {
   try {
     await connectToDB();
+    console.log('function called')
     const flexpool = await Flexpool.findById(flexpoolId);
+    console.log(flexpool)
 if (flexpool) {
     const shifts = await Shift.find({ _id: { $in: flexpool.shifts } });
+    console.log(shifts)
     return shifts;
     // Now you can safely use `shifts`
 } else {
     console.error('Flexpool not found');
 }
-   
   } catch(error) {
     console.error('Error fetching shifts:', error);
   throw new Error('Failed to fetch shifts');
   }
-  
 }
 
 export const haalFlexpool = async (flexpoolId: string) => {

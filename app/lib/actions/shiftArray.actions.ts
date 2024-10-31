@@ -54,7 +54,6 @@ export const haalAlleShifts = async () => {
 export const haalShift = async (freelancerId: Types.ObjectId) => {
   try {
     await connectToDB();
-
     // Find the freelancer by their ObjectId
     let freelancer; 
     let shiftsArrayIds: string | any[];
@@ -64,19 +63,20 @@ export const haalShift = async (freelancerId: Types.ObjectId) => {
         // Fetch the related Flexpool documents
         const shifts = await Shift.find({ _id: { $in: freelancer.shifts } }).lean() as ShiftType[];
         // Extract shiftArrayIds from each shift
+        console.log("alle shifts: ", shifts)
         shiftsArrayIds = shifts.map(shift => shift.shiftArrayId);
     } else {
       const user = await currentUser();
       if (user) {
          freelancer = await Freelancer.findOne({ clerkId: user.id });
          if (freelancer && freelancer.shifts && freelancer.shifts.length > 0) {
-          // Fetch the related Flexpool documents
+          // Fetch the related shifts documents
           const shifts = await Shift.find({ _id: { $in: freelancer.shifts } }) as ShiftType[];
           // Extract shiftArrayIds from each shift
           shiftsArrayIds = shifts.map(shift => shift.shiftArrayId);
         }
     } else {
-      console.log('No flexpools found for this freelancer.');
+      console.log('No shifts found for this freelancer.');
       return [];
     }   
 }
@@ -87,7 +87,7 @@ export const haalShift = async (freelancerId: Types.ObjectId) => {
     const filteredShiftArrays = allShiftArrays.filter((shiftArray: any) => 
       !shiftsArrayIds.includes(shiftArray._id.toString())
     );
-    console.log(filteredShiftArrays)
+    console.log("filtered shifts: ", filteredShiftArrays)
     return filteredShiftArrays;
   } 
 } catch (error) {
@@ -105,10 +105,8 @@ export const haalGeplaatsteShifts = async ({ bedrijfId }: { bedrijfId: string })
       throw new Error(`Bedrijf with ID ${bedrijfId} not found or shifts not available`);
     }
 
-    const shiftArrays = await ShiftArray.find({ _id: { $in: bedrijf.shifts } }, {beschikbaar: true})
-      .populate('shifts')
-      .lean(); // Use lean to return plain JS objects
-
+    const shiftArrays = await ShiftArray.find({ _id: { $in: bedrijf.shifts } }, {beschikbaar: true}).lean();
+       
     console.log("ShiftArrays: ", JSON.stringify(shiftArrays, null, 2)); // Pretty print the objects for better readability
 
     return shiftArrays;
@@ -130,9 +128,7 @@ export const haalOngepubliceerdeShifts = async ({ bedrijfId }: { bedrijfId: stri
       { _id: { $in: bedrijf.shifts } }, 
       {beschikbaar: false},
       { status: 'container' },
-      )
-      .populate('shifts')
-      .lean(); // Use lean to return plain JS objects
+      ).lean(); // Use lean to return plain JS objects
     console.log("ShiftArrays: ", JSON.stringify(shiftArrays, null, 2)); // Pretty print the objects for better readability
 
     return shiftArrays;
@@ -243,6 +239,35 @@ export const haalReserves = async (shiftId: any) => {
     throw new Error(`Failed to fetch reserves: ${error.message}`);
   }
 };
+export const cloudShift = async () => {
+
+cron.schedule('0 * * * *', async () => {
+  try {
+    const currentDate = new Date();
+    const currentTimeString = currentDate.toTimeString().slice(0, 5); // Get current time in HH:MM format
+
+    // Find shifts where the date is today and time has passed
+    const shiftsToUpdate = await ShiftArray.find({
+      begindatum: {
+        $gte: new Date(currentDate.setHours(0, 0, 0, 0)), // today's date at midnight
+        $lte: new Date(currentDate.setHours(23, 59, 59, 999)) // today's date at 23:59:59
+      },
+      begintijd: { $lte: currentTimeString }, // shifts where begintijd has passed
+      beschikbaar: true // only update if still available
+    });
+
+    // Update shifts
+    await Promise.all(shiftsToUpdate.map(async (shift) => {
+      shift.beschikbaar = false;
+      await shift.save();
+    }));
+
+    console.log(`${shiftsToUpdate.length} shifts updated to beschikbaar: false.`);
+  } catch (error) {
+    console.error('Error updating shifts:', error);
+  }
+})
+};
 
 cron.schedule('0 * * * *', async () => {
   try {
@@ -270,3 +295,30 @@ cron.schedule('0 * * * *', async () => {
     console.error('Error updating shifts:', error);
   }
 });
+
+export const cloudShifts = async () => {
+  try {
+    const currentDate = new Date();
+    const currentTimeString = currentDate.toTimeString().slice(0, 5); // Get current time in HH:MM format
+
+    // Find shifts where the date is today and time has passed
+    const shiftsToUpdate = await ShiftArray.find({
+      begindatum: {
+        $gte: new Date(currentDate.setHours(0, 0, 0, 0)), // today's date at midnight
+        $lte: new Date(currentDate.setHours(23, 59, 59, 999)) // today's date at 23:59:59
+      },
+      begintijd: { $lte: currentTimeString }, // shifts where begintijd has passed
+      beschikbaar: true // only update if still available
+    });
+
+    // Update shifts
+    await Promise.all(shiftsToUpdate.map(async (shift) => {
+      shift.beschikbaar = false;
+      await shift.save();
+    }));
+
+    console.log(`${shiftsToUpdate.length} shifts updated to beschikbaar: false.`);
+  } catch (error) {
+    console.error('Error updating shifts:', error);
+  }
+}

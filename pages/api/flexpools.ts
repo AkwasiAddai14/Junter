@@ -23,6 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           }
         case 'haalshifts':
           try {
+            console.log('..')
             const shifts = await haalShiftsInFlexpool(flexpoolId as string); // Use clerkId
             res.status(200).json(shifts);
           } catch (error) {

@@ -189,7 +189,7 @@ export const fetchBedrijfDetails = async (clerkId: string) => {
       await connectToDB();
       const bedrijf = await Bedrijf.findOne({ clerkId }).exec();
       if (bedrijf) {
-        return bedrijf.toObject();
+        return bedrijf;
       }
       throw new Error('Bedrijf not found');
     } catch (error) {
@@ -201,14 +201,14 @@ export const fetchBedrijfDetails = async (clerkId: string) => {
   export const fetchBedrijfByClerkId = async (clerkId: string) => {
     try {
         await connectToDB()
-        console.log(mongoose.modelNames());
-        const bedrijf = await Bedrijf.findOne({ clerkId: clerkId });
+        const bedrijf = await Bedrijf.findOne({ clerkId: clerkId }).lean();
     if (bedrijf) {
       console.log('Found Bedrijf: ', JSON.stringify(bedrijf, null, 2));  // Log the entire bedrijf object
-      return bedrijf.toObject();
+      return bedrijf;
     } else {
-      console.log('Bedrijf not found for Clerk ID:', clerkId);
-      throw new Error('Bedrijf not found');
+      const bedrijf = await Bedrijf.findById(clerkId).lean();
+      console.log(bedrijf);
+      return bedrijf;
     }
   } catch (error) {
     console.error('Error fetching bedrijf details:', error);

@@ -10,7 +10,7 @@ import { CheckoutValidation } from "@/app/lib/validations/checkout";
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from 'zod';
 import { Textarea } from '@/app/components/ui/textarea';
-import { accepteerCheckout, noShowCheckout, } from '@/app/lib/actions/checkout.actions';
+import { accepteerCheckout, haalcheckout, noShowCheckout, } from '@/app/lib/actions/checkout.actions';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker/TimePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import ReactStars from "react-rating-stars-component";
@@ -36,7 +36,7 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
     useEffect(() => {
       const fetchCheckout = async () => {
           try {
-              const data = await checkout({ id });
+              const data = await haalcheckout({shiftId: id});
               setCheckout(data);
           } catch (error) {
               console.error('Failed to fetch checkout data:', error);

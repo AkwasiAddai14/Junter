@@ -2,12 +2,12 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 import { ShiftType } from './shift.model';
 
 export interface IShiftArray extends Document {
-    opdrachtgever: mongoose.Types.ObjectId;
-    aanmeldingen: mongoose.Types.ObjectId[];
-    reserves: mongoose.Types.ObjectId[];
-    aangenomen: mongoose.Types.ObjectId[];
-    flexpools: mongoose.Types.ObjectId[];
-    shifts: mongoose.Types.ObjectId[];
+    opdrachtgever: mongoose.Schema.Types.ObjectId;
+    aanmeldingen: mongoose.Schema.Types.ObjectId[];
+    reserves: mongoose.Schema.Types.ObjectId[];
+    aangenomen: mongoose.Schema.Types.ObjectId[];
+    flexpools: mongoose.Schema.Types.ObjectId[];
+    shifts: mongoose.Schema.Types.ObjectId[];
     opdrachtgeverNaam: string,
     titel: string;
     functie: string;

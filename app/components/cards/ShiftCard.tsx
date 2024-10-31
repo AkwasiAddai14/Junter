@@ -35,7 +35,7 @@ bedrijfCheck();
   const backgroundImageUrl = shift.afbeelding;
   const opdrachtgeverName = shift.opdrachtgeverNaam || 'Junter';
   const flexpoolTitle = shift.inFlexpool ? "✅ flexpool" : '❎ flexpool';
-  const opdrachtnemerId = typeof shift.opdrachtnemer === 'string' ? shift.opdrachtnemer : shift.opdrachtnemer?._id?.toString();
+  const opdrachtnemerId = typeof shift.opdrachtnemer === 'string' ? shift.opdrachtnemer : shift.opdrachtnemer?.toString();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -43,12 +43,15 @@ bedrijfCheck();
       case 'afgerond':
         return 'bg-green-500'; // Green background for 'aangenomen' and 'afgerond'
       case 'voltooi checkout':
-        return 'bg-yellow-400'; // Yellow background for 'voltooi checkout'
+        return 'bg-yellow-400';
+        case 'checkout ingevuld':
+        return 'bg-sky-500'; // Yellow background for 'voltooi checkout'
         case 'afgewezen':
           case 'afgezegd':
+            case 'no show':
             return 'bg-red-500'
       default:
-        return 'bg-sky-500'; // Default background if no status matches
+        return 'bg-blue-400'; // Default background if no status matches
     }
   };
 
@@ -73,10 +76,10 @@ bedrijfCheck();
   };
 
   const linkHref = isEenBedrijf 
-  ? `/dashboard/shift/bedrijf/${shift._id}` 
+  ? `/dashboard/shift/bedrijf/${shift.shiftArrayId}` 
   : shift.status === 'voltooi checkout' 
     ? `/dashboard/checkout/freelancer/${shift._id}` 
-    : `/dashboard/shift/freelancer/${shift._id}`;
+    : `/dashboard/shift/freelancer/${shift.shiftArrayId}`;
 
   return (
     <div className="group relative flex min-h-[380px] w-full max-w-[400px] flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all hover:shadow-lg md:min-h-[438px]">
@@ -130,13 +133,13 @@ bedrijfCheck();
           <p className="p-medium-14 md:p-medium-16 text-grey-600">{flexpoolTitle}</p>
        <div className={`rounded-md px-4 py-2 ${getStatusColor(shift.status)}`}>
         {shift.status === 'voltooi checkout' ? 
-        <Link href={`/dashboard/checkout/freelancer/${shift._id}`}>
+        <Link href={`/dashboard/checkout/freelancer/${shift.shiftArrayId}`}>
         <p className="p-medium-14 md:p-medium-16 text-grey-600">
           {shift.status}
           </p>
         </Link> :
-        <Link href={`/dashboard/shift/freelancer/${shift._id}`}>
-        <p className="p-medium-14 md:p-medium-16 text-grey-600">
+        <Link href={`/dashboard/shift/freelancer/${shift.shiftArrayId}`}>
+        <p className="line-clamp-1 p-medium-14 md:p-medium-16 text-grey-600">
         {shift.status}
         </p>
         </Link>

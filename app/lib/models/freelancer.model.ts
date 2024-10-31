@@ -1,10 +1,10 @@
 import mongoose, { Document, Types, Schema } from 'mongoose';
 
 export interface IFreelancer extends Document {
-    flexpools: Types.ObjectId[];
-    shifts: Types.ObjectId[];
-    checkouts: Types.ObjectId[];
-    facturen: Types.ObjectId[]; 
+    flexpools: mongoose.Types.ObjectId[];
+    shifts: mongoose.Types.ObjectId[];
+    checkouts: mongoose.Types.ObjectId[];
+    facturen: mongoose.Types.ObjectId[]; 
     clerkId: string;
     voornaam: string;
     tussenvoegsel?: string;

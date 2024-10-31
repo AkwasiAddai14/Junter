@@ -38,13 +38,13 @@ export async function updateShiftsAndMoveToCheckout() {
         }
 
         // Step 4: Remove the shift from the freelancer's shifts array
-        freelancer.shifts = freelancer.shifts.filter((s) => (s as mongoose.Types.ObjectId).toString() !== shift._id.toString());
+        freelancer.shifts = freelancer.shifts.filter((s) => (s as unknown as mongoose.Types.ObjectId).toString() !== shift._id.toString());
 
         // Step 5: Push the shift into the freelancer's checkouts array
         if (!freelancer.checkouts) {
           freelancer.checkouts = []; // Initialize the checkouts array if it doesn't exist
         }
-        freelancer.checkouts.push(new mongoose.Types.ObjectId(shift._id));
+        freelancer.checkouts.push(shift._id as unknown as mongoose.Types.ObjectId);
 
         // Send an email notification
         await sendEmailBasedOnStatus(freelancer.emailadres as string, shift, 'voltooi checkout', freelancer, shift.opdrachtgever);
@@ -224,35 +224,64 @@ export const noShowCheckout = async ({ shiftId }: { shiftId: string }) =>{
     try {
         // Find the checkout document by shiftId
         const checkout = await Shift.findOne({ shift: shiftId });
-
+        if(checkout){
+          checkout.status = 'no show'
+          await checkout.save({ validateModifiedOnly: true });
+        }
         if (!checkout) {
             throw new Error(`Checkout not found for shift ID: ${shiftId}`);
         }
 
         // Update the shift's status to 'Checkout geweigerd'
-        await Shift.updateOne({ shift: shiftId }, { $set: { status: 'No show' } });
-
+        await Shift.updateOne({ shift: shiftId }, { $set: { status: 'no show' } });
+    
         console.log('Checkout geweigerd successfully.');
+        return {
+          success: true,
+          message: "No show checkout ingediend",
+        };
     } catch (error: any) {
         throw new Error(`Failed to weiger checkout: ${error.message}`);
     }
 };
-
+export const haalBedrijvenCheckouts = async (bedrijfId: string) => {
+  try {
+    await connectToDB();
+    const bedrijf = await Bedrijf.findById(bedrijfId).lean();
+    if(bedrijf){
+      const checkouts = await Shift.find({_id: {$in: bedrijf.checkouts}}).lean();
+      return checkouts;
+    }
+    else {
+      const user = await currentUser();
+      if(user){
+        const bedrijf = await Bedrijf.findOne({clerkId: user.id});
+        if(bedrijf) {
+          const checkouts = await Shift.find({_id: {$in: bedrijf.checkouts}}).lean();
+          return checkouts;
+        }  
+      }
+    }
+  } catch (error:any) {
+    throw new Error(`Failed to find shift: ${error.message}`);
+  }
+}
 export const haalCheckouts = async (freelancerId: Types.ObjectId | string ) => {
   try {
     await connectToDB();
     let freelancer;
+    let filteredShifts;
     if(mongoose.Types.ObjectId.isValid(freelancerId)){
       freelancer = await Freelancer.findById(freelancerId);
     // Case 1: If freelancerId is provided
       if (freelancer) {
         // Find shifts where the freelancer is 'opdrachtnemer' and 'status' is 'voltooi checkout'
-        const filteredShifts = await Shift.find({ 
+          filteredShifts = await Shift.find({ 
           opdrachtnemer: freelancer._id,
           status: { $in: ['voltooi checkout', 'checkout geweigerd', 'checkout geaccepteerd'] }
       });
       console.log(filteredShifts);
-        return filteredShifts;
+      return filteredShifts;
       } 
     }
       // Case 2: If freelancerId is not provided, use the logged-in user (Clerk)
@@ -261,7 +290,7 @@ export const haalCheckouts = async (freelancerId: Types.ObjectId | string ) => {
         if (freelancer) {
           // Find shifts where the logged-in freelancer is 'opdrachtnemer' and 'status' is 'voltooi checkout'
           const filteredShifts = await Shift.find({ opdrachtnemer: freelancer._id,
-            status: { $in: ['voltooi checkout', 'checkout geweigerd', 'checkout geaccepteerd'] }
+            status: { $in: ['voltooi checkout', 'checkout geweigerd', 'checkout geaccepteerd', 'no show', 'checkout ingevuld'] }
             });
           return filteredShifts;
         } 
@@ -272,7 +301,7 @@ export const haalCheckouts = async (freelancerId: Types.ObjectId | string ) => {
           if (freelancer) {
             // Find shifts where the logged-in freelancer is 'opdrachtnemer' and 'status' is 'voltooi checkout'
             const filteredShifts = await Shift.find({ opdrachtnemer: freelancer._id,
-              status: { $in: ['voltooi checkout', 'checkout geweigerd', 'checkout geaccepteerd'] }
+              status: { $in: ['voltooi checkout', 'checkout geweigerd', 'checkout geaccepteerd', 'no show', 'checkout ingevuld'] }
                });
             return filteredShifts;
           } else {
@@ -291,17 +320,45 @@ export const haalCheckouts = async (freelancerId: Types.ObjectId | string ) => {
   }
 };
 
+export const haalCheckoutsMetClerkId = async (clerkId: string) => {
+  try {
+    await connectToDB();
+    const freelancer = await Freelancer.findOne({clerkId: clerkId})
+    if (freelancer){
+      const shifts = await Shift.find({
+        opdrachtnemer: freelancer._id,
+         status: 'voltooi checkout' || 'checkout geweigerd' || 'checkout geaccepteerd' || 'no show' || 'checkout ingevuld'
+        })
+      console.log(shifts)
+      return shifts || [];
+    }
+    else {
+      const user = await currentUser();
+        if (user) {
+          const freelancer = await Freelancer.findOne({ clerkId: user.id });
+          const checkouts = await Shift.find({
+            opdrachtnemer: freelancer._id, 
+            status: 'voltooi checkout' || 'checkout geweigerd' || 'checkout geaccepteerd' || 'no show' || 'checkout ingevuld'
+          })
+          console.log(checkouts)
+          return checkouts || [];
+    }
+  } 
+} catch (error: any) {
+  throw new Error(`Failed to find shift: ${error.message}`);
+}
+}
+
 export const haalcheckout = async ({ shiftId }: { shiftId: string }) => {
   try {
     await connectToDB();
     const shift = await Shift.findById(shiftId).lean();
-
     return shift;
-
   } catch (error: any) {
     throw new Error(`Failed to find shift: ${error.message}`);
   }
 };
+
 export const updateNoShowCheckouts = async () => {
     try {
       // Connect to the database
@@ -384,3 +441,29 @@ cron.schedule('0 * * * *', async () => {
       console.error('Error running updateShiftsAndMoveToCheckout:', error.message);
     }
   });
+
+  export const cloudCheckouts1 = async () => {
+    try {
+      console.log('Running updateNoShowCheckouts job at midnight on Wednesday');
+  
+      // Ensure DB is connected before running the function
+      await connectToDB();
+  
+      // Run the function to update checkouts
+      await updateNoShowCheckouts();
+      await updateCheckoutStatus();
+  
+      console.log('Completed updateNoShowCheckouts job');
+    } catch (error) {
+      console.error('Error running updateNoShowCheckouts job:', error);
+    }
+  }
+
+  export const cloudCheckouts2 = async () => {
+    try {
+      const result = await updateShiftsAndMoveToCheckout();
+      console.log(result.message);
+    } catch (error: any) {
+      console.error('Error running updateShiftsAndMoveToCheckout:', error.message);
+    }
+  }

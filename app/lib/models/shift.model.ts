@@ -60,9 +60,9 @@ interface FreelancerDetails {
   profielfoto: string;
 }
 
-export type ShiftType = Document & {
+export interface ShiftType extends Document {
   opdrachtgever: mongoose.Types.ObjectId & { displaynaam: string; stad: string; straatnaam: string; huisnummer: string; kvknr: string; emailadres: string };
-  opdrachtnemer?: mongoose.Types.ObjectId | (mongoose.Types.ObjectId & FreelancerDetails);
+  opdrachtnemer?: mongoose.Types.ObjectId | (mongoose.Schema.Types.ObjectId & FreelancerDetails);
   flexpools?: (mongoose.Types.ObjectId & { titel: string })[];
   vervangers?: mongoose.Types.ObjectId[];
   _id: string;

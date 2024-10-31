@@ -8,6 +8,8 @@ import location from '@/app/assets/images/logos/location-grey.svg'
 import { UserIcon } from '@heroicons/react/20/solid';
 import DashNav from '@/app/components/shared/DashNav';
 import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal, AwaitedReactNode, Key } from 'react';
+import { ShiftType } from '@/app/lib/models/shift.model';
+import { IShiftArray } from '@/app/lib/models/shiftArray.model';
 
 
 
@@ -17,19 +19,20 @@ export type SearchParamProps = {
 }
 
 const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) => {
-  const shift = await haalShiftMetId(id);
+  const shift: IShiftArray = await haalShiftMetId(id);
+  console.log(shift)
   const relatedEvents = await haalGerelateerdShiftsMetCategorie({
     categoryId: shift.functie,
-    shiftId: shift._id,
+    shiftId: shift.id,
     page: searchParams.page as string,
   })
   
-
+  console.log(shift.status)
   return (
     <>
     <DashNav/>
-    <section className="flex justify-center bg-primary-50 bg-dotted-pattern bg-contain">
-      <div className="grid grid-cols-1 md:grid-cols-2 2xl:max-w-7xl">
+    <section className="flex flex-col justify-center bg-primary-50 bg-dotted-pattern bg-contain">
+      <div className="lg:grid grid-cols-1 md:grid-cols-2 2xl:max-w-7xl sm:flex xs:flex flex-col">
         <Image 
           src={shift.afbeelding}
           alt="hero image"
@@ -58,7 +61,7 @@ const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
 
           <div className="flex flex-col gap-5">
             <div className='flex gap-2 md:gap-3'>
-              <Image src={calendar} alt="calendar" width={32} height={32} />
+              <Image src={calendar} alt="calendar" width={32} height={32} className='sm:hidden'/>
               <div className="flex-between w-full p-medium-16 lg:p-regular-20 flex flex-wrap items-center">
                 <p>
                 {new Date(shift.begindatum).toLocaleDateString('nl-NL')}
@@ -73,7 +76,7 @@ const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
             <div className="p-regular-20 flex items-center gap-3">
             <Image src={location} alt="location" width={32} height={32} />
               <p className="p-medium-16 lg:p-regular-20"> {shift.adres}</p>
-              <p className="p-medium-16 lg:p-regular-20"> {shift.stad}</p>
+              {/* <p className="p-medium-16 lg:p-regular-20"> {shift.stad}</p> */}
             </div>
 
 
@@ -88,7 +91,10 @@ const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
             <p className="p-medium-16 lg:p-regular-18 truncate text-primary-500">{shift.inFlexpool ? '✅ Flexpool' : 'niet in flexpool'}</p>
             </div>
            
-            <AanmeldButton shift={shift} />
+            {shift.status === "beschikbaar" && (
+              <AanmeldButton shift={shift} />
+              )}
+              
           
           </div>
           <div className="flex justify-between items-center">
@@ -123,7 +129,7 @@ const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
       </div>
     </section>
 
-      <section className="wrapper my-8 flex flex-col gap-8 md:gap-12">
+      <section className="wrapper my-8 flex flex-col gap-8 md:gap-12 xs:gap-20">
       <h2 className="h2-bold">Gerelateerde shifts</h2>
       <Collection 
           data={relatedEvents?.data}
