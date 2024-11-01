@@ -3,9 +3,11 @@
 import { haalAanmeldingen } from '@/app/lib/actions/shiftArray.actions';
 import { accepteerFreelancer } from'@/app/lib/actions/shift.actions';
 import { afwijzenFreelancer } from '@/app/lib/actions/shift.actions';
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { format, startOfWeek, endOfWeek, addDays, isToday, differenceInMinutes, parseISO, parse } from 'date-fns';
 import { useToast } from '../ui/use-toast';
+import FreelancerProfielModal from "./freelancerProfielModal"
+import Image from 'next/image';
 
 type shiftIdParams = {
   shiftId: string;
@@ -43,6 +45,8 @@ type FreelancerType = {
 
 export const AanmeldingenSectie = ({ shiftId }: shiftIdParams) => {
   const [freelancers, setFreelancers] = useState<FreelancerType[]>([]);
+  const [showProfiel, setShowProfiel] = useState(false);
+  const [id, setId] = useState<string>('');
   const { toast } = useToast()
   useEffect(() => {
     const fetchFreelancers = async () => {
@@ -141,7 +145,14 @@ export const AanmeldingenSectie = ({ shiftId }: shiftIdParams) => {
     }
   };
 
+  function setOpen(arg0: boolean, id: string) {
+    setId(id);
+    setShowProfiel(arg0);
+  }
+
+
     return (
+      <Fragment>
       <div className="px-4 mt-12 sm:px-6 lg:px-8">
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
@@ -180,7 +191,7 @@ export const AanmeldingenSectie = ({ shiftId }: shiftIdParams) => {
                       <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                         <div className="flex items-center">
                           <div className="h-11 w-11 flex-shrink-0">
-                            <img alt="freelancer profielfoto" src={opdrachtnemer.profielfoto} className="h-11 w-11 rounded-full" />
+                            <Image alt="freelancer profielfoto" src={opdrachtnemer.profielfoto} onClick={() => setOpen(true, opdrachtnemer.freelancerId)} className="h-11 w-11 rounded-full" />
                           </div>
                           <div className="ml-4">
                             <div className="font-medium text-gray-900">{opdrachtnemer.naam}</div>
@@ -211,5 +222,11 @@ export const AanmeldingenSectie = ({ shiftId }: shiftIdParams) => {
           </div>
         </div>
       </div>
+      <FreelancerProfielModal 
+      isVisible={showProfiel} 
+      onClose={() => setShowProfiel(false)} 
+      id={id}
+        />
+      </Fragment>
     )
   }

@@ -3,6 +3,7 @@
 import { connectToDB} from "../mongoose";
 import mongoose from "mongoose";
 import Bedrijf from "../models/bedrijf.model";
+import Freelancer from "../models/freelancer.model";
 import { currentUser } from "@clerk/nextjs/server";
 import nodemailer from 'nodemailer';
 
@@ -263,4 +264,52 @@ export const fetchBedrijfDetails = async (clerkId: string) => {
         throw new Error('Failed to fetch bedrijven');
     }
 };
+
+
+interface idProps {
+  freelancerId: string;
+  bedrijfId: string;
+}
+
+function generateEmailBlokkadeContent(freelancerDetails: any, bedrijfDetails: any): EmailContent {
+  
+          return {
+              subject: `Verzoek van ${bedrijfDetails.naam}, ${bedrijfDetails.displaynaam} om freelancer ${freelancerDetails.voornaam} ${freelancerDetails.tussenvoegsel} ${freelancerDetails.achternaam} te blokkeren`,
+              text: `
+              bedrijf: ${bedrijfDetails.displaynaam} heeft een verzoek ingediend om freelancer ${freelancerDetails.emailadres}
+              ${freelancerDetails.profielfoto} ${freelancerDetails.voornaam} ${freelancerDetails.achternaam} ${freelancerDetails.straat} ${freelancerDetails.huisnummer}
+              ${freelancerDetails.geboortedatum} 
+              `,
+  }
+}
+
+export const blokkeerFreelancer = async ({freelancerId, bedrijfId}: idProps) => {
+  try {
+    await connectToDB();
+    const freelancer = await Freelancer.findById(freelancerId)
+    const bedrijf = await Bedrijf.findOne({clerkId: bedrijfId})
+     await sendEmailBlokkade(freelancer, bedrijf);
+     return { success: true, message: "Verzoek blokkade ingediend!" };
+  } catch (error) {
+    console.error('Error verzoek blokkade:', error);
+    throw new Error('Failed to block freelancer');
+  }
+}
+
+export async function sendEmailBlokkade( freelancerDetails: any, bedrijfsDetails: any,) {
+  const emailContent = generateEmailBlokkadeContent(freelancerDetails, bedrijfsDetails);
+  const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: 'georgeaddai@junter.works',
+      subject: emailContent.subject,
+      text: emailContent.text,
+  };
+
+  try {
+      await transporter.sendMail(mailOptions);
+      console.log('Email sent to ' + 'georgeaddai@junter.works');
+  } catch (error) {
+      console.error('Error sending email:', error);
+  }
+}
 

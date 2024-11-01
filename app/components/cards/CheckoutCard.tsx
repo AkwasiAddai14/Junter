@@ -190,11 +190,11 @@ export default function CheckoutCard({isVisible, onClose, shift} : {isVisible: b
             </div>
           <FormField
               control={form.control}
-              name="opmerking"
+              name="feedback"
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormControl className="h-72">
-                    <Textarea placeholder="opmerking" {...field} className="textarea rounded-2xl" />
+                    <Textarea placeholder="feedback" {...field} className="textarea rounded-2xl" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

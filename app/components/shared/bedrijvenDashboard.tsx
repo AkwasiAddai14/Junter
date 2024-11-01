@@ -487,10 +487,11 @@ const Dashboard =  () => {
                           {checkoutItem.titel}
                     </a>
                     <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white">
-                      {checkoutItem?.datum ? new Date(checkoutItem.datum).toLocaleDateString() : 'Datum'}, {checkoutItem?.begintijd ? new Date(checkoutItem.begintijd).toLocaleTimeString() : 'Begintijd'} - {checkoutItem?.eindtijd ? new Date(checkoutItem.eindtijd).toLocaleTimeString() : 'Eindtijd'}
+                      {checkoutItem?.begindatum ? new Date(checkoutItem.begindatum).toLocaleDateString('nl-NL') : 'Datum'}, {checkoutItem?.begintijd ? new Date(checkoutItem.begintijd).toLocaleTimeString('nl-NL') : 'Begintijd'} - {checkoutItem?.eindtijd ? new Date(checkoutItem.eindtijd).toLocaleTimeString('nl-NL') : 'Eindtijd'}
                     </div>
                     <div className="flex flex-1 items-center justify-between truncate rounded-r-md border-b border-r border-t border-gray-200 bg-white">
-                      <p className="text-gray-500">{checkoutItem?.opdrachtnemer?.voornaam} {checkoutItem?.opdrachtnemer?.achternaam}</p>
+                      <p className="text-gray-500">€{checkoutItem?.uurtarief}</p>
+                      <p className="text-gray-500 rounded-md px-4 py-2 bg-sky-500">{checkoutItem?.status} </p>
                     </div>
                   </li>
                 ))}
@@ -511,7 +512,17 @@ const Dashboard =  () => {
                         <a href={`/dashboard/shift/bedrijf/${factuurItem._id}`} className="font-medium text-gray-900 hover:text-gray-600">
                           Week {factuurItem.week} 
                         </a>
-                        <p className="text-gray-500">{factuurItem.shifts?.length} shifts</p>
+                        {factuurItem.shifts?.length === 1 ? (
+                   <>
+               <p className="text-gray-500">
+                 {factuurItem.shifts?.length} shift 
+               </p>
+             </>
+            ) : (
+              <p className="text-gray-500">
+                {factuurItem.shifts?.length} shifts
+              </p>
+            )}
                         <div className="flex flex-1 items-center justify-between">
                         <p className="text-gray-500">€{factuurItem.totaalbedrag} </p>
                         {factuurItem.isVoltooid ? (

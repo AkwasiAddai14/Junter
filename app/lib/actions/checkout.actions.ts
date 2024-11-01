@@ -178,6 +178,7 @@ export const accepteerCheckout = async ({ shiftId, rating, feedback }: { shiftId
         );
         await sendEmailBasedOnStatus(opdrachtnemer.emailadres as string, checkout, 'voltooi checkout', "freelancer", "shift.opdrachtgever");
         console.log('Checkout accepted successfully.');
+        return { success: true, message: "Checkout fields updated successfully."}
     } catch (error: any) {
         throw new Error(`Failed to accept checkout: ${error.message}`);
     }
@@ -215,6 +216,7 @@ export const weigerCheckout = async ({ shiftId, rating, begintijd, eindtijd, pau
         await Shift.updateOne({ _id: shiftId }, { $set: { status: 'Checkout geweigerd' } });
 
         console.log('Checkout geweigerd successfully.');
+        return { success: true, message: "Checkout fields updated successfully."}
     } catch (error: any) {
         throw new Error(`Failed to weiger checkout: ${error.message}`);
     }

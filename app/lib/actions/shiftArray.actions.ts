@@ -130,7 +130,6 @@ export const haalOngepubliceerdeShifts = async ({ bedrijfId }: { bedrijfId: stri
       { status: 'container' },
       ).lean(); // Use lean to return plain JS objects
     console.log("ShiftArrays: ", JSON.stringify(shiftArrays, null, 2)); // Pretty print the objects for better readability
-
     return shiftArrays;
   } catch (error) {
     console.error('Error fetching geplaatste shifts:', error);

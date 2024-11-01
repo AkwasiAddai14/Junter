@@ -10,7 +10,7 @@ import { CheckoutValidation } from "@/app/lib/validations/checkout";
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from 'zod';
 import { Textarea } from '@/app/components/ui/textarea';
-import { accepteerCheckout, haalcheckout, noShowCheckout, } from '@/app/lib/actions/checkout.actions';
+import { accepteerCheckout, haalcheckout, noShowCheckout, weigerCheckout, } from '@/app/lib/actions/checkout.actions';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker/TimePicker';
 import dayjs, { Dayjs } from 'dayjs';
 import ReactStars from "react-rating-stars-component";
@@ -19,6 +19,9 @@ import { useRouter } from 'next/navigation';
 import DashNav from '@/app/components/shared/DashNav';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { haalFreelancer } from '@/app/lib/actions/freelancer.actions';
+import { StarIcon } from '@heroicons/react/24/outline';
+import { toast } from '@/app/components/ui/use-toast';
 
 export type SearchParamProps = {
   params: { id: string }
@@ -29,8 +32,9 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
     const router = useRouter()
     const { control } = useForm();
     const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T15:30'));
-    const [eindtijd, setEindtijd] = useState<Dayjs | null>(dayjs('2022-04-17T15:30'));
+    const [eindtijd, setEindtijd] = useState<Dayjs | null>(dayjs('2022-04-17T16:30'));
     const [checkout, setCheckout] = useState<any>(null);
+    const [freelancer, setFreelancer] = useState<any>(null);
     const [accepteer, setAccepteer] = useState(true);
 
     useEffect(() => {
@@ -45,6 +49,19 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
 
       fetchCheckout();
   }, [id]);
+
+  useEffect(() => {
+    const fetchCheckout = async () => {
+        try {
+            const data = await haalFreelancer(checkout.opdrachtnemer);
+            setFreelancer(data);
+        } catch (error) {
+            console.error('Failed to fetch checkout data:', error);
+        }
+    };
+
+    fetchCheckout();
+}, [id]);
 
 
   const DefaultValues = {
@@ -73,17 +90,58 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
    }
     
     async function onSubmit(values: z.infer<typeof CheckoutValidation>) {
-      
+      if(accepteer){
+        try {
+          const response = await accepteerCheckout(
+            {
+              shiftId: id, 
+              rating: values.rating,
+              feedback: values.feedback
+            }
+          )
+          if (response.success) {
+            toast({
+              variant: 'succes',
+              description: "Checkout verstuurd! 👍"
+            });
+            router.back();
+          } else {
+            toast({
+              variant: 'destructive',
+              description: "Actie is niet toegestaan! ❌"
+            });
+          }
+        } catch (error) {
+          console.error('Failed to submit checkout:', error);
+      } 
+    } else {
       try{
-        await accepteerCheckout(
+        const response = await weigerCheckout(
           {
             shiftId: id, 
-            rating: values.rating,
-            feedback: values.feedback
+            rating: values.rating || 5,
+            begintijd: values.begintijd || checkout?.begintijd,
+            eindtijd: values.eindtijd || checkout?.eindtijd,
+            pauze: values.pauze.toString() || checkout?.pauze.toString(),
+            feedback: values.feedback || " ",
+            opmerking: values.opmerking || " "
           }
         )
+        if (response.success) {
+          toast({
+            variant: 'succes',
+            description: "Checkout verstuurd! 👍"
+          });
+          router.back();
+        } else {
+          toast({
+            variant: 'destructive',
+            description: "Actie is niet toegestaan! ❌"
+          });
+        }
       } catch (error) {
         console.error('Failed to submit checkout:', error);
+    }
     }
     router.back();
   }
@@ -102,21 +160,31 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
       <div className="flex items-center gap-4 pb-4 border-b border-gray-200">
         <Image
           className="object-cover rounded-full"
-          src={checkout.opdrachtnemer.profielfoto}
+          src={freelancer.profielfoto}
           alt="profielfoto"
           width={64}
           height={64}
         />
-        <div>
-          <p className="text-lg font-semibold text-gray-800">{checkout.opdrachtnemer.voornaam} {checkout.opdrachtnemer.achternaam}</p>
-          <p className="text-gray-500">Ratings: {checkout.opdrachtnemer.ratingCount}</p>
+        <div className="flex flex-col items-center justify-center">
+          <p className="text-lg font-semibold text-gray-800">{freelancer.voornaam} {freelancer.achternaam}</p>
+          <p className="text-gray-500">Ratings: {freelancer.ratingCount}</p>
+          <dd className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                {freelancer?.rating ?  freelancer?.rating.toFixed(1) : 5}
+                <StarIcon aria-hidden="true" className="h-4 w-5 text-gray-400" />
+          </dd>
         </div>
       </div>
 
       {/* Date and Time Information */}
       <div className="my-4">
-        <p className="text-sm font-semibold leading-6 text-gray-900">{checkout.datum}, {checkout.begintijd} - {checkout.eindtijd}</p>
+        <p className="text-sm font-semibold leading-6 text-gray-900">{checkout.begindatum}, {checkout.begintijd} - {checkout.eindtijd}</p>
         <p className="text-gray-500 text-sm mt-1">{checkout.pauze} minuten pauze</p>
+        <p className="text-gray-500 text-sm mt-1">Uurtarief: €{checkout.uurtarief} p/u</p>
+      </div>
+
+      <div className="my-4">
+        <p className="text-sm font-semibold leading-6 text-gray-900">{checkout.begindatum}, {checkout.checkoutbegintijd} - {checkout.checkouteindtijd}</p>
+        <p className="text-gray-500 text-sm mt-1">{checkout.checkoutpauze} minuten pauze</p>
         <p className="text-gray-500 text-sm mt-1">Uurtarief: €{checkout.uurtarief} p/u</p>
       </div>
 
@@ -151,9 +219,10 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
                       label="Begintijd"
                       value={begintijd}
                       onChange={(newValue) => {
+                        console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "08:00");
                         const formattedTime = newValue ? newValue.format("HH:mm") : "08:00";
-                        setBegintijd(newValue); // Update local state for display
-                        field.onChange(formattedTime); // Update form state
+                        setEindtijd(newValue);
+                        field.onChange(formattedTime); // Convert to ISO string
                       }}
                     />
                   </div>
@@ -172,8 +241,9 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
                       label="Eindtijd"
                       value={eindtijd}
                       onChange={(newValue) => {
-                        const formattedTime = newValue ? newValue.format("HH:mm") : "08:00";
-                        setEindtijd(newValue);
+                        console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "16:00");
+                        const formattedTime = newValue ? newValue.format("HH:mm") : "16:00";
+                        setBegintijd(newValue); // Update local state for display
                         field.onChange(formattedTime); // Update form state
                       }}
                     />
@@ -206,7 +276,7 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
           render={({ field }) => (
             <FormItem className="w-full">
               <FormControl>
-                <Textarea placeholder="Opmerking" {...field} className="textarea rounded-lg" />
+                <Textarea placeholder="feedback" {...field} className="textarea rounded-lg" />
               </FormControl>
               <FormMessage />
             </FormItem>
