@@ -32,8 +32,8 @@ export type SearchParamProps = {
 export default function CheckoutCard({ params: { id }, searchParams }: SearchParamProps) {
     const router = useRouter();
     const { control } = useForm();
-    const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T08:00'));
-    const [eindtijd, setEindtijd] = useState<Dayjs | null>(dayjs('2022-04-17T16:30'));
+    const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T08:00:AM'));
+    const [eindtijd, setEindtijd] = useState<Dayjs | null>(dayjs('2022-04-17T04:30:PM'));
     const [checkout, setCheckout] = useState<any>(null);
 
     useEffect(() => {
@@ -52,7 +52,7 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
     const DefaultValues = {
       beginttijd: checkout?.begintijd || "",
       eindtijd: checkout?.eindtijd || "",
-      pauze: checkout?.pauze || 30,
+      pauze: checkout?.pauze || "30",
      rating: 5,
      opmerking: " ",
      feedback: " ",

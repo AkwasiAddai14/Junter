@@ -220,30 +220,30 @@ export const weigerCheckout = async ({ shiftId, rating, begintijd, eindtijd, pau
     }
 };
 
-export const noShowCheckout = async ({ shiftId }: { shiftId: string }) =>{
-    try {
-        // Find the checkout document by shiftId
-        const checkout = await Shift.findOne({ shift: shiftId });
-        if(checkout){
-          checkout.status = 'no show'
-          await checkout.save({ validateModifiedOnly: true });
-        }
-        if (!checkout) {
-            throw new Error(`Checkout not found for shift ID: ${shiftId}`);
-        }
+export const noShowCheckout = async ({ shiftId }: { shiftId: string }) => {
+  try {
+      // Find the checkout document by shiftId
+      const checkout = await Shift.findOne({ shift: shiftId });
 
-        // Update the shift's status to 'Checkout geweigerd'
-        await Shift.updateOne({ shift: shiftId }, { $set: { status: 'no show' } });
-    
-        console.log('Checkout geweigerd successfully.');
-        return {
-          success: true,
-          message: "No show checkout ingediend",
-        };
-    } catch (error: any) {
-        throw new Error(`Failed to weiger checkout: ${error.message}`);
-    }
+      if (!checkout) {
+          throw new Error(`Checkout not found for shift ID: ${shiftId}`);
+      }
+
+      // Update the status to 'no show' and save it
+      checkout.status = 'no show';
+      await checkout.save({ validateModifiedOnly: true });
+
+      console.log('No show checkout ingediend successfully.');
+      return {
+        success: true,
+        message: "No show checkout ingediend",
+      };
+  } catch (error: any) {
+      throw new Error(`Failed to indienen no show checkout: ${error.message}`);
+  }
 };
+
+
 export const haalBedrijvenCheckouts = async (bedrijfId: string) => {
   try {
     await connectToDB();
@@ -327,7 +327,7 @@ export const haalCheckoutsMetClerkId = async (clerkId: string) => {
     if (freelancer){
       const shifts = await Shift.find({
         opdrachtnemer: freelancer._id,
-         status: 'voltooi checkout' || 'checkout geweigerd' || 'checkout geaccepteerd' || 'no show' || 'checkout ingevuld'
+        status: { $in: ['voltooi checkout', 'checkout geweigerd', 'checkout geaccepteerd', 'no show', 'checkout ingevuld'] }
         })
       console.log(shifts)
       return shifts || [];
@@ -338,7 +338,7 @@ export const haalCheckoutsMetClerkId = async (clerkId: string) => {
           const freelancer = await Freelancer.findOne({ clerkId: user.id });
           const checkouts = await Shift.find({
             opdrachtnemer: freelancer._id, 
-            status: 'voltooi checkout' || 'checkout geweigerd' || 'checkout geaccepteerd' || 'no show' || 'checkout ingevuld'
+            status: { $in: ['voltooi checkout', 'checkout geweigerd', 'checkout geaccepteerd', 'no show', 'checkout ingevuld'] }
           })
           console.log(checkouts)
           return checkouts || [];

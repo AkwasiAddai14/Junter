@@ -23,8 +23,8 @@ import { ShiftType } from '@/app/lib/models/shift.model';
 export default function CheckoutCard({isVisible, onClose, shift} : {isVisible: boolean, onClose: any, shift: ShiftType}) {
     if (!isVisible) return null;
     const { control } = useForm();
-    const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T08:00'));
-    const [eindtijd, setEindtijd] = useState<Dayjs | null>(dayjs('2022-04-17T16:30'));
+    const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T08:00:AM'));
+    const [eindtijd, setEindtijd] = useState<Dayjs | null>(dayjs('2022-04-17T04:30:PM'));
 
 
   const DefaultValues = {
@@ -47,11 +47,11 @@ export default function CheckoutCard({isVisible, onClose, shift} : {isVisible: b
         try {
             await vulCheckout({
                 shiftId: shift._id,
-                rating: values.rating || 5,
-                begintijd: values.begintijd || shift?.begintijd,
-                eindtijd: values.eindtijd || shift?.eindtijd,
-                pauze: values.pauze || shift?.pauze,
-                feedback: values.feedback || "",
+                rating: values?.rating || 5,
+                begintijd: values?.begintijd || shift?.begintijd,
+                eindtijd: values?.eindtijd || shift?.eindtijd,
+                pauze: values?.pauze || shift?.pauze,
+                feedback: values?.feedback || "",
                 opmerking: values.opmerking || ""
             });
         } catch (error) {
