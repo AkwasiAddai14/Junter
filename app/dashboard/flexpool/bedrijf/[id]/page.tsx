@@ -239,7 +239,7 @@ export default function FlexpoolPage({ params: { id }, searchParams }: SearchPar
       <h2 className="text-center text-2xl font-bold my-7">Shifts</h2>
         {shifts.length > 0 ? (
           <ScrollArea>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {shifts.slice(0, shifts.length).map((shiftItem, index) => (
                 <ShiftCard key={index} shift={shiftItem} />
               ))}

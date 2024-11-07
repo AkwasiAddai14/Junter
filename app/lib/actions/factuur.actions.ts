@@ -444,10 +444,10 @@ export async function maakFacturen() {
 export async function haalFacturen(id: string) {
     try {
         // Find all facturen
-        const facturen = await Factuur.findById(id)
+        const facturen = await Factuur.find({opdrachtgever: id})
         .populate({
             path: 'shifts',  // Populates the 'shifts' field
-            select: 'titel uurtarief begindatum uurtarief checkoutbegintijd checkouteindtijd checkoutpauze opdrachtnemer', // Selects fields in the 'shifts'
+            select: 'titel uurtarief begindatum checkoutbegintijd checkouteindtijd checkoutpauze opdrachtnemer', // Selects fields in the 'shifts'
             populate: {
                 path: 'opdrachtnemer',  // Further populates 'opdrachtnemer' inside 'shifts'
                 select: 'voornaam achternaam profielfoto'  // Selects fields in 'opdrachtnemer'
@@ -461,23 +461,30 @@ export async function haalFacturen(id: string) {
     }
 }
 
-export async function haalFacturenFreelancer(id:string){
+export async function haalFacturenFreelancer(id: string) {
     try {
         await connectToDB();
-        if (id !== ""){
-        const freelancer = await Freelancer.findOne({clerkId: id});
-        const facturen = freelancer.facturen;
-        return facturen;
+        let facturen = [];
+
+        if (mongoose.Types.ObjectId.isValid(id)) {
+            // Attempt to find the freelancer by ID
+            const freelancer = await Freelancer.findById(id);
+            facturen = freelancer?.facturen || [];
         } else {
-            const user = await currentUser(); 
-            const freelancer = await Freelancer.findOne({clerkId: user!.id})
-            return freelancer.facturen;
+            // Get the current user if id is not a valid ObjectId
+            const user = await currentUser();
+            if (user) {
+                const freelancer = await Freelancer.findOne({ clerkId: user.id });
+                facturen = freelancer?.facturen || [];
+            }
         }
-    } catch(error: any){
+        return facturen;
+    } catch (error: any) {
         console.error('Error retrieving facturen:', error);
         throw new Error(`Failed to retrieve facturen: ${error.message}`);
     }
 }
+
 
 export async function haalAfgerondeShifts(clerkId: string){
     try{

@@ -11,11 +11,17 @@ import { useUser } from '@clerk/nextjs'
 
 export const ApplyConfirmation = ({ shiftId }: { shiftId: string }) => {
   let [isPending, startTransition] = useTransition()
+  const [userId, setUserId] = useState(''); 
   const [shift, setShift] = useState<any>(null);
   const { toast } = useToast();
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
  
-  
+  useEffect(() => {
+    if (isLoaded && user) {
+     setUserId(user?.id)
+    }
+  }, [isLoaded, user]);
+
   useEffect(() => {
     const fetchShift = async () => {
       const fetchedShift = await haalShiftMetId(shiftId);
@@ -30,7 +36,7 @@ export const ApplyConfirmation = ({ shiftId }: { shiftId: string }) => {
   }
   
   const shiftArrayId = shift._id;
-  const freelancerId = user!.id
+  const freelancerId = userId;
 
   const handleAanmelden = async () => {
     try {

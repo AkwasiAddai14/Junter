@@ -194,7 +194,6 @@ const Dashboard =  () => {
             setSidebarOpen(false);
           }
 
-          console.log(shift, unpublished, checkout, flexpool)
           
   return (
     <Fragment>
@@ -353,20 +352,26 @@ const Dashboard =  () => {
             { position === 'Shifts' ? (
                     shift.length > 0 ? (
                       <>
-                      <ScrollArea>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      {unpublished.slice(0, unpublished.length).map((unpublishedItem, index) => (
-                          <ShiftCard key={index} shift={unpublishedItem} />
-                        ))}
-                    </div>
-                  </ScrollArea>
+                      
                   <ScrollArea>
+                  <h1 className='mb-10 items-center justify-center text-4xl'>Gepubliceerde shifts</h1>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                       {shift.slice(0, shift.length).map((shiftItem, index) => (
                         <ShiftCard key={index} shift={shiftItem} />
                       ))}
                       </div>
                     </ScrollArea>
+
+                    <ScrollArea>
+                      <h1 className='my-10 items-center justify-center text-4xl'>Ongepubliceerde shifts</h1>
+                    <div className="grid grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-4">
+                      {unpublished.slice(0, unpublished.length).map((unpublishedItem, index) => (
+                          <ShiftCard key={index} shift={unpublishedItem} />
+                        ))}
+                    </div>
+                  </ScrollArea>
+
+
                     </>
                     ) : (
       <div className="lg:pl-96 h-full overflow-hidden">Geen shifts beschikbaar</div>
@@ -447,30 +452,33 @@ const Dashboard =  () => {
             </div>
             <div className="flex-grow overflow-hidden">
             <ScrollArea className="h-full overflow-auto">
-                {shift.map((shiftItem, index) => (
-                  <li key={index} className="col-span-1 flex rounded-md shadow-sm">
-                    <div className="flex flex-1 items-center justify-between truncate border-b border-gray-200 bg-white">
-                      <div className="flex-1 truncate px-4 py-2 text-sm">
-                        <a href={`/dashboard/shift/bedrijf/${shiftItem._id}`} className="font-medium text-gray-900 hover:text-gray-600">
-                          {shiftItem.titel}
-                        </a>
-                        <p className="text-gray-500">{new Date(shiftItem.begindatum).toLocaleDateString('nl-NL')}</p>
-                        <p className="text-gray-500">{shiftItem.aanmeldingen?.length} Aanmeldingen</p>
-                        <p className="text-gray-500">{shiftItem.plekken} Plekken</p>
-                        <p className="text-gray-500">{shiftItem.aangenomen?.length} Aangenomen</p>
-                      </div>
-                    </div>
-                    <div className='mt-10 h-16 w-16 items-center justify-center overflow-hidden'>
-                      <Image
-                      src={shiftItem.afbeelding || "https://utfs.io/f/72e72065-b298-4ffd-b1a2-4d12b06230c9-n2dnlw.webp"}
-                      width={32}
-                      height={32}
-                      alt={shiftItem.opdrachtgeverNaam || "shift"}
-                      className="object-contain rounded-full" 
-                      />
-                    </div>
-                  </li>
-                ))}
+            {shift.map((shiftItem, index) => {
+  return (
+    <li key={index} className="col-span-1 flex rounded-md shadow-sm">
+      <div className="flex flex-1 items-center justify-between truncate border-b border-gray-200 bg-white">
+        <div className="flex-1 truncate px-4 py-2 text-sm">
+          <a href={`/dashboard/shift/bedrijf/${shiftItem._id}`} className="font-medium text-gray-900 hover:text-gray-600">
+            {shiftItem.titel}
+          </a>
+          <p className="text-gray-500">{shiftItem.begindatum ? new Date(shiftItem.begindatum).toLocaleDateString('nl-NL') : 'Datum niet beschikbaar'}</p>
+          <p className="text-gray-500">{shiftItem.aanmeldingen ? shiftItem.aanmeldingen.length : 0} Aanmeldingen</p>
+          <p className="text-gray-500">{shiftItem.plekken ?? 0} Plekken</p>
+          <p className="text-gray-500">{shiftItem.aangenomen ? shiftItem.aangenomen.length : 0} Aangenomen</p>
+        </div>
+      </div>
+      <div className="mt-10 h-16 w-16 items-center justify-center overflow-hidden">
+        <Image
+          src={shiftItem.afbeelding || "https://utfs.io/f/72e72065-b298-4ffd-b1a2-4d12b06230c9-n2dnlw.webp"}
+          width={32}
+          height={32}
+          alt={shiftItem.opdrachtgeverNaam || "shift"}
+          className="object-contain rounded-full"
+        />
+      </div>
+    </li>
+  );
+})}
+
               </ScrollArea>
             </div>
           </div>
@@ -480,22 +488,37 @@ const Dashboard =  () => {
               <p className="mt-2 italic font-mono text-lg font-semibold text-center">Checkouts</p>
             </div>
             <div className="flex-grow overflow-hidden">
-              <ScrollArea className="h-full overflow-auto">
-                {checkout.map((checkoutItem, index) => (
-                  <li key={index} className="col-span-1 flex rounded-md shadow-sm">
-                    <a href={`/dashboard/checkout/bedrijf/${checkoutItem._id}`} className="font-medium text-gray-900 hover:text-gray-600">
-                          {checkoutItem.titel}
-                    </a>
-                    <div className="flex w-16 flex-shrink-0 items-center justify-center rounded-l-md text-sm font-medium text-white">
-                      {checkoutItem?.begindatum ? new Date(checkoutItem.begindatum).toLocaleDateString('nl-NL') : 'Datum'}, {checkoutItem?.begintijd ? new Date(checkoutItem.begintijd).toLocaleTimeString('nl-NL') : 'Begintijd'} - {checkoutItem?.eindtijd ? new Date(checkoutItem.eindtijd).toLocaleTimeString('nl-NL') : 'Eindtijd'}
-                    </div>
-                    <div className="flex flex-1 items-center justify-between truncate rounded-r-md border-b border-r border-t border-gray-200 bg-white">
+            <ScrollArea className="h-full overflow-auto">
+                  {checkout.map((checkoutItem, index) => (
+                    <li key={index} className="col-span-1 flex rounded-md shadow-sm">
+                      <div className="flex flex-1 items-center justify-between truncate border-b border-gray-200 bg-white">
+                      <div className="flex-1 truncate px-4 py-2 text-sm">
+                      <div className="flex justify-between">
+                      <a href={`/dashboard/checkout/bedrijf/${checkoutItem._id}`} className="font-medium text-gray-900 hover:text-gray-600">
+                        {checkoutItem.titel}
+                      </a>
                       <p className="text-gray-500">€{checkoutItem?.uurtarief}</p>
-                      <p className="text-gray-500 rounded-md px-4 py-2 bg-sky-500">{checkoutItem?.status} </p>
-                    </div>
-                  </li>
-                ))}
-              </ScrollArea>
+                      </div>
+                      <p className="text-gray-500">
+                        {checkoutItem?.begindatum ? new Date(checkoutItem.begindatum).toLocaleDateString('nl-NL') : 'Datum'}
+                        </p>
+                        <div className="flex justify-between">
+                        <p>
+                        {checkoutItem?.begintijd || 'Begintijd'} - {checkoutItem?.eindtijd || 'Eindtijd'}
+                        </p>
+                        <p>{checkoutItem?.pauze || 'Pauze'} minuten pauze</p>
+                        </div>
+                        <div className="flex justify-between">
+                        <p>
+                        {checkoutItem?.checkoutbegintijd || 'Begintijd'} - {checkoutItem?.checkouteindtijd || 'Eindtijd'}
+                        </p>
+                        <p>{checkoutItem?.chekoutpauze || '0'} minuten pauze</p>
+                        </div>
+                      </div>
+                      </div>
+                    </li>
+                  ))}
+                </ScrollArea>               
             </div>
           </div>
       

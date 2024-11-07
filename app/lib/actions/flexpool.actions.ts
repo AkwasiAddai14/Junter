@@ -187,9 +187,10 @@ export const haalFlexpoolFreelancer = async (userId: Types.ObjectId | string ): 
   }
 }
 
-export const haalShiftsInFlexpool = async (flexpoolId: string) => {
+export const haalShiftsInFlexpool = async (flexpoolId: Types.ObjectId | string) => {
   try {
     await connectToDB();
+    if(mongoose.Types.ObjectId.isValid(flexpoolId)){
     console.log('function called')
     const flexpool = await Flexpool.findById(flexpoolId);
     console.log(flexpool)
@@ -197,8 +198,8 @@ if (flexpool) {
     const shifts = await Shift.find({ _id: { $in: flexpool.shifts } });
     console.log(shifts)
     return shifts;
-    // Now you can safely use `shifts`
-} else {
+   }   // Now you can safely use `shifts`
+    } else {
     console.error('Flexpool not found');
 }
   } catch(error) {
@@ -214,7 +215,7 @@ export const haalFlexpool = async (flexpoolId: string) => {
       const flexpool = await Flexpool.findById(flexpoolId).populate({
         path: 'shifts',
         model: 'ShiftArray',
-        select: 'titel begindatum aanmeldingen opdrachtgeverNaam plekken afbeelding inFlexpool uurtarief begintijd eindtijd urrtarief', // Select only necessary fields to avoid deep recursion
+        select: 'titel begindatum aanmeldingen opdrachtgeverNaam plekken afbeelding inFlexpool uurtarief begintijd eindtijd uurtarief', // Select only necessary fields to avoid deep recursion
       })
       .populate({
         path: 'freelancers',

@@ -71,14 +71,14 @@ export const AangenomenSectie = ({ shiftId }: shiftIdParams) => {
     // Format the date to 'yyyy-MM-dd'
     const datePart = format(date, 'MM-dd-yyyy');
     // Combine the date part with the time
-   console.log(datePart)
+
     const parsedDate = parse(datePart, 'MM-dd-yyyy', new Date());
-   console.log(parsedDate)
+
     // Check if the date is valid
     if (isNaN(parsedDate.getTime())) {
       throw new Error(`Invalid date: ${datePart}`);
     }
-    console.log(parsedDate)
+ 
     return parsedDate;
   };
 
@@ -87,7 +87,6 @@ export const AangenomenSectie = ({ shiftId }: shiftIdParams) => {
     if (typeof dateOfBirth === 'string') {
       const [day, month, year] = dateOfBirth.split('/').map(Number);
       dateOfBirth = new Date(year, month - 1, day);
-      console.log(dateOfBirth)
     }
   
     const diff = Date.now() - new Date(dateOfBirth).getTime();
@@ -158,9 +157,10 @@ export const AangenomenSectie = ({ shiftId }: shiftIdParams) => {
       });
     }
   };
-console.log(freelancers)
+
 
   function setOpen(arg0: boolean, id :string): void {
+    setShowProfiel(arg0);
     setId(id);
   }
 
@@ -204,7 +204,7 @@ console.log(freelancers)
                       <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                         <div className="flex items-center">
                           <div className="h-11 w-11 flex-shrink-0">
-                            <Image alt="freelancer profielfoto" src={opdrachtnemer.profielfoto} onClick={() => setOpen(true, opdrachtnemer.freelancerId)} className="h-11 w-11 rounded-full" />
+                            <Image alt="freelancer profielfoto" src={opdrachtnemer.profielfoto} height={16} width={16} onClick={() => setOpen(true, opdrachtnemer.freelancerId)} className="h-11 w-11 rounded-full" />
                           </div>
                           <div className="ml-4">
                             <div className="font-medium text-gray-900">{opdrachtnemer.naam}</div>
@@ -219,7 +219,7 @@ console.log(freelancers)
                       <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{opdrachtnemer.opkomst} %</td>
                       <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{opdrachtnemer.punctualiteit} %</td>
                       <td className="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                      <button  onClick={() => handleFreelancerAcceptance(opdrachtnemer.freelancerId)} className="inline-flex items-center rounded-md bg-sky-50 px-2 py-1 text-xs font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20">
+                      <button  onClick={() => setOpen(true, opdrachtnemer.freelancerId)} className="inline-flex items-center rounded-md bg-sky-50 px-2 py-1 text-xs font-medium text-sky-700 ring-1 ring-inset ring-sky-600/20">
                           Bekijken<span className="sr-only">, {opdrachtnemer.naam}</span>
                         </button>
                         <button onClick={() => handleFreelanceRejection(opdrachtnemer.freelancerId)} className="inline-flex ml-2 items-center rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-green-600/20">
@@ -270,7 +270,7 @@ console.log(freelancers)
                       <td className="whitespace-nowrap py-5 pl-4 pr-3 text-sm sm:pl-0">
                         <div className="flex items-center">
                           <div className="h-11 w-11 flex-shrink-0">
-                            <Image alt="freelancer profielfoto" src={reserve.profielfoto} onClick={() => setOpen(true, reserve.freelancerId)} className="h-11 w-11 rounded-full" />
+                            <Image alt="freelancer profielfoto" src={reserve.profielfoto} height={16} width={16} onClick={() => setOpen(true, reserve.freelancerId)} className="h-11 w-11 rounded-full" />
                           </div>
                           <div className="ml-4">
                             <div className="font-medium text-gray-900">{reserve.naam}</div>

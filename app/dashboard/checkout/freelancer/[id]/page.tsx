@@ -11,7 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from 'zod';
 import { Textarea } from '@/app/components/ui/textarea';
 import { noShowCheckout, vulCheckout } from '@/app/lib/actions/checkout.actions';
-import { TimePicker } from '@mui/x-date-pickers/TimePicker/TimePicker';
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import dayjs, { Dayjs } from 'dayjs';
 import ReactStars from "react-rating-stars-component";
 import DropdownPauze from '@/app/components/shared/DropdownPauze';
@@ -32,8 +32,8 @@ export type SearchParamProps = {
 export default function CheckoutCard({ params: { id }, searchParams }: SearchParamProps) {
     const router = useRouter();
     const { control } = useForm();
-    const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T08:00:AM'));
-    const [eindtijd, setEindtijd] = useState<Dayjs | null>(dayjs('2022-04-17T04:30:PM'));
+    const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T08:00'));
+    const [eindtijd, setEindtijd] = useState<Dayjs | null>(dayjs('2022-04-17T16:30'));
     const [checkout, setCheckout] = useState<any>(null);
 
     useEffect(() => {
@@ -175,8 +175,8 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
                           onChange={(newValue) => {
                             console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "08:00");
                             const formattedTime = newValue ? newValue.format("HH:mm") : "08:00";
-                            setBegintijd(newValue);
-                            field.onChange(formattedTime);
+                            setBegintijd(newValue); // Update local state for display
+                            field.onChange(formattedTime); // Update form state
                           }}
                         />
                       </div>
@@ -192,8 +192,8 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
                           label="Eindtijd"
                           value={checkout ? dayjs(checkout.eindtijd) : eindtijd}
                           onChange={(newValue) => {
-                            console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "08:00");
-                            const formattedTime = newValue ? newValue.format("HH:mm") : "08:00";
+                            console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "16:00");
+                            const formattedTime = newValue ? newValue.format("HH:mm") : "16:00";
                             setEindtijd(newValue);
                             field.onChange(formattedTime);
                           }}

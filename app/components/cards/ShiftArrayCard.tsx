@@ -50,7 +50,7 @@ const Card = ({ shift }: CardProps) => {
       style={{ backgroundImage: `url(${backgroundImageUrl})` }}
       className="flex-center flex-grow bg-gray-50 bg-cover bg-center text-grey-500"
     />}
-      {isEenBedrijf ? (
+      {isEenBedrijf && shift.status === "beschikbaar"? (
         <div className="absolute items-stretch right-2 top-2 flex flex-col gap-4 rounded-xl bg-white p-3 shadow-sm transition-all">
           <Link href={`/dashboard/shift/bedrijf/${shift._id}/update`}>
             <Image src={edit} alt="edit" width={20} height={20} />

@@ -146,6 +146,21 @@ export const haalFreelancer = async  (clerkId: string) => {
     }
 }
 
+export const haalFreelancerProfielModal = async  (Id: string) => {
+  try {
+    await connectToDB();
+  
+    const freelancer = await Freelancer.findById(Id).lean();
+  
+    console.log(freelancer)
+      return freelancer;
+      
+  } catch (error) {
+      console.error('Error retrieving freelancers:', error);
+      throw new Error('Error retrieving freelancers');
+  }
+}
+
 export const haalFreelancerVoorAdres = async  (clerkId: string) => {
   try {
     await connectToDB();

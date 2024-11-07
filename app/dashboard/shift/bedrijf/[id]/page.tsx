@@ -18,6 +18,7 @@ export type SearchParamProps = {
 
 const shiftDetails = async ({ params: { id }, searchParams, }: SearchParamProps) => {
   const shift = await haalShiftMetId(id);
+  console.log(shift)
 
   return (
     <>
@@ -66,7 +67,7 @@ const shiftDetails = async ({ params: { id }, searchParams, }: SearchParamProps)
 
             <div className="p-regular-20 flex items-center gap-3">
             <Image src={location} alt="location" width={32} height={32} />
-              <p className="p-medium-16 lg:p-regular-20"> {shift.adres}  {shift.stad}</p>
+              <p className="p-medium-16 lg:p-regular-20"> {shift.adres}</p>
             </div>
 
 
@@ -110,8 +111,8 @@ const shiftDetails = async ({ params: { id }, searchParams, }: SearchParamProps)
       </div>
     </section>
 
-    <AangenomenSectie shiftId={shift._id}/>
-    <AanmeldingenSectie shiftId={shift._id}/>
+    <AangenomenSectie shiftId={shift._id as string}/>
+    <AanmeldingenSectie shiftId={shift._id as string}/>
 
     </>
   )

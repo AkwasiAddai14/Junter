@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
-import { haalFreelancer } from '@/app/lib/actions/freelancer.actions';
+import { haalFreelancer, haalFreelancerProfielModal } from '@/app/lib/actions/freelancer.actions';
 import { Textarea } from '../ui/textarea';
 import { useToast } from '@/app/components/ui/use-toast';
 import { blokkeerFreelancer } from '@/app/lib/actions/bedrijven.actions';
@@ -29,7 +29,7 @@ export default function freelancerProfielModal({isVisible, onClose, id} : Freela
     useEffect(() => {
         (async () => {
           try {
-            const fetchedFreelancer = await haalFreelancer(id);
+            const fetchedFreelancer = await haalFreelancerProfielModal(id);
             setFreelancer(fetchedFreelancer);
           } catch (error) {
             console.error('Error fetching freelancer:', error);
@@ -41,7 +41,7 @@ export default function freelancerProfielModal({isVisible, onClose, id} : Freela
    
   if (!freelancer ) {
     return (
-      <div>freelasncer informatie niet beschikbaar...</div>
+      <div>freelancer informatie niet beschikbaar...</div>
     )
   }
 
@@ -144,6 +144,7 @@ export default function freelancerProfielModal({isVisible, onClose, id} : Freela
 
           {/* Additional Fields */}
           <div className="px-6 py-4 space-y-4">
+          <dl className="flex flex-wrap border-b  border-gray-900/5 pb-6">
           <div className="mt-4 flex w-full flex-auto gap-x-4 px-6">
               <span className="text-sm font-semibold leading-6 text-gray-900">Telefoonnumer  </span>
             <dd className="text-sm leading-6 text-gray-500">
@@ -162,10 +163,11 @@ export default function freelancerProfielModal({isVisible, onClose, id} : Freela
               <span className="text-sm font-semibold leading-6 text-gray-900">Bio  </span>
             <dd className="text-sm leading-6 text-gray-500">
             </dd>
-            <Textarea className="rounded-2xl" >
+            <p className="text-sm leading-6 text-gray-500">
             {freelancer?.bio || bio ||"Schrijf wat over jezelf.."}
-            </Textarea>
+            </p>
           </div>
+          </dl>
 
           <div className="mt-4">
             <h4 className="font-semibold">Vaardigheden</h4>

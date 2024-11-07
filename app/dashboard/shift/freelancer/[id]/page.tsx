@@ -91,7 +91,7 @@ const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
             <p className="p-medium-16 lg:p-regular-18 truncate text-primary-500">{shift.inFlexpool ? '✅ Flexpool' : 'niet in flexpool'}</p>
             </div>
            
-            {shift.status === "beschikbaar" && (
+            {shift.status === "beschikbaar" && shift.beschikbaar && (
               <AanmeldButton shift={shift} />
               )}
               

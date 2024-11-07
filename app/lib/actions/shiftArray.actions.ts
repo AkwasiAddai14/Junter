@@ -105,7 +105,7 @@ export const haalGeplaatsteShifts = async ({ bedrijfId }: { bedrijfId: string })
       throw new Error(`Bedrijf with ID ${bedrijfId} not found or shifts not available`);
     }
 
-    const shiftArrays = await ShiftArray.find({ _id: { $in: bedrijf.shifts } }, {beschikbaar: true}).lean();
+    const shiftArrays = await ShiftArray.find({ _id: { $in: bedrijf.shifts }, beschikbaar: true });
        
     console.log("ShiftArrays: ", JSON.stringify(shiftArrays, null, 2)); // Pretty print the objects for better readability
 
@@ -125,9 +125,7 @@ export const haalOngepubliceerdeShifts = async ({ bedrijfId }: { bedrijfId: stri
     }
 
     const shiftArrays = await ShiftArray.find(
-      { _id: { $in: bedrijf.shifts } }, 
-      {beschikbaar: false},
-      { status: 'container' },
+      { _id: { $in: bedrijf.shifts }, beschikbaar: false, status: 'container' }, 
       ).lean(); // Use lean to return plain JS objects
     console.log("ShiftArrays: ", JSON.stringify(shiftArrays, null, 2)); // Pretty print the objects for better readability
     return shiftArrays;
@@ -139,23 +137,24 @@ export const haalOngepubliceerdeShifts = async ({ bedrijfId }: { bedrijfId: stri
 
 export const fetchUnpublishedShifts = async (bedrijfId: string) => {
   try {
-    const bedrijf = await Bedrijf.findOne({clerkId: bedrijfId});
-    let shiftArrays;
-    if (bedrijf){
+    const bedrijf = await Bedrijf.findOne({ clerkId: bedrijfId });
+    let shiftArrays: (mongoose.FlattenMaps<IShiftArray> & Required<{ _id: mongoose.FlattenMaps<unknown>; }>)[] = [];
+
+    if (bedrijf) {
       const id = bedrijf._id;
+      // Query to find only shifts with beschikbaar: false and status: 'container'
       shiftArrays = await ShiftArray.find(
-        { opdrachtgever: id }, 
-        { beschikbaar: false },
-        { status: 'container' }
-      )
+        { opdrachtgever: id, beschikbaar: false, status: 'container' } // All conditions go here
+      ).lean();
     }
 
     return shiftArrays;
-  } catch (error: any){
+  } catch (error: any) {
     console.error('Error fetching unpublished shifts:', error);
     throw error;
   }
 }
+
 
 export const fetchBedrijfShiftsByClerkId = async (clerkId: string) => {
   try {

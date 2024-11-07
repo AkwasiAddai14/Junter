@@ -379,7 +379,7 @@ const MenuSluiten = (value: string) => {
             {navigation.map((item) => (
               <button
               key={item.name}
-              onClick={() => setPosition(item.value)}
+              onClick={() => MenuSluiten(item.value)}
               className={classNames(
                 position === item.value ? 'bg-gray-800 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white',
                 'group flex w-full items-center justify-center gap-x-3 rounded-md p-3 text-sm font-semibold'
@@ -602,7 +602,7 @@ const MenuSluiten = (value: string) => {
                {position === 'Checkouts' ?
               checkout.length > 0 ?  (
                 <ScrollArea>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {checkout.slice(0, checkout.length).map((checkoutItem, index) => (
                   <Card key={index} shift={checkoutItem} />
                   ))}
@@ -617,7 +617,7 @@ const MenuSluiten = (value: string) => {
                {position === 'Facturen' ?
               factuur.length > 0 ? (
                 <ScrollArea>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {factuur.slice(0, factuur.length).map((factuurItem, index) => (
                   <FactuurCard key={index} factuur={factuurItem} />
                   ))}
@@ -631,7 +631,7 @@ const MenuSluiten = (value: string) => {
                {position === 'Flexpools' ?
               flexpool.length > 0 ? (
                 <ScrollArea>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {flexpool.slice(0, flexpool.length).map((flexpoolItem, index) => (
                   <FlexpoolCard key={index} flexpool={flexpoolItem} />
                   ))}

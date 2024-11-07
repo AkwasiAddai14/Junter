@@ -1206,7 +1206,7 @@ export async function haalShiftMetId(shiftId: string) {
   try {
     
     await connectToDB();
-    const shift = await ShiftArray.findById(shiftId).lean();
+    const shift = await ShiftArray.findById(shiftId);
     console.log(shift)
     if (!shift) throw new Error('Shift not found');
     return shift.toObject();
@@ -1235,7 +1235,7 @@ export async function haalGerelateerdShiftsMetCategorie({
     await connectToDB()
 
     const skipAmount = (Number(page) - 1) * limit
-    const conditions = { $and: [{ category: categoryId }, { _id: { $ne: shiftId } }] }
+    const conditions = { $and: [{ category: categoryId }, { _id: { $ne: shiftId } }, { beschikbaar: true }] }
 
     const eventsQuery = ShiftArray.find(conditions)
       .sort({ createdAt: 'desc' })
@@ -1464,23 +1464,26 @@ export async function haalAangemeld(freelancerId: Types.ObjectId | string ) {
         // Find shifts where the freelancer is assigned as 'opdrachtnemer'
         const filteredShifts = await Shift.find({ opdrachtnemer: freelancer._id });
         return filteredShifts;
-      } 
-    }
+      }  else {
+        const user = await currentUser();
+        if (user){
+          freelancer = await Freelancer.findOne({ clerkId: user.id });
+          if(freelancer) {
+            // Find shifts where the logged-in freelancer is assigned as 'opdrachtnemer'
+            const filteredShifts = await Shift.find({ opdrachtnemer: freelancer._id });
+            return filteredShifts;
+          }
+       }
+      }
     if (freelancerId !== "") {
       freelancer = await Freelancer.findOne({clerkId : freelancerId})
-   } else {
-    const user = await currentUser();
-    if (user){
-      freelancer = await Freelancer.findOne({ clerkId: user.id });
       if(freelancer) {
         // Find shifts where the logged-in freelancer is assigned as 'opdrachtnemer'
         const filteredShifts = await Shift.find({ opdrachtnemer: freelancer._id });
         return filteredShifts;
-      }
    }
-  }
-    console.log("No user or freelancer found");
-    return [];
+}
+  } 
   } catch (error: any) {
     throw new Error(`Failed to find shift: ${error.message}`);
   }

@@ -71,61 +71,49 @@ interface CheckoutParams {
     opmerking?: string;
 }
 
+
 export const vulCheckout = async ({ shiftId, rating, begintijd, eindtijd, pauze, feedback, opmerking }: CheckoutParams) => {
     try {
-        await connectToDB();
-
-        const checkout = await Shift.findById( shiftId );
+      await connectToDB();
+        // Find and update the checkout shift document directly
+        const checkout = await Shift.findById(shiftId);
 
         if (!checkout) {
             throw new Error(`Checkout not found for shift ID: ${shiftId}`);
         }
 
+        // Update the fields in checkout object directly, then save it
+        if (rating !== undefined) checkout.ratingBedrijf = rating;
+        if (begintijd !== undefined) checkout.begintijd = begintijd;
+        if (eindtijd !== undefined) checkout.eindtijd = eindtijd;
+        if (pauze !== undefined) checkout.pauze = pauze;
+        if (feedback !== undefined) checkout.feedback = feedback;
+        if (opmerking !== undefined) checkout.opmerking = opmerking;
+        checkout.status = "checkout ingevuld";
+
+        // Save the updated checkout document
+        await checkout.save({ validateModifiedOnly: true });
+
+        // Update the opdrachtgever rating
         const opdrachtgever = await Bedrijf.findById(checkout.opdrachtgever);
-
-            if (opdrachtgever) {
+        if (opdrachtgever) {
             const allRatings = await Shift.find({ opdrachtgever: opdrachtgever._id }).select('ratingBedrijf');
+            const validRatings = allRatings.map(shift => shift.ratingBedrijf).filter(r => r !== undefined) as number[];
+            const averageRating = validRatings.length ? validRatings.reduce((sum, r) => sum + r, 0) / validRatings.length : 0;
 
-            // Use explicit typing for reduce accumulator
-            const totalRatings = allRatings.reduce<number[]>((acc, shift) => {
-                const rating = shift.ratingBedrijf ?? 0; // Fallback to 0 if undefined
-                return acc.concat(rating);
-            }, []);
-
-            const averageRating = totalRatings.reduce((acc, rating) => acc + rating, 0) / totalRatings.length;
-            opdrachtgever?.checkouts.push(new mongoose.Types.ObjectId(checkout._id))
+            opdrachtgever.checkouts.push(new mongoose.Types.ObjectId(checkout._id));
             opdrachtgever.rating = averageRating;
             await opdrachtgever.save();
         }
 
-        // Update the fields with the provided user input
-        if (rating !== undefined) {
-            checkout.ratingBedrijf = rating;
-        }
-        if (begintijd !== undefined) {
-            checkout.begintijd = begintijd;
-        }
-        if (eindtijd !== undefined) {
-            checkout.eindtijd = eindtijd;
-        }
-        if (pauze !== undefined) {
-            checkout.pauze = pauze;
-        }
-        if (feedback !== undefined) {
-            checkout.feedback = feedback;
-        }
-        if (opmerking !== undefined) {
-            checkout.opmerking = opmerking;
-        }
-        checkout.status = "checkout ingevuld"
-        // Save the updated checkout document
-        await checkout.save();
         console.log('Checkout fields updated successfully.');
-        return { success: true, message: "Checkout fields updated successfully."}
+        return { success: true, message: "Checkout fields updated successfully." };
     } catch (error: any) {
+        console.error(`Failed to update checkout: ${error.message}`);
         throw new Error(`Failed to update checkout: ${error.message}`);
     }
 };
+
 
 
 export const accepteerCheckout = async ({ shiftId, rating, feedback }: { shiftId: string; rating: number; feedback: string }) => {
@@ -184,66 +172,72 @@ export const accepteerCheckout = async ({ shiftId, rating, feedback }: { shiftId
     }
 };
 
-export const weigerCheckout = async ({ shiftId, rating, begintijd, eindtijd, pauze, feedback, opmerking } : CheckoutParams) => {
-    try {
-        // Find the checkout document by shiftId
-        const checkout = await Shift.findById(shiftId);
+export const weigerCheckout = async ({ shiftId, rating, begintijd, eindtijd, pauze, feedback, opmerking }: CheckoutParams) => {
+  try {
+      // Prepare the update object, setting only provided fields
+      const updateFields: any = {
+          status: 'Checkout geweigerd' // Set the status as 'Checkout geweigerd'
+      };
 
-        if (!checkout) {
-            throw new Error(`Checkout not found for shift ID: ${shiftId}`);
-        }
+      if (rating !== undefined) {
+          updateFields.ratingBedrijf = rating;
+      }
+      if (begintijd !== undefined) {
+          updateFields.begintijd = begintijd;
+      }
+      if (eindtijd !== undefined) {
+          updateFields.eindtijd = eindtijd;
+      }
+      if (pauze !== undefined) {
+          updateFields.pauze = pauze;
+      }
+      if (feedback !== undefined) {
+          updateFields.feedback = feedback;
+      }
+      if (opmerking !== undefined) {
+          updateFields.opmerking = opmerking;
+      }
 
-        if (rating !== undefined) {
-            checkout.ratingBedrijf = rating;
-        }
-        if (begintijd !== undefined) {
-            checkout.begintijd = begintijd;
-        }
-        if (eindtijd !== undefined) {
-            checkout.eindtijd = eindtijd;
-        }
-        if (pauze !== undefined) {
-            checkout.pauze = pauze;
-        }
-        if (feedback !== undefined) {
-            checkout.feedback = feedback;
-        }
-        if (opmerking !== undefined) {
-            checkout.opmerking = opmerking;
-        }
+      // Update the checkout document with the specified fields
+      const result = await Shift.updateOne({ _id: shiftId }, { $set: updateFields });
 
-        // Update the shift's status to 'Checkout geweigerd'
-        await Shift.updateOne({ _id: shiftId }, { $set: { status: 'Checkout geweigerd' } });
+      if (result.matchedCount === 0) {
+          throw new Error(`Checkout not found for shift ID: ${shiftId}`);
+      }
 
-        console.log('Checkout geweigerd successfully.');
-        return { success: true, message: "Checkout fields updated successfully."}
-    } catch (error: any) {
-        throw new Error(`Failed to weiger checkout: ${error.message}`);
-    }
+      console.log('Checkout geweigerd successfully.');
+      return { success: true, message: "Checkout fields updated successfully." };
+  } catch (error: any) {
+      console.error(`Failed to weiger checkout: ${error.message}`);
+      throw new Error(`Failed to weiger checkout: ${error.message}`);
+  }
 };
+
 
 export const noShowCheckout = async ({ shiftId }: { shiftId: string }) => {
   try {
-      // Find the checkout document by shiftId
-      const checkout = await Shift.findOne({ shift: shiftId });
+      // Find the checkout document by shiftId and update its status to 'no show'
+      const checkout = await Shift.findByIdAndUpdate(
+        shiftId, 
+        { status: 'no show' }, // Set the status to 'no show'
+        { new: true, runValidators: true } // Options to return the updated document and validate updates
+      );
 
       if (!checkout) {
           throw new Error(`Checkout not found for shift ID: ${shiftId}`);
       }
 
-      // Update the status to 'no show' and save it
-      checkout.status = 'no show';
-      await checkout.save({ validateModifiedOnly: true });
-
-      console.log('No show checkout ingediend successfully.');
+      console.log('No show checkout submitted successfully.');
       return {
         success: true,
-        message: "No show checkout ingediend",
+        message: "No show checkout submitted",
       };
   } catch (error: any) {
-      throw new Error(`Failed to indienen no show checkout: ${error.message}`);
+      console.error(`Failed to submit no show checkout: ${error.message}`);
+      throw new Error(`Failed to submit no show checkout: ${error.message}`);
   }
 };
+
 
 
 export const haalBedrijvenCheckouts = async (bedrijfId: string) => {
@@ -251,7 +245,7 @@ export const haalBedrijvenCheckouts = async (bedrijfId: string) => {
     await connectToDB();
     const bedrijf = await Bedrijf.findById(bedrijfId).lean();
     if(bedrijf){
-      const checkouts = await Shift.find({_id: {$in: bedrijf.checkouts}}).lean();
+      const checkouts = await Shift.find({_id: {$in: bedrijf.checkouts}, status: 'checkout ingevuld'}).lean();
       return checkouts;
     }
     else {
@@ -280,7 +274,7 @@ export const haalCheckouts = async (freelancerId: Types.ObjectId | string ) => {
         // Find shifts where the freelancer is 'opdrachtnemer' and 'status' is 'voltooi checkout'
           filteredShifts = await Shift.find({ 
           opdrachtnemer: freelancer._id,
-          status: { $in: ['voltooi checkout', 'checkout geweigerd', 'checkout geaccepteerd'] }
+          status: { $in: ['voltooi checkout', 'Checkout geweigerd', 'checkout geaccepteerd'] }
       });
       console.log(filteredShifts);
       return filteredShifts;
@@ -292,7 +286,7 @@ export const haalCheckouts = async (freelancerId: Types.ObjectId | string ) => {
         if (freelancer) {
           // Find shifts where the logged-in freelancer is 'opdrachtnemer' and 'status' is 'voltooi checkout'
           const filteredShifts = await Shift.find({ opdrachtnemer: freelancer._id,
-            status: { $in: ['voltooi checkout', 'checkout geweigerd', 'checkout geaccepteerd', 'no show', 'checkout ingevuld'] }
+            status: { $in: ['voltooi checkout', 'Checkout geweigerd', 'checkout geaccepteerd', 'no show', 'checkout ingevuld'] }
             });
           return filteredShifts;
         } 

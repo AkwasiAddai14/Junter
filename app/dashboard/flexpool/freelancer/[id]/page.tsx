@@ -20,9 +20,6 @@ import React from 'react'
         const fetchData = async () => {
           try {
             const flexpool = await haalFlexpool(id);
-            console.log(flexpool)
-            
-      
             if (flexpool) {
               // Only update the state if the data has actually changed
               if (flexpool.shifts.length !== shifts.length) {
@@ -49,10 +46,13 @@ import React from 'react'
     <h2 className="text-center text-2xl font-bold my-7">Shifts</h2>
       {shifts.length > 0 ? (
         <ScrollArea>
-          <div className="grid grid-cols-3 gap-4">
-            {shifts.slice(0, shifts.length).map((shiftItem, index) => (
-              <ShiftCard key={index} shift={shiftItem} />
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {shifts.slice(0, shifts.length).map((shiftItem, index) => (
+              // Check if the 'beschikbaar' property is true before rendering the shift
+                         shiftItem.beschikbaar ? (
+                      <ShiftCard key={index} shift={shiftItem} />
+                     ) : null // If not beschikbaar, do not render anything for this shift
+                    ))}
           </div>
         </ScrollArea>
       ) : (

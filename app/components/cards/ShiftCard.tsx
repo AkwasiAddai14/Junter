@@ -74,12 +74,16 @@ bedrijfCheck();
       });
     }
   };
+  let linkHref;
 
-  const linkHref = isEenBedrijf 
-  ? `/dashboard/shift/bedrijf/${shift.shiftArrayId}` 
-  : shift.status === 'voltooi checkout' 
-    ? `/dashboard/checkout/freelancer/${shift._id}` 
-    : `/dashboard/shift/freelancer/${shift.shiftArrayId}`;
+  if (isEenBedrijf) {
+    linkHref = `/dashboard/shift/bedrijf/${shift.shiftArrayId}`;
+  } else if (shift.status === 'voltooi checkout' || shift.status === 'Checkout geweigerd') {
+    linkHref = `/dashboard/checkout/freelancer/${shift._id}`;
+  } else {
+    linkHref = `/dashboard/shift/freelancer/${shift.shiftArrayId}`;
+  }
+  
 
   return (
     <div className="group relative flex min-h-[380px] w-full max-w-[400px] flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all hover:shadow-lg md:min-h-[438px]">
@@ -91,7 +95,7 @@ bedrijfCheck();
       />
 
 
-      {!isEenBedrijf && (shift.status === "aangenomen" || shift.status === "aangemeld") && (
+      {!isEenBedrijf && (shift.status === "aangenomen" || shift.status === "aangemeld" || shift.status === 'reserve') && (
         <button onClick={() => opdrachtnemerId && handleFreelanceRejection(opdrachtnemerId)} className="absolute items-stretch right-2 top-2 flex flex-col gap-4 rounded-xl bg-white p-3 shadow-sm transition-all">
             <Image src={del} alt="delete" width={20} height={20} />
         </button>
