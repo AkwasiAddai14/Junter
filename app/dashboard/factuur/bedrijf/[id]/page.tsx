@@ -1,6 +1,6 @@
 "use client"
 
-import { haalFacturen } from "@/app/lib/actions/factuur.actions";
+import { haalFacturen, haalFactuur } from "@/app/lib/actions/factuur.actions";
 import { IFactuur } from "@/app/lib/models/factuur.model";
 import { ShiftType } from "@/app/lib/models/shift.model";
 import { useEffect, useState } from "react";
@@ -23,14 +23,13 @@ export type SearchParamProps = {
 }
 
 export default function factuurBedrijf({ params: { id }, searchParams }: SearchParamProps) {
-  const [factuur, setFactuur] = useState<IFactuur| null>(null);
+  const [factuur, setFactuur] = useState<IFactuur | null>(null);;
   const [shifts, setShifts] = useState<ShiftType[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try{
-
-        const factuur = await haalFacturen(id);
+        const factuur = await haalFactuur(id);
         if(factuur){
           setFactuur(factuur)
           setShifts(factuur.shifts)

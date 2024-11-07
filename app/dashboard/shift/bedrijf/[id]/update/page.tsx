@@ -16,7 +16,7 @@ type UpdateEventProps = {
 const UpdateEvent = async ({ params: { id } }: UpdateEventProps) => {
   
   const shift = await haalShiftMetId(id);
-  const bedrijf = await fetchBedrijfClerkId(shift.opdrachtgever)
+  const bedrijf = await fetchBedrijfClerkId(shift.opdrachtgever as unknown as string)
 
   return (
     <>
@@ -28,7 +28,7 @@ const UpdateEvent = async ({ params: { id } }: UpdateEventProps) => {
         <ShiftForm 
           type="update" 
           shift={shift} 
-          shiftId={shift._id} 
+          shiftId={shift._id as unknown as string} 
           userId={bedrijf} 
         />
       </div>

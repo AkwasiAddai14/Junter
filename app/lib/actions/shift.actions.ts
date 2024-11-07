@@ -1209,7 +1209,7 @@ export async function haalShiftMetId(shiftId: string) {
     const shift = await ShiftArray.findById(shiftId);
     console.log(shift)
     if (!shift) throw new Error('Shift not found');
-    return shift.toObject();
+    return shift;
 
   } catch (error: any) {
     console.error(error);

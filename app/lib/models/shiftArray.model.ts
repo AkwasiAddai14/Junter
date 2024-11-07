@@ -19,7 +19,7 @@ export interface IShiftArray extends Document {
     einddatum: Date;
     begintijd: string;
     eindtijd: string;
-    pauze?: number;
+    pauze?: string;
     beschrijving: string;
     vaardigheden?: string[];
     kledingsvoorschriften?: string[];
@@ -75,7 +75,7 @@ const shiftArraySchema: Schema<IShiftArray> = new mongoose.Schema({
     einddatum: { type: Date, required: false },
     begintijd: { type: String, required: true },
     eindtijd: { type: String, required: true },
-    pauze: { type: Number, required: false },
+    pauze: { type: String, required: false },
     beschrijving: { type: String, required: true },
     vaardigheden: [{ type: String, required: false }],
     kledingsvoorschriften: [{ type: String, required: false }],

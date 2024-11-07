@@ -40,7 +40,7 @@ import { fetchUnpublishedShifts } from "@/app/lib/actions/shiftArray.actions";
 type ShiftFormProps = {
   userId: string;
   type: "maak" | "update";
-  shift?: ShiftType;
+  shift?: IShiftArray;
   shiftId?: string;
 };
 
