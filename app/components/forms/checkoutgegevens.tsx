@@ -71,8 +71,9 @@ export default function Checkoutgegevens({isVisible, onClose, shiftId} : {isVisi
         await accepteerCheckout(
           {
             shiftId, 
-            rating: values.rating,
-            feedback: values.feedback
+              rating: values.rating ?? 5, // Use default value if `undefined`
+              feedback: values.feedback || " ",
+              laat: values.laat ?? false,
           }
         )
       } catch (error) {
