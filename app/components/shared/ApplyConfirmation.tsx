@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from 'react'
 import Image from 'next/image'
 import apply from "@/app/assets/images/logos/edit.svg"
 import spinner from "@/app/assets/images/logos/spinner.svg"
-import { haalShiftMetId, reageerShift } from '@/app/lib/actions/shift.actions'
+import { haalShiftMetId, haalShiftMetIdApply, reageerShift } from '@/app/lib/actions/shift.actions'
 import { useToast } from '@/app/components/ui/use-toast';
 import { useUser } from '@clerk/nextjs'
 
@@ -24,8 +24,12 @@ export const ApplyConfirmation = ({ shiftId }: { shiftId: string }) => {
 
   useEffect(() => {
     const fetchShift = async () => {
-      const fetchedShift = await haalShiftMetId(shiftId);
-      setShift(fetchedShift);
+      const fetchedShift = await haalShiftMetIdApply(shiftId);
+      setShift({
+        ...fetchedShift,
+        _id: fetchedShift._id.toString(), // Convert to string if not done already
+        opdrachtgever: fetchedShift.opdrachtgever.toString(), // If needed
+      });
     };
     
     fetchShift();

@@ -18,8 +18,9 @@ import DropdownPauze from '@/app/components/shared/DropdownPauze';
 import { useRouter } from 'next/navigation'
 import DashNav from '@/app/components/shared/DashNav';
 import { haalShiftMetIdCard } from '@/app/lib/actions/shift.actions';
-import { LocalizationProvider } from '@mui/x-date-pickers';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import 'dayjs/locale/nl';
 import { toast } from '@/app/components/ui/use-toast';
 import logo from '@/app/assets/images/178884748_padded_logo.png'
 
@@ -50,7 +51,7 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
     }, [id]);
 
     const DefaultValues = {
-      beginttijd: checkout?.begintijd || "",
+      begintijd: checkout?.begintijd || "",
       eindtijd: checkout?.eindtijd || "",
       pauze: checkout?.pauze || "30",
      rating: 5,
@@ -70,7 +71,7 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
                 rating: values.rating || 5,
                 begintijd: values.begintijd || checkout?.begintijd,
                 eindtijd: values.eindtijd || checkout?.eindtijd,
-                pauze: values.pauze.toString() || checkout?.pauze.toString(),
+                pauze: values.pauze ? values.pauze.toString() : checkout?.pauze?.toString() || "30",
                 feedback: values.feedback || " ",
                 opmerking: values.opmerking || " "
             });
@@ -116,6 +117,8 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
         return <div>Loading...</div>;
     }
 
+    console.log(form.formState.errors);
+
     return (
       <>
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="nl">
@@ -156,7 +159,7 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
                       {checkout?.begindatum ? new Date(checkout.begindatum).toLocaleDateString() : 'Datum'},{' '}
                       {checkout?.begintijd || 'Begintijd'} - {checkout?.eindtijd || 'Eindtijd'}
                     </span>
-                    <span>{checkout?.pauze || 0}  pauze</span>
+                    <span>{checkout?.pauze || 0}  minuten pauze</span>
                   </div>
                   <div className="text-gray-500 text-sm mt-1">
                     <p>Tarief: €{checkout?.uurtarief || '14.00'} p/u</p>
@@ -171,7 +174,11 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
                       <div className="w-full">
                         <TimePicker
                           label="Begintijd"
-                          value={checkout ? dayjs(checkout.begintijd) : begintijd}
+                          value={
+                            checkout && checkout.checkoutbegintijd && checkout.checkoutbegintijd !== ''
+                              ? dayjs(checkout.checkoutbegintijd, "HH:mm")
+                              : dayjs(checkout.begintijd || "08:00", "HH:mm") // Default fallback to "08:00"
+                          }
                           onChange={(newValue) => {
                             console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "08:00");
                             const formattedTime = newValue ? newValue.format("HH:mm") : "08:00";
@@ -190,7 +197,11 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
                       <div className="w-full">
                         <TimePicker
                           label="Eindtijd"
-                          value={checkout ? dayjs(checkout.eindtijd) : eindtijd}
+                          value={
+                            checkout && checkout.checkouteindtijd && checkout.checkouteindtijd !== ''
+                              ? dayjs(checkout.checkouteindtijd, "HH:mm")
+                              : dayjs(checkout.begintijd || "08:00", "HH:mm") // Default fallback to "08:00"
+                          }
                           onChange={(newValue) => {
                             console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "16:00");
                             const formattedTime = newValue ? newValue.format("HH:mm") : "16:00";
@@ -261,6 +272,7 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
                     size="lg"
                     disabled={form.formState.isSubmitting}
                     className="bg-blue-500 text-white hover:bg-blue-600"
+                    onClick={() => console.log('Button Clicked')}
                   >
                     {form.formState.isSubmitting ? 'Checkout indienen...' : 'Indienen'}
                   </Button>

@@ -136,13 +136,13 @@ bedrijfCheck();
         <div className="flex-between w-full">
           <p className="p-medium-14 md:p-medium-16 text-grey-600">{flexpoolTitle}</p>
        <div className={`rounded-md px-4 py-2 ${getStatusColor(shift.status)}`}>
-        {shift.status === 'voltooi checkout' ? 
+        {shift.status === 'voltooi checkout' || shift.status === 'Checkout geweigerd' ? 
         <Link href={`/dashboard/checkout/freelancer/${shift.shiftArrayId}`}>
         <p className="p-medium-14 md:p-medium-16 text-grey-600">
           {shift.status}
           </p>
         </Link> :
-        <Link href={`/dashboard/shift/freelancer/${shift.shiftArrayId}`}>
+        <Link href={linkHref}>
         <p className="line-clamp-1 p-medium-14 md:p-medium-16 text-grey-600">
         {shift.status}
         </p>

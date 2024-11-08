@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/app/components/ui/button';
 import Image from 'next/image';
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/app/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/app/components/ui/form";
 import { Controller, useForm } from 'react-hook-form';
 import { CheckoutValidation } from "@/app/lib/validations/checkout";
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -17,11 +17,14 @@ import ReactStars from "react-rating-stars-component";
 import DropdownPauze from '@/app/components/shared/DropdownPauze';
 import { useRouter } from 'next/navigation';
 import DashNav from '@/app/components/shared/DashNav';
-import { LocalizationProvider } from '@mui/x-date-pickers';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import 'dayjs/locale/nl';
 import { haalFreelancer } from '@/app/lib/actions/freelancer.actions';
 import { StarIcon } from '@heroicons/react/24/outline';
 import { toast } from '@/app/components/ui/use-toast';
+import Checkbox from '@mui/material/Checkbox';
+import React from 'react';
 
 export type SearchParamProps = {
   params: { id: string }
@@ -36,6 +39,7 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
     const [checkout, setCheckout] = useState<any>(null);
     const [freelancer, setFreelancer] = useState<any>(null);
     const [accepteer, setAccepteer] = useState(true);
+    const [checked, setChecked] = React.useState(true);
 
     useEffect(() => {
       const fetchCheckout = async () => {
@@ -71,6 +75,7 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
    rating: 5,
    opmerking: "",
    feedback: "",
+   laat: false,
   };
 
     const form = useForm<z.infer<typeof CheckoutValidation>>({
@@ -78,7 +83,9 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
       defaultValues: DefaultValues,
     })
 
- 
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      setChecked(event.target.checked);
+    };
 
    const handleNoShow = async (shiftId: string) => {
     try{
@@ -95,8 +102,9 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
           const response = await accepteerCheckout(
             {
               shiftId: id, 
-              rating: values.rating,
-              feedback: values.feedback
+              rating: values.rating ?? 5, // Use default value if `undefined`
+              feedback: values.feedback || " ",
+              laat: values.laat ?? false,
             }
           )
           if (response.success) {
@@ -122,9 +130,10 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
             rating: values.rating || 5,
             begintijd: values.begintijd || checkout?.begintijd,
             eindtijd: values.eindtijd || checkout?.eindtijd,
-            pauze: values.pauze.toString() || checkout?.pauze.toString(),
+            pauze: values.pauze ? values.pauze.toString() : checkout?.pauze?.toString() || "30",
             feedback: values.feedback || " ",
-            opmerking: values.opmerking || " "
+            opmerking: values.opmerking || " ",
+            laat: false || values.laat,
           }
         )
         if (response.success) {
@@ -192,33 +201,42 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
       {!accepteer && (
         <>
           <div className="flex flex-col gap-5 md:flex-row">
-                  <Controller
+          <Controller
                     control={form.control}
                     name="begintijd"
                     render={({ field }) => (
                       <div className="w-full">
                         <TimePicker
                           label="Begintijd"
-                          value={checkout ? dayjs(checkout.begintijd) : begintijd}
+                          value={
+                            checkout && checkout.checkoutbegintijd && checkout.checkoutbegintijd !== ''
+                              ? dayjs(checkout.checkoutbegintijd, "HH:mm")
+                              : dayjs(checkout.begintijd || "08:00", "HH:mm") // Default fallback to "08:00"
+                          }
                           onChange={(newValue) => {
+                            console.log(dayjs(checkout.checkoutbegintijd).format(), dayjs(checkout.checkouteindtijd))
                             console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "08:00");
                             const formattedTime = newValue ? newValue.format("HH:mm") : "08:00";
-                            setBegintijd(newValue);
-                            field.onChange(formattedTime);
+                            setBegintijd(newValue); // Update local state for display
+                            field.onChange(formattedTime); // Update form state
                           }}
                         />
                       </div>
                     )}
                   />
     
-                  <Controller
+                 <Controller
                     control={form.control}
                     name="eindtijd"
                     render={({ field }) => (
                       <div className="w-full">
                         <TimePicker
                           label="Eindtijd"
-                          value={checkout ? dayjs(checkout.eindtijd) : eindtijd}
+                          value={
+                            checkout && checkout.checkouteindtijd && checkout.checkouteindtijd !== ''
+                              ? dayjs(checkout.checkouteindtijd, "HH:mm")
+                              : dayjs(checkout.begintijd || "08:00", "HH:mm") // Default fallback to "08:00"
+                          }
                           onChange={(newValue) => {
                             console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "16:00");
                             const formattedTime = newValue ? newValue.format("HH:mm") : "16:00";
@@ -240,6 +258,28 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
                       <FormItem className="mx-auto">
                         <FormControl>
                           <DropdownPauze onChangeHandler={field.onChange} value={field.value} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="w-full my-12 mx-48 text-center">
+                  <FormField
+                    control={form.control}
+                    name="laat"
+                    render={({ field }) => (
+                      <FormItem className="mx-auto">
+                        <FormControl>
+                          <FormLabel className='text-gray-700 text-sm'>
+                            Niet op tijd
+                          </FormLabel>
+                        <Checkbox
+                        checked={field.value}
+                        onChange={field.onChange}
+                        inputProps={{ 'aria-label': 'controlled' }}
+                            />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

@@ -1217,6 +1217,25 @@ export async function haalShiftMetId(shiftId: string) {
   }
 }
 
+export async function haalShiftMetIdApply(shiftId: string) {
+  try {
+    
+    await connectToDB();
+    const shift = await ShiftArray.findById(shiftId).lean() as IShiftArray | null;;
+    console.log(shift)
+    if (!shift) throw new Error('Shift not found');
+    return {
+      ...shift,
+      _id: shift._id as string,  // Convert ObjectId to string
+      opdrachtgever: shift.opdrachtgever.toString(),  // If this is also an ObjectId
+    };
+
+  } catch (error: any) {
+    console.error(error);
+    throw new Error('Failed to fetch shift');
+  }
+}
+
 
 export type GetRelatedEventsByCategoryParams = {
   categoryId: string
@@ -1233,9 +1252,28 @@ export async function haalGerelateerdShiftsMetCategorie({
 }: GetRelatedEventsByCategoryParams) {
   try {
     await connectToDB()
-
+    const user = await currentUser();
+    let freelancerId
+    if (user){
+      const freelancer = await Freelancer.findOne({clerkId: user.id});
+      freelancerId = freelancer._id;
+    }
+    
     const skipAmount = (Number(page) - 1) * limit
-    const conditions = { $and: [{ category: categoryId }, { _id: { $ne: shiftId } }, { beschikbaar: true }] }
+    const conditions = { 
+      $and: [
+        { category: categoryId }, 
+        { _id: { $ne: shiftId } }, 
+        { beschikbaar: true }, 
+        {
+          $nor: [
+            { aanmeldingen: freelancerId },
+            { aangenomen: freelancerId },
+            { reserves: freelancerId }
+          ]
+        }
+      ] 
+    };
 
     const eventsQuery = ShiftArray.find(conditions)
       .sort({ createdAt: 'desc' })
