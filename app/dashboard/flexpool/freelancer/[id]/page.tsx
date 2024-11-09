@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { ScrollArea } from '@radix-ui/react-scroll-area';
 import ShiftCard from '@/app/components/cards/ShiftArrayCard';
-import { haalFlexpool } from '@/app/lib/actions/flexpool.actions';
+import { haalFlexpool, haalFlexpoolShifts } from '@/app/lib/actions/flexpool.actions';
 import DashNav from '@/app/components/shared/DashNav';
 import React from 'react'
 
@@ -15,6 +15,7 @@ import React from 'react'
   
   export default function FlexpoolPage({ params: { id }, searchParams }: SearchParamProps) {
     const [shifts, setShifts] = useState<any[]>([]);
+    const [flexpoolShifts, setFlexpoolShifts] = useState<any[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -23,13 +24,31 @@ import React from 'react'
             if (flexpool) {
               // Only update the state if the data has actually changed
               if (flexpool.shifts.length !== shifts.length) {
-                setShifts(flexpool.shifts || []);
+                setFlexpoolShifts(flexpool.shifts || []);
               }
               
             } else {
               console.log("No shifts and no freelancers found.");
-              setShifts([]);
-              
+              setShifts([]);   
+            }
+          } catch (error) {
+            console.error("Error fetching data:", error);
+          }
+        };
+      
+        fetchData();
+      }, [id]);
+
+      useEffect(() => {
+        const fetchData = async () => {
+          try {
+            const shifts = await haalFlexpoolShifts(id);
+            if (shifts) {
+              // Only update the state if the data has actually changed
+              setShifts(shifts)
+            } else {
+              console.log("No shifts and no freelancers found.");
+              setShifts(flexpoolShifts || []);   
             }
           } catch (error) {
             console.error("Error fetching data:", error);

@@ -7,6 +7,7 @@ import Freelancer, { IFreelancer } from "../models/freelancer.model";
 import mongoose, { Types } from "mongoose";
 import { currentUser } from "@clerk/nextjs/server";
 import Shift from "../models/shift.model";
+import ShiftArray from "../models/shiftArray.model";
 
 
 
@@ -233,6 +234,59 @@ export const haalFlexpool = async (flexpoolId: string) => {
   } catch (error) {
       console.error('Error fetching flexpools:', error);
       throw new Error('Failed to fetch flexpools');
+  }
+};
+
+export const haalFlexpoolShifts = async (flexpoolId: string) => {
+  try {
+    await connectToDB();
+
+    // Zoek de flexpool op basis van het gegeven ID
+    const flexpool = await Flexpool.findById(flexpoolId);
+    if (!flexpool) {
+      throw new Error('Flexpool niet gevonden');
+    }
+
+    // Haal de huidige gebruiker op en zoek bijbehorende freelancer
+    const user = await currentUser();
+    if (!user) {
+      throw new Error('Gebruiker niet gevonden');
+    }
+
+    const freelancer = await Freelancer.findOne({ clerkId: user.id });
+    if (!freelancer) {
+      throw new Error('Freelancer niet gevonden');
+    }
+
+    const freelancerId = freelancer._id;
+
+    // Zoek ShiftArrays die voldoen aan de criteria:
+    // 1. Bevatten de flexpool ID in de flexpools array
+    // 2. Bevatten de freelancer ID niet in de aanmeldingen, aangenomen, of reserves arrays
+    const shifts = await ShiftArray.find({
+      flexpools: flexpoolId, // Flexpool aanwezig
+      aanmeldingen: { $nin: [freelancerId] },
+      aangenomen: { $nin: [freelancerId] },
+      reserves: { $nin: [freelancerId] },
+      beschikbaar: true // Optioneel: Alleen beschikbare shifts
+    }).lean();
+
+    // Zet het ObjectId om naar een string voor frontend gebruik (optioneel)
+    const result = shifts.map(shift => ({
+      ...shift,
+      _id: shift._id.toString(),
+      opdrachtgever: shift.opdrachtgever.toString(),
+      flexpools: shift.flexpools.map((id: any) => id.toString()),
+      aanmeldingen: shift.aanmeldingen.map((id: any) => id.toString()),
+      aangenomen: shift.aangenomen.map((id: any) => id.toString()),
+      reserves: shift.reserves.map((id: any) => id.toString())
+    }));
+
+    return result;
+
+  } catch (error) {
+    console.error('Error fetching flexpool shifts:', error);
+    throw new Error('Failed to fetch flexpool shifts');
   }
 };
 

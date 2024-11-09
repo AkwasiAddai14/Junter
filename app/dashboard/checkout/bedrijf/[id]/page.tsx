@@ -186,15 +186,15 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
 
       {/* Date and Time Information */}
       <div className="my-4">
-        <p className="text-sm font-semibold leading-6 text-gray-900">{"checkout.begindatum"}, {"checkout.begintijd"} - {"checkout.eindtijd"}</p>
+        <p className="text-sm font-semibold leading-6 text-gray-900">{checkout.begindatum}, {checkout.begintijd} - {checkout.eindtijd}</p>
         <p className="text-gray-500 text-sm mt-1">{"checkout.pauze"} minuten pauze</p>
-        <p className="text-gray-500 text-sm mt-1">Uurtarief: €{"checkout.uurtarief"} p/u</p>
+        <p className="text-gray-500 text-sm mt-1">Uurtarief: €{checkout.uurtarief} p/u</p>
       </div>
 
       <div className="my-4">
-        <p className="text-sm font-semibold leading-6 text-gray-900">{/* checkout.begindatum */}, {'checkout.checkoutbegintijd'} - {/* checkout.checkouteindtijd */}</p>
-        <p className="text-gray-500 text-sm mt-1">{/* checkout.checkoutpauze */} minuten pauze</p>
-        <p className="text-gray-500 text-sm mt-1">Uurtarief: €{/* checkout.uurtarief */} p/u</p>
+        <p className="text-sm font-semibold leading-6 text-gray-900">{ checkout.begindatum }, {checkout.checkoutbegintijd} - { checkout.checkouteindtijd }</p>
+        <p className="text-gray-500 text-sm mt-1">{ checkout.checkoutpauze } minuten pauze</p>
+        <p className="text-gray-500 text-sm mt-1">Uurtarief: €{ checkout.uurtarief } p/u</p>
       </div>
 
       {/* Conditional Form Fields */}
@@ -235,7 +235,7 @@ export default function Checkoutgegevens({ params: { id }, searchParams }: Searc
                           value={
                             checkout && checkout.checkouteindtijd && checkout.checkouteindtijd !== ''
                               ? dayjs(checkout.checkouteindtijd, "HH:mm")
-                              : dayjs(checkout.begintijd || "08:00", "HH:mm") // Default fallback to "08:00"
+                              : dayjs(checkout.begintijd || "16:00", "HH:mm") // Default fallback to "08:00"
                           }
                           onChange={(newValue) => {
                             console.log("Selected Time:", newValue ? newValue.format("HH:mm") : "16:00");
