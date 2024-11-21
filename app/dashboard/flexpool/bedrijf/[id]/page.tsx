@@ -12,6 +12,9 @@ import { haalAlleFreelancers } from '@/app/lib/actions/freelancer.actions';
 import DashNav from '@/app/components/shared/DashNav';
 import mongoose from 'mongoose';
 import { BriefcaseIcon } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation'
+import { useUser } from "@clerk/nextjs";
+import { AuthorisatieCheck } from '@/app/dashboard/AuthorisatieCheck';
 
 
 export type SearchParamProps = {
@@ -37,6 +40,40 @@ export default function FlexpoolPage({ params: { id }, searchParams }: SearchPar
   const [collegas, setCollegas] = useState<any[]>([]);
   const [laden, setLaden] = useState<boolean>(false);
   const { toast } = useToast();
+  const router = useRouter();
+  const [isBedrijf, setIsBedrijf] = useState(false);
+  const { isLoaded, isSignedIn, user } = useUser();
+  const [geauthoriseerd, setGeauthoriseerd] = useState<Boolean>(false);
+
+    const isGeAuthorizeerd = async (id:string) => {
+      const toegang = await AuthorisatieCheck(id, 6);
+      setGeauthoriseerd(toegang);
+    }
+  
+    isGeAuthorizeerd(id);
+  
+    if(!geauthoriseerd){
+      return <h1>403 - Forbidden</h1>
+    }
+
+    useEffect(() => {
+      if (!isLoaded) return;
+  
+      if (!isSignedIn) {
+        router.push("./sign-in");
+        console.log("Niet ingelogd");
+        alert("Niet ingelogd!");
+        return;
+      }
+  
+      const userType = user?.organizationMemberships.length ?? 0;
+      setIsBedrijf(userType >= 1);
+    }, [isLoaded, isSignedIn, router, user]);
+  
+    if(!isBedrijf){
+      router.push('/dashboard');
+    }
+
 
   const voegFreelancerToe = async () => {
     if (!selectedPerson) return; // Guard clause to prevent errors

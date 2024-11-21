@@ -115,7 +115,7 @@ const updateInformatie = await updateFreelancer({
     iban: iban || freelancer.iban || "iban",
     path,
     kvknr: kvknr || "geen kvk nummer",
-    bio: bio || freelancer.bio,
+    bio: bio || freelancer.bio || " ",
     profielfoto: profielfoto || user!.imageUrl || browser || "profielfoto",
     werkervaring,
     vaardigheden,

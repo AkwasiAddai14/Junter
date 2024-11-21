@@ -5,7 +5,10 @@ import { ScrollArea } from '@radix-ui/react-scroll-area';
 import ShiftCard from '@/app/components/cards/ShiftArrayCard';
 import { haalFlexpool, haalFlexpoolShifts } from '@/app/lib/actions/flexpool.actions';
 import DashNav from '@/app/components/shared/DashNav';
-import React from 'react'
+import React from 'react';
+import { useRouter } from 'next/navigation';
+import { useUser } from "@clerk/nextjs";
+import { AuthorisatieCheck } from '@/app/dashboard/AuthorisatieCheck';
 
 
   export type SearchParamProps = {
@@ -16,6 +19,39 @@ import React from 'react'
   export default function FlexpoolPage({ params: { id }, searchParams }: SearchParamProps) {
     const [shifts, setShifts] = useState<any[]>([]);
     const [flexpoolShifts, setFlexpoolShifts] = useState<any[]>([]);
+    const router = useRouter();
+    const [isBedrijf, setIsBedrijf] = useState(false);
+    const { isLoaded, isSignedIn, user } = useUser();
+    const [geauthoriseerd, setGeauthoriseerd] = useState<Boolean>(false);
+
+    const isGeAuthorizeerd = async (id:string) => {
+      const toegang = await AuthorisatieCheck(id, 5);
+      setGeauthoriseerd(toegang);
+    }
+  
+    isGeAuthorizeerd(id);
+  
+    if(!geauthoriseerd){
+      return <h1>403 - Forbidden</h1>
+    }
+  
+      useEffect(() => {
+        if (!isLoaded) return;
+    
+        if (!isSignedIn) {
+          router.push("./sign-in");
+          console.log("Niet ingelogd");
+          alert("Niet ingelogd!");
+          return;
+        }
+    
+        const userType = user?.organizationMemberships.length ?? 0;
+        setIsBedrijf(userType >= 1);
+      }, [isLoaded, isSignedIn, router, user]);
+    
+      if(isBedrijf){
+        router.push('/dashboard');
+      }
 
     useEffect(() => {
         const fetchData = async () => {

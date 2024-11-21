@@ -1,9 +1,11 @@
 "use client"
 
-import { haalFacturen, haalFactuur } from "@/app/lib/actions/factuur.actions";
-import { IFactuur } from "@/app/lib/models/factuur.model";
-import { ShiftType } from "@/app/lib/models/shift.model";
+import { haalFactuur, haalFactuurShifts } from "@/app/lib/actions/factuur.actions";
 import { useEffect, useState } from "react";
+import { useRouter } from 'next/navigation';
+import Image from 'next/image'; 
+import logo from '@/app/assets/images/178884748_padded_logo.png'; 
+import { useUser } from "@clerk/nextjs";
 
 interface FreelancerDetails {
   iban: string;
@@ -23,8 +25,29 @@ export type SearchParamProps = {
 }
 
 export default function factuurBedrijf({ params: { id }, searchParams }: SearchParamProps) {
-  const [factuur, setFactuur] = useState<IFactuur | null>(null);;
-  const [shifts, setShifts] = useState<ShiftType[]>([]);
+  const [factuur, setFactuur] = useState<any | null>(null);;
+  const [shifts, setShifts] = useState<any[]>([]);
+  const router = useRouter();
+  const [isBedrijf, setIsBedrijf] = useState(false);
+  const { isLoaded, isSignedIn, user } = useUser();
+
+    useEffect(() => {
+      if (!isLoaded) return;
+  
+      if (!isSignedIn) {
+        router.push("./sign-in");
+        console.log("Niet ingelogd");
+        alert("Niet ingelogd!");
+        return;
+      }
+  
+      const userType = user?.organizationMemberships.length ?? 0;
+      setIsBedrijf(userType >= 1);
+    }, [isLoaded, isSignedIn, router, user]);
+  
+    if(!isBedrijf){
+      router.push('/dashboard');
+    }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,12 +55,10 @@ export default function factuurBedrijf({ params: { id }, searchParams }: SearchP
         const factuur = await haalFactuur(id);
         if(factuur){
           setFactuur(factuur)
-          setShifts(factuur.shifts)
         }
         else{
           console.log("Factuur niet gevonden.");
           setFactuur(null)
-          setShifts([])
         }
 
       } catch (error: any){
@@ -45,7 +66,26 @@ export default function factuurBedrijf({ params: { id }, searchParams }: SearchP
       }
     };
     fetchData();
-  }, [id])
+  }, [id]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try{
+
+        const shifts = await haalFactuurShifts(id);
+        if(shifts){
+          setShifts(shifts)
+          console.log(factuur, shifts);
+        }
+        else{
+          console.log("shifts niet gevonden.");
+        }
+      } catch (error: any){
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
+  }, [id]);
 
   function calculateWorkedHours(begintijd: string, eindtijd: string, pauze: number = 0): number {
     // Parse the begintijd and eindtijd strings into Date objects
@@ -86,9 +126,12 @@ export default function factuurBedrijf({ params: { id }, searchParams }: SearchP
         checkoutbegintijd: shift.checkoutbegintijd,
         checkouteindtijd: shift.checkouteindtijd,
         checkoutpauze: shift.checkoutpauze,
-        uren: calculateWorkedHours(shift.checkoutbegintijd, shift.checkouteindtijd, shift.checkoutpauze),
-        subtotaal: calculateShiftSubtotal(calculateWorkedHours(shift.checkoutbegintijd, shift.checkouteindtijd, shift.checkoutpauze), shift.uurtarief),
-        btw: (calculateShiftSubtotal(calculateWorkedHours(shift.checkoutbegintijd, shift.checkouteindtijd, shift.checkoutpauze) , shift.uurtarief) * 0.21).toFixed(2)
+        uren: calculateWorkedHours(shift.checkoutbegintijd, shift.checkouteindtijd, parseInt(shift.checkoutpauze)),
+        subtotaal: calculateShiftSubtotal(calculateWorkedHours(shift.checkoutbegintijd, shift.checkouteindtijd, parseInt(shift.checkoutpauze)), shift.uurtarief),
+        btw: (calculateShiftSubtotal(calculateWorkedHours(shift.checkoutbegintijd, shift.checkouteindtijd, parseInt(shift.checkoutpauze)) , shift.uurtarief) * 0.21).toFixed(2),
+        freelancerVoornaam: shift.freelancerVoornaam,
+        freelancerAchternaam: shift.freelancerAchternaam,
+        freelancerProfielFoto: shift.freelancerProfielFoto,
     }));
 
     const totaalSubtotaal = factuurShifts.reduce((acc, shift) => {
@@ -107,12 +150,25 @@ export default function factuurBedrijf({ params: { id }, searchParams }: SearchP
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
-          <h1 className="text-base font-semibold leading-6 text-gray-900">Invoice</h1>
+        <div className="flex lg:flex-1">
+          <a href="/" className="-m-1.5 p-1.5">
+            <span className="sr-only">Junter</span>
+            <Image className="h-32 w-auto" src={logo} alt="Junter logo" /> {/* Use Image component for optimized images */}
+          </a>
+        </div>
+          <h1 className="mt-10 text-base font-semibold leading-6 text-gray-900">Invoice</h1>
           <p className="mt-2 text-sm text-gray-700">
-            Factuur voor week {factuur?.week ? factuur.week : 52}.
+            Factuur voor week {factuur?.week ? factuur.week : 52}
           </p>
         </div>
-        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+        <div className="flex flex-row justify-between gap-4 mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+        <button
+            type="button"
+            className="block rounded-md bg-orange-500 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-orange-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
+            onClick={() => router.back()}
+          >
+            Terug
+          </button>
           <button
             type="button"
             className="block rounded-md bg-sky-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-sky-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600"
@@ -156,21 +212,21 @@ export default function factuurBedrijf({ params: { id }, searchParams }: SearchP
               <tr key={shift._id} className="border-b border-gray-200">
                 <td className="max-w-0 py-5 pl-4 pr-3 text-sm sm:pl-0">
                   <div className="h-11 w-11 flex-shrink-0">
-                  {isFreelancerDetails(shift.opdrachtnemer) && shift.opdrachtnemer.profielfoto && (
-                      <img alt="Profielfoto" src={shift.opdrachtnemer.profielfoto} className="h-11 w-11 rounded-full" />
-                  )}
+                  
+                      <img alt="Profielfoto" src={shift.freelancerProfielFoto} className="h-11 w-11 rounded-full" />
+                 
                   </div>
-                  {isFreelancerDetails(shift.opdrachtnemer) && shift.opdrachtnemer.voornaam && (
-                      <div className="font-medium text-gray-900">{shift.opdrachtnemer.voornaam} {shift.opdrachtnemer.voornaam}</div>
-                  )}
+                  
+                      <div className="font-medium text-gray-900">{shift.freelancerVoornaam} {shift.freelancerAchternaam}</div>
+            
                   <div className="mt-1 truncate text-gray-500">{shift.datum.toDateString()} | {shift.titel}</div>
                 </td>
                 <td className="hidden px-3 py-5 text-right text-sm text-gray-500 sm:table-cell">{shift.uren}</td>
-                <td className="hidden px-3 py-5 text-right text-sm text-gray-500 sm:table-cell">€ {shift.uurtarief}</td>
+                <td className="hidden px-3 py-5 text-right text-sm text-gray-500 sm:table-cell">€{shift.uurtarief}</td>
                 <td className="max-w-0 py-5 pl-4 pr-3 text-sm sm:pl-0">
-                  <p className="font-medium text-gray-900">€{shift.subtotaal}</p>
-                  <p className="mt-1 truncate text-gray-500">+ btw €{shift.btw}</p>
                 </td>
+                <p className="mt-4 font-medium text-gray-900">€{shift.subtotaal}</p>
+                  <p className="mt-1 truncate text-gray-500">+ btw €{shift.btw}</p>
               </tr>
             ))}
           </tbody>
@@ -182,6 +238,7 @@ export default function factuurBedrijf({ params: { id }, searchParams }: SearchP
                 className="hidden pl-4 pr-3 pt-6 text-right text-sm font-normal text-gray-500 sm:table-cell sm:pl-0"
               >
                 Subtotaal
+          
               </th>
               <th scope="row" className="pl-4 pr-3 pt-6 text-left text-sm font-normal text-gray-500 sm:hidden">
                 Subtotaal

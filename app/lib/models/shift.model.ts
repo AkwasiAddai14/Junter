@@ -45,7 +45,11 @@ const shiftSchema = new mongoose.Schema({
   opmerking: { type: String },
   ratingFreelancer: { type: Number },
   ratingBedrijf: { type: Number },
-  status: { type: String, required: true }
+  status: { type: String, required: true },
+  totaalBedrag: { type: Number, required: false },
+  freelancerProfielfoto: { type: String, required: false },
+  freelancerVoornaam: { type: String, required: false },
+  freelancerAchternaam: { type: String, required: false },
 });
 
 interface FreelancerDetails {
@@ -86,12 +90,16 @@ export interface ShiftType extends Document {
   inFlexpool?: boolean;
   checkoutbegintijd: string;
   checkouteindtijd: string;
-  checkoutpauze: number;
+  checkoutpauze: string;
   feedback: string;
   opmerking: string;
   ratingFreelancer: number;
   ratingBedrijf: number;
   status: string;
+  totaalBedrag: number;
+  freelancerProfielFoto: string;
+  freelancerVoornaam: string;
+  freelancerAchternaam: string;
 };
 
 const Shift: Model<ShiftType> = mongoose.models.Shift || mongoose.model<ShiftType>('Shift', shiftSchema);

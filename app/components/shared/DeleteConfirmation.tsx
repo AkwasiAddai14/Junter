@@ -16,7 +16,7 @@ import {
 } from '@/app/components/ui/alert-dialog'
 import del from "@/app/assets/images/logos/delete.svg"
 
-import { haalShiftMetId, verwijderShiftArray } from '@/app/lib/actions/shift.actions'
+import { haalShiftMetIdDelete, verwijderShiftArray } from '@/app/lib/actions/shift.actions'
 
 export const DeleteConfirmation = ({ shiftId }: { shiftId: string }) => {
   const pathname = usePathname()
@@ -25,7 +25,7 @@ export const DeleteConfirmation = ({ shiftId }: { shiftId: string }) => {
 
   useEffect(() => {
     const fetchShift = async () => {
-      const fetchedShift = await haalShiftMetId(shiftId);
+      const fetchedShift = await haalShiftMetIdDelete(shiftId);
       setShift(fetchedShift);
     };
 

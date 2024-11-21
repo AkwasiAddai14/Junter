@@ -18,12 +18,12 @@ import Image from 'next/image';
 import Calender from './Calender';
 import UitlogModal from './UitlogModal';
 import { fetchBedrijfByClerkId } from "@/app/lib/actions/bedrijven.actions";
-import { haalBedrijvenCheckouts, haalCheckouts } from '@/app/lib/actions/checkout.actions';
+import { accepteerCheckout, haalBedrijvenCheckouts, haalCheckouts } from '@/app/lib/actions/checkout.actions';
 import { haalFlexpools, maakFlexpool } from "@/app/lib/actions/flexpool.actions";
 import { haalGeplaatsteShifts, haalOngepubliceerdeShifts } from '@/app/lib/actions/shiftArray.actions';
 import ShiftCard from '../cards/ShiftArrayCard';
 import FlexpoolCard from '../cards/FlexpoolCard';
-import { haalFacturen } from '@/app/lib/actions/factuur.actions';
+import { createFacturenForAllBedrijven, haalFacturen } from '@/app/lib/actions/factuur.actions';
 import { IShiftArray } from '@/app/lib/models/shiftArray.model';
 import mongoose from 'mongoose';
 import { IFlexpool } from '@/app/lib/models/flexpool.model';
@@ -35,6 +35,10 @@ import { AlertDialog,
    AlertDialogTrigger
    } from '../ui/alert-dialog';
 import FactuurCard from '../cards/FactuurCard';
+import { useRouter } from 'next/navigation';
+import { toast } from '@/app/components/ui/use-toast';
+import CheckoutModal from './CheckoutModal';
+import Card from '../cards/CheckoutCard';
 
 
 
@@ -67,6 +71,8 @@ const Dashboard =  () => {
   const [bedrijfiD, setBedrijfiD] = useState<string>("");
   const [newFlexpoolTitle, setNewFlexpoolTitle] = useState('');
   const [showCheckout, setShowCheckout] = useState(false);
+  const [checkoutId, setCheckoutID] = useState('')
+  const router = useRouter();
 
   useEffect(() => {
     if (isLoaded && user) {
@@ -194,7 +200,39 @@ const Dashboard =  () => {
             setSidebarOpen(false);
           }
 
+          const handleCheckoutAcceptance =async (shiftId:string) => {
+            try {
+              const response = await accepteerCheckout(
+                {
+                  shiftId: shiftId, 
+                  rating:  5, // Use default value if `undefined`
+                  feedback:  " ",
+                  laat: false,
+                }
+              )
+              if (response.success) {
+                toast({
+                  variant: 'succes',
+                  description: "Checkout verstuurd! 👍"
+                });
+                router.refresh();
+              } else {
+                toast({
+                  variant: 'destructive',
+                  description: "Actie is niet toegestaan! ❌"
+                });
+              }
+            } catch (error) {
+              console.error('Failed to submit checkout:', error);
+          } 
+        }
+
           
+  function setOpen(arg0: boolean, arg1: string): void {
+    setShowCheckout(arg0);
+    setCheckoutID(arg1);
+  }
+
   return (
     <Fragment>
     <>
@@ -384,7 +422,7 @@ const Dashboard =  () => {
                 <ScrollArea>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {checkout.slice(0, 9).map((checkoutItem, index) => (
-                      <ShiftCard key={index} shift={checkoutItem} />
+                      <Card key={index} shift={checkoutItem} />
                     ))}
                   </div>
                 </ScrollArea>
@@ -404,7 +442,7 @@ const Dashboard =  () => {
                   </div>
                 </ScrollArea>
                ) : (
-                <div className="lg:pl-96 h-full overflow-hidden"> Geen facturen beschikbaar </div>
+                <div className="lg:pl-96 h-full overflow-hidden"> Geen facturen gevonden </div> 
               ): null 
               }
 
@@ -493,6 +531,7 @@ const Dashboard =  () => {
                     <li key={index} className="col-span-1 flex rounded-md shadow-sm">
                       <div className="flex flex-1 items-center justify-between truncate border-b border-gray-200 bg-white">
                       <div className="flex-1 truncate px-4 py-2 text-sm">
+                         
                       <div className="flex justify-between">
                       <a href={`/dashboard/checkout/bedrijf/${checkoutItem._id}`} className="font-medium text-gray-900 hover:text-gray-600">
                         {checkoutItem.titel}
@@ -503,17 +542,38 @@ const Dashboard =  () => {
                         {checkoutItem?.begindatum ? new Date(checkoutItem.begindatum).toLocaleDateString('nl-NL') : 'Datum'}
                         </p>
                         <div className="flex justify-between">
-                        <p>
+                        <p className="text-gray-500">
                         {checkoutItem?.begintijd || 'Begintijd'} - {checkoutItem?.eindtijd || 'Eindtijd'}
                         </p>
-                        <p>{checkoutItem?.pauze || 'Pauze'} minuten pauze</p>
+                        <p className="text-gray-500">{checkoutItem?.pauze || 'Pauze'} minuten pauze</p>
                         </div>
                         <div className="flex justify-between">
                         <p>
                         {checkoutItem?.checkoutbegintijd || 'Begintijd'} - {checkoutItem?.checkouteindtijd || 'Eindtijd'}
                         </p>
-                        <p>{checkoutItem?.chekoutpauze || '0'} minuten pauze</p>
+                        <p>{checkoutItem?.checkoutpauze || '0'} minuten pauze</p>
                         </div>
+                        <div className="flex justify-between">
+                        <p>{checkoutItem?.freelancerVoornaam || '0'} {checkoutItem?.freelancerAchternaam || '0'}</p>
+                        <div className="items-center justify-center overflow-hidden">
+                        <Image
+                          src={checkoutItem?.freelancerProfielfoto || "https://utfs.io/f/72e72065-b298-4ffd-b1a2-4d12b06230c9-n2dnlw.webp"}
+                          width={48}
+                          height={48}
+                          alt={checkoutItem?.freelancerVoornaam || "Freelancer"}
+                          className="object-contain rounded-full"
+                        />
+                      </div> 
+                        </div> 
+                        <div className='mt-4 flex justify-between'>
+                        <button onClick={() => setOpen(true, checkoutItem._id)} className="inline-flex ml-2 items-center rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-green-600/20">
+                          Weigeren
+                        </button>         
+                        <button onClick={() => handleCheckoutAcceptance(checkoutItem._id)}
+                       className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                          Accepteren
+                        </button> 
+                        </div> 
                       </div>
                       </div>
                     </li>
@@ -532,7 +592,7 @@ const Dashboard =  () => {
                   <li key={index} className="col-span-1 flex rounded-md shadow-sm">
                      <div className="flex flex-1 items-center justify-between truncate border-b border-gray-200 bg-white">
                       <div className="flex-1 truncate px-4 py-2 text-sm">
-                        <a href={`/dashboard/shift/bedrijf/${factuurItem._id}`} className="font-medium text-gray-900 hover:text-gray-600">
+                        <a href={`/dashboard/factuur/bedrijf/${factuurItem._id}`} className="font-medium text-gray-900 hover:text-gray-600">
                           Week {factuurItem.week} 
                         </a>
                         {factuurItem.shifts?.length === 1 ? (
@@ -568,6 +628,13 @@ const Dashboard =  () => {
     </div>
   </>
     <UitlogModal isVisible={showLogOut} onClose={() => setShowLogOut(false)}/>
+    <CheckoutModal 
+        isVisible={showCheckout}
+        onClose={() => setShowCheckout(false)} 
+        params={{
+          id: checkoutId
+        }} 
+        searchParams={{}}    />
     </Fragment>
   )
 }

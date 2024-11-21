@@ -1,24 +1,53 @@
+"use client"
 
 import { AanmeldingenSectie } from '@/app/components/shared/AanmeldingenSectie';
+import { AangenomenSectie } from '@/app/components/shared/Aangenomen';
 import { haalShiftMetId } from '@/app/lib/actions/shift.actions'
 import Image from 'next/image';
 import calendar from '@/app/assets/images/logos/calendar.svg';
 import location from '@/app/assets/images/logos/location-grey.svg'
 import { UserIcon } from '@heroicons/react/20/solid';
 import DashNav from '@/app/components/shared/DashNav';
-import { AangenomenSectie } from '@/app/components/shared/Aangenomen';
 import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal, AwaitedReactNode, Key } from 'react';
+import { AuthorisatieCheck } from '@/app/dashboard/AuthorisatieCheck';
+import React, { useState, useEffect } from 'react';
+import { IShiftArray } from '@/app/lib/models/shiftArray.model';
+import { FlattenMaps } from 'mongoose';
+import { useRouter } from 'next/navigation';
+
 
 
 export type SearchParamProps = {
   params: { id: string }
   searchParams: { [key: string]: string | string[] | undefined }
- 
 }
+let shift: FlattenMaps<IShiftArray> & Required<{ _id: FlattenMaps<unknown>; }>;
+const shiftDetails = ({ params: { id }, searchParams, }: SearchParamProps) => {
+  const [toegang, setToegang] = useState<boolean | null>(null);
+  const router = useRouter()
 
-const shiftDetails = async ({ params: { id }, searchParams, }: SearchParamProps) => {
-  const shift = await haalShiftMetId(id);
-  console.log(shift)
+  useEffect(() => {
+    const checkAuthorization = async () => {
+      const toegangResult = await AuthorisatieCheck(id, 2);
+      shift = await haalShiftMetId(id);
+      setToegang(toegangResult);
+    };
+
+    checkAuthorization();
+  }, [id]);
+
+  if (toegang === null) {
+    // Show a loading indicator while checking authorization
+    return <h1>Loading...</h1>;
+  }
+
+  if (!toegang) {
+    // Show 403 Forbidden if not authorized
+    router.push('/NotFound');
+  }
+
+  // Render the regular page if authorized
+  
 
   return (
     <>

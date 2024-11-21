@@ -8,7 +8,6 @@ import Freelancer, { IFreelancer } from "../models/freelancer.model";
 import mongoose, { Types } from "mongoose";
 import { sendEmailBasedOnStatus } from '@/app/lib/actions/shift.actions.ts'
 import { currentUser } from "@clerk/nextjs/server";
-import { ObjectId } from 'mongoose';
 
 export async function updateShiftsAndMoveToCheckout() {
   try {
@@ -85,9 +84,9 @@ export const vulCheckout = async ({ shiftId, rating, begintijd, eindtijd, pauze,
 
         // Update the fields in checkout object directly, then save it
         if (rating !== undefined) checkout.ratingBedrijf = rating;
-        if (begintijd !== undefined) checkout.begintijd = begintijd;
-        if (eindtijd !== undefined) checkout.eindtijd = eindtijd;
-        if (pauze !== undefined) checkout.pauze = pauze;
+        if (begintijd !== undefined) checkout.checkoutbegintijd = begintijd;
+        if (eindtijd !== undefined) checkout.checkouteindtijd = eindtijd;
+        if (pauze !== undefined) checkout.checkoutpauze = pauze /* as unknown as number */;
         if (feedback !== undefined) checkout.feedback = feedback;
         if (opmerking !== undefined) checkout.opmerking = opmerking;
         checkout.status = "checkout ingevuld";
@@ -160,7 +159,7 @@ export const accepteerCheckout = async ({
     // Handle lateness (decrease punctuality if `laat` is true)
     let punctualityDecrease = 0;
     if (laat) {
-      punctualityDecrease = 1 / newRatingCount;
+      punctualityDecrease = (1 / newRatingCount) * 100;
       freelancer.punctualiteit = Math.max(0, freelancer.punctualiteit - punctualityDecrease); // Prevent negative punctuality
     }
 
@@ -210,16 +209,16 @@ export const weigerCheckout = async ({ shiftId, rating, begintijd, eindtijd, pau
       };
 
       if (rating !== undefined) {
-          updateFields.ratingBedrijf = rating;
+          updateFields.ratingFreelancer = rating;
       }
       if (begintijd !== undefined) {
-          updateFields.begintijd = begintijd;
+          updateFields.checkoutbegintijd = begintijd;
       }
       if (eindtijd !== undefined) {
-          updateFields.eindtijd = eindtijd;
+          updateFields.checkouteindtijd = eindtijd;
       }
       if (pauze !== undefined) {
-          updateFields.pauze = pauze;
+          updateFields.checkoutpauze = pauze;
       }
       if (feedback !== undefined) {
           updateFields.feedback = feedback;
@@ -242,7 +241,7 @@ export const weigerCheckout = async ({ shiftId, rating, begintijd, eindtijd, pau
           freelancer.ratingCount += 1;
   
           // Calculate the decrease in punctuality
-          const decrementValue = 1 / freelancer.ratingCount;
+          const decrementValue = (1 / freelancer.ratingCount) * 100;
           freelancer.punctualiteit -= decrementValue;
   
           // Ensure punctuality does not fall below 0%
@@ -283,6 +282,22 @@ export const noShowCheckout = async ({ shiftId }: { shiftId: string }) => {
       if (!checkout) {
           throw new Error(`Checkout not found for shift ID: ${shiftId}`);
       }
+      const freelancerId = checkout.opdrachtnemer; // Assuming `opdrachtnemer` is the field for freelancer
+      const freelancer = await Freelancer.findById(freelancerId);
+
+      if (freelancer) {
+        // Calculate the decrease in punctuality
+        const decrementValue = 1 / freelancer.ratingCount;
+        freelancer.opkomst -= decrementValue;
+
+        // Ensure punctuality does not fall below 0%
+        if (freelancer.opkomst < 0) {
+          freelancer.opkomst = 0;
+        }
+
+        // Save the updated freelancer document
+        await freelancer.save();
+      }
 
       console.log('No show checkout submitted successfully.');
       return {
@@ -300,9 +315,9 @@ export const noShowCheckout = async ({ shiftId }: { shiftId: string }) => {
 export const haalBedrijvenCheckouts = async (bedrijfId: string) => {
   try {
     await connectToDB();
-    const bedrijf = await Bedrijf.findById(bedrijfId).lean();
+    const bedrijf = await Bedrijf.findById(bedrijfId)
     if(bedrijf){
-      const checkouts = await Shift.find({_id: {$in: bedrijf.checkouts}, status: 'checkout ingevuld'}).lean();
+      const checkouts = await Shift.find({_id: {$in: bedrijf.checkouts}, status: 'checkout ingevuld'})
       return checkouts;
     }
     else {
@@ -310,7 +325,7 @@ export const haalBedrijvenCheckouts = async (bedrijfId: string) => {
       if(user){
         const bedrijf = await Bedrijf.findOne({clerkId: user.id});
         if(bedrijf) {
-          const checkouts = await Shift.find({_id: {$in: bedrijf.checkouts}}).lean();
+          const checkouts = await Shift.find({_id: {$in: bedrijf.checkouts}})
           return checkouts;
         }  
       }

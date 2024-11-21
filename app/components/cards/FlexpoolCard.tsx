@@ -1,9 +1,9 @@
 import { useUser } from '@clerk/nextjs';
 import React, { useEffect, useState } from 'react';
-import { DeleteConfirmation } from '@/app/components/shared/DeleteConfirmation';
 import { fetchBedrijfDetails, isBedrijf } from '@/app/lib/actions/bedrijven.actions';
 import { IFlexpool } from '@/app/lib/models/flexpool.model';
 import Link from 'next/link';
+import { encodePath } from '@/app/lib/utils';
 
 
 type CardProps = {
@@ -42,16 +42,27 @@ const Card = ({ flexpool }: CardProps) => {
   }, [userId]);
   const afbeelding = bedrijfDetails ? bedrijfDetails.profielfoto : "https://utfs.io/f/72e72065-b298-4ffd-b1a2-4d12b06230c9-n2dnlw.webp"
 
+  const cleanString = (str: string): string => {
+    return str.replace(/[\r\n]+/g, ''); // Remove carriage returns and newlines
+  };
+  const basePath = isEenBedrijf 
+  ? cleanString(`/dashboard/flexpool/bedrijf/${flexpool._id}`) 
+  : cleanString(`/dashboard/flexpool/freelancer/${flexpool._id}`);
+  const encodedPath = encodePath(basePath);
+
+ 
+
+
   return (
     <div className="group relative flex min-h-[380px] w-full max-w-[400px] flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all hover:shadow-lg md:min-h-[438px]">
       { isEenBedrijf ? (
           <Link 
-          href={`/dashboard/flexpool/bedrijf/${flexpool._id}`}
+          href={`/dashboard/view/${encodedPath}`}
           style={{ backgroundImage: `url(${afbeelding})` }}
           className="flex-center flex-grow bg-gray-50 bg-cover bg-center text-grey-500"
         />
       ):   <Link 
-      href={`/dashboard/flexpool/freelancer/${flexpool._id}`}
+      href={`/dashboard/view/${encodedPath}`}
       style={{ backgroundImage: `url(${afbeelding})` }}
       className="flex-center flex-grow bg-gray-50 bg-cover bg-center text-grey-500"
     />}

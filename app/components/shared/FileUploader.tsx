@@ -1,4 +1,4 @@
-import { useCallback, Dispatch, SetStateAction } from 'react';
+import { useCallback, Dispatch, SetStateAction, useState } from 'react';
 import { useDropzone } from '@uploadthing/react/hooks';
 import { Button } from '@/app/components/ui/button';
 import { useUploadThing } from '@/app/lib/uploadthing';
@@ -12,9 +12,11 @@ type FileUploaderProps = {
 
 export function FileUploader({ imageUrl, onFieldChange, setFiles }: FileUploaderProps) {
   const { startUpload } = useUploadThing("media");
+  const [loading, setLoading] = useState(false); // Loading state
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     setFiles(acceptedFiles);
+    setLoading(true);
     try {
       const uploadedFiles = await startUpload(acceptedFiles);
       if (uploadedFiles && uploadedFiles.length > 0) {
@@ -22,6 +24,8 @@ export function FileUploader({ imageUrl, onFieldChange, setFiles }: FileUploader
       }
     } catch (error) {
       console.error('Error uploading file:', error);
+    } finally {
+      setLoading(false); // Stop loading
     }
   }, [setFiles, onFieldChange, startUpload]);
 
@@ -36,7 +40,31 @@ export function FileUploader({ imageUrl, onFieldChange, setFiles }: FileUploader
       className="flex-center bg-dark-3 flex h-72 cursor-pointer flex-col overflow-hidden rounded-xl bg-grey-50">
       <input {...getInputProps()} className="cursor-pointer" />
 
-      {imageUrl ? (
+      { loading ? (
+        <div className="flex-center flex-col py-5 text-grey-500">
+          <svg
+            className="animate-spin h-10 w-10 text-gray-500"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+            ></path>
+          </svg>
+          <p className="p-medium-12 mt-2">Uploading...</p>
+        </div>
+      ) : imageUrl ? (
         <div className="flex h-full w-full flex-1 justify-center ">
           <img
             src={imageUrl}

@@ -37,7 +37,7 @@ type Werkervaring = {
     huisnummer: string;
     straat: string;
     stad: string;
-    onboarded: true;
+    onboarded: boolean;
     korregeling?: boolean;
     btwid?: string;
     iban: string;
@@ -118,6 +118,17 @@ export async function verwijderFreelancer(clerkId: string): Promise<Freelancer |
         console.error('Error deleting freelancer:', error);
         throw new Error('Error deleting freelancer');
     }
+}
+
+export const haalFreelancerVoorCheckout = async (id: string) => {
+  try {
+    await connectToDB();
+    const freelancer = await Freelancer.findById(id).lean();
+    return freelancer;
+  } catch (error:any) {
+    console.error('Error retrieving freelancers:', error);
+    throw new Error('Error retrieving freelancers');
+  }
 }
 
 export const haalFreelancer = async  (clerkId: string) => {
@@ -402,4 +413,16 @@ export const updateTelefoonnummer = async (clerkId: string, value: any) => {
   }
 } 
 
+export const checkOnboardingStatusFreelancer = async (clerkId:string) => {
+  try {
+    await connectToDB();
+   
+    const freelancer = await Freelancer.findOne({clerkId: clerkId})
+    
+     return freelancer?.onboarded ?? null;
+  } catch (error) {
+    console.error('failed to find stauts:', error);
+    throw new Error('Failed to find status');
+  }
+}
 

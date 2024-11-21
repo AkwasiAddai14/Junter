@@ -25,7 +25,7 @@ import { haalFreelancer, haalFreelancerVoorAdres } from "@/app/lib/actions/freel
 import FlexpoolCard from "../cards/FlexpoolCard"
 import mongoose from "mongoose"
 import { haalCheckouts, haalCheckoutsMetClerkId } from "@/app/lib/actions/checkout.actions"
-import { haalFacturenFreelancer } from "@/app/lib/actions/factuur.actions"
+import { createFacturenForAllFreelancers, haalFacturenFreelancer } from "@/app/lib/actions/factuur.actions"
 import { haalAlleBedrijven } from "@/app/lib/actions/bedrijven.actions"
 import { filterShift, haalAangemeld, getCoordinatesFromAddress } from "@/app/lib/actions/shift.actions"
 import { IShiftArray } from "@/app/lib/models/shiftArray.model"
@@ -517,7 +517,7 @@ const MenuSluiten = (value: string) => {
             </div>
           </div>
 
-          <main className="xl:pl-96">
+          <main className={`${['Geaccepteerde shifts','Aanmeldingen', 'Checkouts', 'Facturen', 'Flexpools'].includes(position) ? 'xl:pl-0' : 'xl:pl-96'}`}>
             <div className="px-4 py-10 sm:px-6 lg:px-8 lg:py-6">{/* Main area */}
 
                 {position === 'Shifts' ?
@@ -624,7 +624,9 @@ const MenuSluiten = (value: string) => {
                   </div>
                   </ScrollArea>
                 ) : ( 
-                <div>Geen facturen gevonden</div>
+                <div>
+                 Geen facturen gevonden
+                </div> 
                                )
                              : null
                             } 
@@ -647,90 +649,87 @@ const MenuSluiten = (value: string) => {
             </div>
 
 
-            <aside className="fixed bottom-0 left-20 top-16 hidden w-96 overflow-y-auto border-r border-gray-200 px-4 py-6 sm:px-6 lg:px-8 xl:block">
-          {/* Secondary column (hidden on smaller screens) */}
-          <div>
-         <div>
-         <Calendar
-            mode="range"
-            selectedRange={dateRange}
-            onDateRangeChange={(range: React.SetStateAction<{ from: Date | undefined; to: Date | undefined }>) => setDateRange(range)}
+            {!['Geaccepteerde shifts', 'Aanmeldingen', 'Checkouts', 'Facturen', 'Flexpools'].includes(position) && (
+  <aside className="fixed bottom-0 left-20 top-16 hidden w-96 overflow-y-auto border-r border-gray-200 px-4 py-6 sm:px-6 lg:px-8 xl:block">
+    {/* Secondary column (hidden on smaller screens) */}
+    <div>
+      <div>
+        <Calendar
+          mode="range"
+          selectedRange={dateRange}
+          onDateRangeChange={(range: React.SetStateAction<{ from: Date | undefined; to: Date | undefined }>) => setDateRange(range)}
+        />
+      </div>
+      <div>
+        <p className="mt-20">Tarief</p>
+        <Box sx={{ width: 250 }}>
+          <Slider
+            marks={euromarks}
+            step={10}
+            value={euroVal}
+            valueLabelDisplay="auto"
+            min={MIN}
+            max={MAX}
+            onChange={handleUurtariefChange}
           />
-         </div>
-         <div>
-          <p className="mt-20">
-            Tarief
-          </p>
-            <Box sx={{ width: 250 }}>
-      <Slider
-        marks={euromarks}
-        step={10}
-        value={euroVal}
-        valueLabelDisplay="auto"
-        min={MIN}
-        max={MAX}
-        onChange={handleUurtariefChange}
-      />
-      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Typography
-          variant="body2"
-          onClick={() => setEuroVal(MIN)}
-          sx={{ cursor: 'pointer' }}
-        >
-          €{MIN} min
-        </Typography>
-        <Typography
-          variant="body2"
-          onClick={() => setEuroVal(MAX)}
-          sx={{ cursor: 'pointer' }}
-        >
-          €{MAX} 
-        </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Typography
+              variant="body2"
+              onClick={() => setEuroVal(MIN)}
+              sx={{ cursor: 'pointer' }}
+            >
+              €{MIN} min
+            </Typography>
+            <Typography
+              variant="body2"
+              onClick={() => setEuroVal(MAX)}
+              sx={{ cursor: 'pointer' }}
+            >
+              €{MAX}
+            </Typography>
+          </Box>
+        </Box>
+      </div>
+      <p className="mt-20">Afstand</p>
+      <Box sx={{ width: 250 }}>
+        <Slider
+          marks={distancemarks}
+          step={10}
+          value={distanceVal}
+          valueLabelDisplay="auto"
+          min={MIN}
+          max={MAX}
+          onChange={handleAfstandChange}
+        />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Typography
+            variant="body2"
+            onClick={() => setDistanceVal(MIN)}
+            sx={{ cursor: 'pointer' }}
+          >
+            {MIN} km
+          </Typography>
+          <Typography
+            variant="body2"
+            onClick={() => setDistanceVal(MAX)}
+            sx={{ cursor: 'pointer' }}
+          >
+            {MAX} km
+          </Typography>
+        </Box>
       </Box>
-    </Box>
-         </div>
-         <p className="mt-20">
-            Afstand
-         </p>
-           <Box sx={{ width: 250 }}>
-      <Slider
-        marks={distancemarks}
-        step={10}
-        value={distanceVal}
-        valueLabelDisplay="auto"
-        min={MIN}
-        max={MAX}
-        onChange={handleAfstandChange}
-      />
-      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Typography
-          variant="body2"
-          onClick={() => setDistanceVal(MIN)}
-          sx={{ cursor: 'pointer' }}
-        >
-          {MIN} km
-        </Typography>
-        <Typography
-          variant="body2"
-          onClick={() => setDistanceVal(MAX)}
-          sx={{ cursor: 'pointer' }}
-        >
-          {MAX} km
-        </Typography>
-      </Box>
-    </Box>
-         <div>
-          <div className="justify-between">
-          <Button className="mt-20 bg-white text-black border-2 border-black mr-10" onClick={() =>  setPosition("Shifts") } >
-            Reset
-          </Button>
-          <Button className="mt-20 bg-sky-500" onClick={() => setPosition('Filter')} >
-            Zoek
-          </Button>
-          </div>
-         </div>
-         </div>
-        </aside>
+      <div className="justify-between">
+        <Button className="mt-20 bg-white text-black border-2 border-black mr-10" onClick={() => setPosition("Shifts")}>
+          Reset
+        </Button>
+        <Button className="mt-20 bg-sky-500" onClick={() => setPosition('Filter')}>
+          Zoek
+        </Button>
+      </div>
+    </div>
+  </aside>
+)}
+
       </div>
     </>
     <UitlogModal isVisible={showLogOut} onClose={() => setShowLogOut(false)}/>

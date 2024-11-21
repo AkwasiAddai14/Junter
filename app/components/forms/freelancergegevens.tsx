@@ -194,7 +194,7 @@ if (files.length > 0) {
       btwid: data.btwid || "",
       iban: data.iban || "",
       path: "profiel/wijzigen",
-      onboarded: true,
+      onboarded: false,
       profielfoto: data.profielfoto || user?.imageUrl,
       werkervaring: [], // Pass an empty array
       vaardigheden: [], // Pass an empty array

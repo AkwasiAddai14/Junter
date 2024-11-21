@@ -1,9 +1,11 @@
 "use client"
 
-import { haalFactuur } from "@/app/lib/actions/factuur.actions";
-import { IFactuur } from "@/app/lib/models/factuur.model";
-import { ShiftType } from "@/app/lib/models/shift.model";
+import { haalFactuur, haalFactuurShifts } from "@/app/lib/actions/factuur.actions";
 import { useEffect, useState } from "react";
+import { useRouter } from 'next/navigation';
+import Image from 'next/image'; 
+import logo from '@/app/assets/images/178884748_padded_logo.png'; 
+import { useUser } from "@clerk/nextjs";
 
 
 export type SearchParamProps = {
@@ -11,22 +13,43 @@ export type SearchParamProps = {
 }
 
 export default function factuurFreelancer({ params: { id }}: SearchParamProps) {
-  const [factuur, setFactuur] = useState<IFactuur| null>(null);
-  const [shifts, setShifts] = useState<ShiftType[]>([])
+  const [factuur, setFactuur] = useState<any| null>(null);
+  const [shifts, setShifts] = useState<any[]>([])
+  const router = useRouter();
+  const [isBedrijf, setIsBedrijf] = useState(false);
+  const { isLoaded, isSignedIn, user } = useUser();
+
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    if (!isSignedIn) {
+      router.push("./sign-in");
+      console.log("Niet ingelogd");
+      alert("Niet ingelogd!");
+      return;
+    }
+
+    const userType = user?.organizationMemberships.length ?? 0;
+    setIsBedrijf(userType >= 1);
+  }, [isLoaded, isSignedIn, router, user]);
+
+  if(isBedrijf){
+    router.push('/dashboard');
+  }
 
   useEffect(() => {
     const fetchData = async () => {
-      try{
+      try {
 
         const factuur = await haalFactuur(id);
         if(factuur){
+
           setFactuur(factuur)
-          setShifts(factuur.shifts)
+          console.log(factuur, shifts);
+
         }
         else{
           console.log("Factuur niet gevonden.");
-          setFactuur(null)
-          setShifts([])
         }
 
       } catch (error: any){
@@ -36,6 +59,25 @@ export default function factuurFreelancer({ params: { id }}: SearchParamProps) {
     fetchData();
   }, [id])
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try{
+
+        const shifts = await haalFactuurShifts(id);
+        if(shifts){
+          setShifts(shifts)
+          console.log(factuur, shifts);
+        }
+        else{
+          console.log("shifts niet gevonden.");
+        }
+
+      } catch (error: any){
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
+  }, [id])
 
   // Function to calculate the subtotal for each shift
   function calculateWorkedHours(begintijd: string, eindtijd: string, pauze: number = 0): number {
@@ -75,9 +117,9 @@ export default function factuurFreelancer({ params: { id }}: SearchParamProps) {
     checkoutbegintijd: shift.checkoutbegintijd,
     checkouteindtijd: shift.checkouteindtijd,
     checkoutpauze: shift.checkoutpauze,
-    uren: calculateWorkedHours(shift.checkoutbegintijd, shift.checkouteindtijd, shift.checkoutpauze),
-    subtotaal: calculateShiftSubtotal(calculateWorkedHours(shift.checkoutbegintijd, shift.checkouteindtijd, shift.checkoutpauze), shift.uurtarief),
-    btw: (calculateShiftSubtotal(calculateWorkedHours(shift.checkoutbegintijd, shift.checkouteindtijd, shift.checkoutpauze) , shift.uurtarief) * 0.21).toFixed(2)
+    uren: calculateWorkedHours(shift.checkoutbegintijd, shift.checkouteindtijd, parseInt(shift.checkoutpauze)),
+    subtotaal: calculateShiftSubtotal(calculateWorkedHours(shift.checkoutbegintijd, shift.checkouteindtijd, parseInt(shift.checkoutpauze)), shift.uurtarief),
+    btw: (calculateShiftSubtotal(calculateWorkedHours(shift.checkoutbegintijd, shift.checkouteindtijd, parseInt(shift.checkoutpauze)) , shift.uurtarief) * 0.21).toFixed(2)
 }));
 
 const totaalSubtotaal = factuurShifts.reduce((acc, shift) => {
@@ -93,12 +135,25 @@ const totaalbedrag = totaalSubtotaal + belasting;
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
-          <h1 className="text-base font-semibold leading-6 text-gray-900">Gwerkte shifts in week</h1>
+        <div className="flex lg:flex-1">
+          <a href="/" className="-m-1.5 p-1.5">
+            <span className="sr-only">Junter</span>
+            <Image className="h-32 w-auto" src={logo} alt="Junter logo" /> {/* Use Image component for optimized images */}
+          </a>
+        </div>
+          <h1 className="mt-10 text-base font-semibold leading-6 text-gray-900">Factuur voor week</h1>
           <p className="mt-2 text-lg text-gray-700">
-             {factuur?.week ? factuur.week : 52}.
+             {factuur?.week ? factuur.week : 52}
           </p>
         </div>
-        <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+        <div className="flex flex-row justify-between gap-4 mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+        <button
+            type="button"
+            className="block rounded-md bg-orange-500 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-orange-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
+            onClick={() => router.back()}
+          >
+            Terug
+          </button>
           <button
             type="button"
             className="block rounded-md bg-sky-500 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-sky-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600"
@@ -145,14 +200,17 @@ const totaalbedrag = totaalSubtotaal + belasting;
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
-                      <div className="text-gray-900">{shift.checkoutbegintijd} - {shift.checkouteindtijd}, {shift.checkoutpauze} pauze</div>
+                      <div className="text-gray-900">{shift.checkoutbegintijd} - {shift.checkouteindtijd}, {shift.checkoutpauze} min pauze</div>
                       <div className="mt-1 text-gray-500">{shift.uren} gewerkte uren</div>
                     </td>
                     <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
-                    <div className="text-gray-900">totaalbedrag: {shift.subtotaal}</div>
-                      <div className="mt-1 text-gray-500">btw: €{shift.btw} </div>
+                    <div className="text-gray-900">€{shift.uurtarief}</div>
+                      
                     </td>
-                    <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">{shift.subtotaal}</td>
+                    <td className="whitespace-nowrap px-3 py-5 text-sm text-gray-500">
+                      €{shift.subtotaal} +
+                      <div className="mt-1 text-gray-500">btw: €{shift.btw} </div>
+                      </td>
                     <td className="relative whitespace-nowrap py-5 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                       <a href="#" className="text-sky-600 hover:text-sky-900">
                         Download<span className="sr-only">, {shift.titel}</span>

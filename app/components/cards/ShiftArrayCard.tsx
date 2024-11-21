@@ -50,7 +50,7 @@ const Card = ({ shift }: CardProps) => {
       style={{ backgroundImage: `url(${backgroundImageUrl})` }}
       className="flex-center flex-grow bg-gray-50 bg-cover bg-center text-grey-500"
     />}
-      {isEenBedrijf && shift.status === "beschikbaar"? (
+      {isEenBedrijf && shift.status === "beschikbaar" || shift.status === "container" ? (
         <div className="absolute items-stretch right-2 top-2 flex flex-col gap-4 rounded-xl bg-white p-3 shadow-sm transition-all">
           <Link href={`/dashboard/shift/bedrijf/${shift._id}/update`}>
             <Image src={edit} alt="edit" width={20} height={20} />
@@ -59,9 +59,11 @@ const Card = ({ shift }: CardProps) => {
         </div>
       ) :
       (
-        <div className="absolute items-stretch right-2 top-2 flex flex-col gap-4 rounded-xl bg-white p-3 shadow-sm transition-all">
+          !isEenBedrijf && (
+            <div className="absolute items-stretch right-2 top-2 flex flex-col gap-4 rounded-xl bg-white p-3 shadow-sm transition-all">
           <ApplyConfirmation shiftId={shift._id as string} />
         </div>
+          )
       )}
 
       <div className="flex min-h-[230px] flex-col gap-3 p-5 md:gap-4">
@@ -73,7 +75,7 @@ const Card = ({ shift }: CardProps) => {
             {shift.functie}
           </p>
           <p className="text-sm md:p-medium-16 text-grey-600 line-clamp-1">
-           {shift.aanmeldingen?.length || 0} / {shift.plekken} 
+           {shift.aangenomen?.length || 0} / {shift.plekken} 
           </p>
         </div>
 
@@ -108,9 +110,16 @@ const Card = ({ shift }: CardProps) => {
           <p className="line-clamp-1 p-medium-14 md:p-medium-16 text-grey-600">
             {opdrachtgeverName}
           </p> 
-          <p className="p-medium-14 md:p-medium-16 text-grey-600">
+          {isEenBedrijf && shift.status === 'checkout ingevuld' ? (
+             <p className="p-medium-14 md:p-medium-16 text-grey-600">
+             {shift.status}
+         </p>
+          ) : (
+            <p className="p-medium-14 md:p-medium-16 text-grey-600">
             {flexpoolTitle}
         </p>
+          )
+          }
         </div>
       </div>
     </div>

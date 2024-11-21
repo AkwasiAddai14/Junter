@@ -174,6 +174,8 @@ const ShiftForm = ({ userId, type, shift, shiftId }: ShiftFormProps) => {
     defaultValues: initialValues,
   });
 
+  const { handleSubmit, control, getValues } = form;
+
   async function onSubmit(values: z.infer<typeof ShiftValidation>) {
     if (!bedrijfDetails || !bedrijfDetails._id || !bedrijfDetails.displaynaam) {
       console.error("Bedrijf details are not properly loaded.");
@@ -368,6 +370,7 @@ if (files.length > 0) {
     const shiftTitel = `${shifts.titel.toLowerCase()}`;
     return shiftTitel.includes(query.toLowerCase());
   });
+
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="nl">
@@ -766,7 +769,9 @@ if (files.length > 0) {
                 {type === 'maak' ? (
                   <>
 
-            <Button onClick={() => {makeUnpublishedShift}} size="lg" disabled={loading} className="button col-span-2 w-full">
+            <Button type="button" onClick={() => {
+              const values = getValues(); // Get form values
+              makeUnpublishedShift(values);}} size="lg" disabled={loading} className="button col-span-2 w-full">
               {loading ? "Shift maken..." : `${type} shift `}
             </Button>
             

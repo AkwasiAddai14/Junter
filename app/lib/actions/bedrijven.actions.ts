@@ -188,7 +188,7 @@ export async function zoekBedrijf({
 export const fetchBedrijfDetails = async (clerkId: string) => {
     try {
       await connectToDB();
-      const bedrijf = await Bedrijf.findOne({ clerkId }).exec();
+      const bedrijf = await Bedrijf.findOne({ clerkId: clerkId }).lean();
       if (bedrijf) {
         return bedrijf;
       }
@@ -293,6 +293,18 @@ export const blokkeerFreelancer = async ({freelancerId, bedrijfId}: idProps) => 
   } catch (error) {
     console.error('Error verzoek blokkade:', error);
     throw new Error('Failed to block freelancer');
+  }
+}
+export const checkOnboardingStatusBedrijf = async (clerkId:string) => {
+  try {
+    await connectToDB();
+   
+    const bedrijf = await Bedrijf.findOne({clerkId: clerkId})
+    
+    return bedrijf?.onboarded ?? null;
+  } catch (error) {
+    console.error('failed to find stauts:', error);
+    throw new Error('Failed to find status');
   }
 }
 

@@ -254,7 +254,7 @@ export const maakOngepubliceerdeShift = async ({
   kledingsvoorschriften,
 }: unpublishedParams) => {
   try {
-
+    const opdrachtgeverId = new mongoose.Types.ObjectId(opdrachtgever);
     const shiftArray = new ShiftArray({
       opdrachtgever: opdrachtgever,
       opdrachtgeverNaam: opdrachtgeverNaam,
@@ -274,8 +274,10 @@ export const maakOngepubliceerdeShift = async ({
       status: 'container',
     });
 
-     await shiftArray.save();
-
+    const savedShift = await shiftArray.save();
+     await Bedrijf.findByIdAndUpdate(opdrachtgeverId, {
+      $push: { shifts: savedShift._id },
+    });
     return {succes: true, message: 'unpublished shift succesfully created.'}
   } catch (error: any) {
     console.error('Error creating unpublished shift:', error);
@@ -897,6 +899,9 @@ export async function accepteerFreelancer({
           opmerking: "",
           ratingBedrijf: 5,
           ratingFreelancer: 5,
+          freelancerAchternaam: freelancer.achternaam,
+          freelancerVoornaam: freelancer.voornaam,
+          freelancerProfielFoto: freelancer.profielfoto,
       });
       
       // Save the new shift
@@ -922,8 +927,11 @@ export async function accepteerFreelancer({
       firstShift.opdrachtnemer = new mongoose.Types.ObjectId(freelancerObjectId);
       firstShift.status = "aangenomen";
       firstShift.opdrachtgeverNaam = shiftArray.opdrachtgeverNaam;
+      firstShift.freelancerProfielFoto = freelancer.profielfoto;
+      firstShift.freelancerVoornaam = freelancer.voornaam;
+      firstShift.freelancerAchternaam = freelancer.achternaam;
       freelancer.shifts.push(firstShift._id);
-      shiftArray.aangenomen.push(freelancer._id)
+      shiftArray.aangenomen.push(freelancer._id);
       
 
       freelancer.shifts = freelancer.shifts.filter((s: { shiftArrayId?: { toString: () => any; }; status: string; }) => {
@@ -1206,10 +1214,29 @@ export async function haalShiftMetId(shiftId: string) {
   try {
     
     await connectToDB();
-    const shift = await ShiftArray.findById(shiftId);
+    const shift = await ShiftArray.findById(shiftId).lean();
     console.log(shift)
     if (!shift) throw new Error('Shift not found');
     return shift;
+
+  } catch (error: any) {
+    console.error(error);
+    throw new Error('Failed to fetch shift');
+  }
+}
+
+export async function haalShiftMetIdDelete(shiftId: string) {
+  try {
+    
+    await connectToDB();
+    const shift = await ShiftArray.findById(shiftId).lean() as IShiftArray | null;;
+    console.log(shift)
+    if (!shift) throw new Error('Shift not found');
+    return {
+      ...shift,
+      _id: shift._id as string,  // Convert ObjectId to string
+      opdrachtgever: shift.opdrachtgever.toString(),  // If this is also an ObjectId
+    };
 
   } catch (error: any) {
     console.error(error);
@@ -1305,6 +1332,22 @@ export const haalShiftMetIdCard = async (id: string) => {
     const shift = await Shift.findById(id)
     console.log(shift)
     return shift?.toObject();
+  } catch (error) {
+    console.error('Error fetching shift:', error);
+    throw error;
+  }
+};
+
+export const haalShiftMetIdCardBedrijf = async (id: string) => {
+  try {
+    const shift = await Shift.findById(id).populate({
+      path: 'opdrachtnemer',
+      model: 'Freelancer',
+      select: 'voornaam achternaam profielfoto emailadres ratingCount stad profielfoto punctualiteit opkomst rating', // Select only necessary fields
+    })
+    .lean();
+    console.log(shift)
+    return shift;
   } catch (error) {
     console.error('Error fetching shift:', error);
     throw error;

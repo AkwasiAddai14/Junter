@@ -73,3 +73,28 @@ import dayjs from 'dayjs';
 export const formatDateTimeF = (date: Date) => {
   return dayjs(date).format('DD/MM/YYYY HH:mm');
 };
+
+// utils/base64Url.ts
+
+// URL-safe Base64 encoding without padding
+export const encodePath = (path: string): string => {
+  return btoa(path).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); // Remove padding
+};
+
+// URL-safe Base64 decoding
+export const decodePath = (encodedPath: string): string => {
+  // Add padding back if necessary
+  const pad = encodedPath.length % 4;
+  if (pad) {
+    encodedPath += '===='.substring(pad);
+  }
+  encodedPath = encodedPath.replace(/-/g, '+').replace(/_/g, '/');
+
+  try {
+    return Buffer.from(encodedPath, 'base64').toString('utf-8');
+  } catch (error) {
+    console.error('Failed to decode path:', error);
+    return '';
+  }
+};
+

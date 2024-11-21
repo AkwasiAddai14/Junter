@@ -66,7 +66,7 @@ export const createFactuurForFreelancer = async ({ freelancerId, shifts }: Creat
             opdrachtnemers: [freelancerId],
             werkdatum: new Date().toLocaleDateString(), // Set the current date as werkdatum
             tijd: new Date().toLocaleTimeString(), // Set the current time
-            totaalbedrag: calculateTotalAmountFreelancer(shifts), // Function to calculate total amount
+            totaalbedrag: await calculateTotalAmountFreelancer(shifts), // Function to calculate total amount
         });
 
         await newFactuur.save();
@@ -102,9 +102,12 @@ const calculateTotalAmountFreelancer = async (shifts: mongoose.Types.ObjectId[])
 
             // Add the shift amount to the total
             totaalBedrag += shiftAmount;
+            shift.totaalBedrag = totaalBedrag;
+            shift.status = 'afgerond';
+            await shift.save();
         }
     }
-
+    
     // Return the total amount as a string formatted to two decimal places
     return totaalBedrag.toFixed(2);
 };
@@ -164,7 +167,8 @@ export async function createFacturenForAllBedrijven() {
             const bedrijfId = bedrijf._id as Types.ObjectId; // Ensure _id is treated as an ObjectId
 
             // Fetch the shifts associated with this bedrijf
-            const shifts = await Shift.find({ opdrachtgever: bedrijfId }).select('_id').exec(); // Get shifts linked to this bedrijf
+            const shifts = await Shift.find({_id: { $in: bedrijf.checkouts },
+                status: 'checkout geaccepteerd',}).select('_id').exec(); // Get shifts linked to this bedrijf
 
             if (shifts.length > 0) {
                 await createFactuurForBedrijf({ 
@@ -194,7 +198,7 @@ export const createFactuurForBedrijf = async ({ bedrijfId, shifts }: CreateFactu
             opdrachtgever: [bedrijfId],
             werkdatum: new Date().toLocaleDateString(), // Set the current date as werkdatum
             tijd: new Date().toLocaleTimeString(), // Set the current time
-            totaalbedrag: calculateTotalAmountBedrijf(shifts), // Function to calculate total amount
+            totaalbedrag: await calculateTotalAmountBedrijf(shifts), // Function to calculate total amount
         });
 
         await newFactuur.save();
@@ -206,36 +210,56 @@ export const createFactuurForBedrijf = async ({ bedrijfId, shifts }: CreateFactu
 };
 
 // Helper function to calculate the total amount based on shifts
-const calculateTotalAmountBedrijf = async (shifts: mongoose.Types.ObjectId[]): Promise<string> => {
+const calculateTotalAmountBedrijf = async (shifts: mongoose.Types.ObjectId[]): Promise<number> => {
     let totaalBedrag = 0;
 
-    // Iterate through each shift to calculate the total amount
     for (const shiftId of shifts) {
-        // Find the shift by its ObjectId
         const shift = await Shift.findById(shiftId) as ShiftType;
 
         if (shift) {
             const { checkoutbegintijd, checkouteindtijd, pauze, uurtarief } = shift;
 
-            // Parse the times to calculate the duration worked
+            // Validate times
+            if (!checkoutbegintijd || !checkouteindtijd || isNaN(new Date(`1970-01-01T${checkoutbegintijd}:00Z`).getTime()) || isNaN(new Date(`1970-01-01T${checkouteindtijd}:00Z`).getTime())) {
+                console.error(`Invalid begintijd or eindtijd for shift ${shiftId}`);
+                continue; // Skip this shift
+            }
+
+            // Parse times
             const begintijd = new Date(`1970-01-01T${checkoutbegintijd}:00Z`);
             const eindtijd = new Date(`1970-01-01T${checkouteindtijd}:00Z`);
-            const pauzeInMinutes = pauze ? parseInt(pauze, 10) : 0;
 
-            // Calculate the total time worked in hours, subtracting the pause time
+            // Validate pauze and uurtarief
+            const pauzeInMinutes = isNaN(parseInt(pauze?.toString() || '0', 10)) ? 0 : parseInt(pauze?.toString() || '0', 10);
+            const uurTariefValue = isNaN(parseFloat(uurtarief?.toString() || '0')) ? 0 : parseFloat(uurtarief?.toString() || '0');
+
+
+            if (uurTariefValue <= 0) {
+                console.error(`Invalid uurtarief for shift ${shiftId}`);
+                continue; // Skip this shift
+            }
+
+            // Calculate the total time worked in hours
             const timeWorkedInHours = (eindtijd.getTime() - begintijd.getTime()) / (1000 * 60 * 60) - (pauzeInMinutes / 60);
 
-            // Calculate the amount for this shift
-            const shiftAmount = timeWorkedInHours * (uurtarief + 2.50) * 1.21;
+            // Ensure timeWorkedInHours is not negative or NaN
+            if (isNaN(timeWorkedInHours) || timeWorkedInHours <= 0) {
+                console.error(`Invalid time worked for shift ${shiftId}`);
+                continue;
+            }
 
-            // Add the shift amount to the total
+            // Calculate the amount for this shift
+            const shiftAmount = timeWorkedInHours * (uurTariefValue + 2.50) * 1.21;
+
+            // Accumulate the shift amount to the total
             totaalBedrag += shiftAmount;
         }
     }
 
-    // Return the total amount as a string formatted to two decimal places
-    return totaalBedrag.toFixed(2);
+    // Return the total amount as a number
+    return parseFloat(totaalBedrag.toFixed(2));
 };
+
 
 
 
@@ -444,16 +468,10 @@ export async function maakFacturen() {
 export async function haalFacturen(id: string) {
     try {
         // Find all facturen
-        const facturen = await Factuur.find({opdrachtgever: id})
-        .populate({
-            path: 'shifts',  // Populates the 'shifts' field
-            select: 'titel uurtarief begindatum checkoutbegintijd checkouteindtijd checkoutpauze opdrachtnemer', // Selects fields in the 'shifts'
-            populate: {
-                path: 'opdrachtnemer',  // Further populates 'opdrachtnemer' inside 'shifts'
-                select: 'voornaam achternaam profielfoto'  // Selects fields in 'opdrachtnemer'
-            }
-        }); // Assuming the factura schema has a reference to the checkout
-
+        const facturen = await Factuur.find({
+            opdrachtgever: { $in: [id] }  // Checks if the id is within the opdrachtgever array
+        })
+        
         return facturen;
     } catch (error:any) {
         console.error('Error retrieving facturen:', error);
@@ -464,20 +482,9 @@ export async function haalFacturen(id: string) {
 export async function haalFacturenFreelancer(id: string) {
     try {
         await connectToDB();
-        let facturen = [];
-
-        if (mongoose.Types.ObjectId.isValid(id)) {
-            // Attempt to find the freelancer by ID
-            const freelancer = await Freelancer.findById(id);
-            facturen = freelancer?.facturen || [];
-        } else {
-            // Get the current user if id is not a valid ObjectId
-            const user = await currentUser();
-            if (user) {
-                const freelancer = await Freelancer.findOne({ clerkId: user.id });
-                facturen = freelancer?.facturen || [];
-            }
-        }
+        const facturen = await Factuur.find({
+            opdrachtnemers: { $in: [id] }  // Checks if the id is within the opdrachtgever array
+        })
         return facturen;
     } catch (error: any) {
         console.error('Error retrieving facturen:', error);
@@ -485,6 +492,18 @@ export async function haalFacturenFreelancer(id: string) {
     }
 }
 
+export const haalFactuurShifts = async (id:string) => {
+    try {
+        await connectToDB();
+        const factuur = await Factuur.findById(id)
+        if(factuur){
+          const shifts = await Shift.find({_id: {$in: factuur.shifts}})
+          return shifts;
+        }
+      } catch (error:any) {
+        throw new Error(`Failed to find shift: ${error.message}`);
+      }
+}
 
 export async function haalAfgerondeShifts(clerkId: string){
     try{
@@ -518,8 +537,8 @@ export async function haalFactuur (id: string){
     try{
 
         await connectToDB()
-        const factuur = await Factuur.findById(id);
-
+        const factuur = await Factuur.findById(id).lean();
+        console.log(factuur);
         return factuur;
     } catch (error: any) {
 

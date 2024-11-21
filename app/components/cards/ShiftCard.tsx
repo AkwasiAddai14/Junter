@@ -41,6 +41,7 @@ bedrijfCheck();
     switch (status) {
       case 'aangenomen':
       case 'afgerond':
+        case 'checkout geaccepteerd':
         return 'bg-green-500'; // Green background for 'aangenomen' and 'afgerond'
       case 'voltooi checkout':
         return 'bg-yellow-400';
@@ -49,6 +50,7 @@ bedrijfCheck();
         case 'afgewezen':
           case 'afgezegd':
             case 'no show':
+              case 'Checkout geweigerd':
             return 'bg-red-500'
       default:
         return 'bg-blue-400'; // Default background if no status matches
@@ -121,7 +123,7 @@ bedrijfCheck();
         </div>
        
         
-        { isEenBedrijf ? (
+        { isEenBedrijf  ? (
           <Link href={`/dashboard/shift/bedrijf/${shift.shiftArrayId}`}>
           <p className="p-medium-16 md:p-medium-20 line-clamp-1 flex-1 text-black">{shift.titel}</p>
         </Link>
@@ -134,7 +136,11 @@ bedrijfCheck();
           </p> 
         </div>
         <div className="flex-between w-full">
-          <p className="p-medium-14 md:p-medium-16 text-grey-600">{flexpoolTitle}</p>
+          { shift.status === 'afgerond' && shift.totaalBedrag ? 
+            <p className="p-medium-14 md:p-medium-16 text-grey-600">€{shift.totaalBedrag}</p>
+            :
+            <p className="p-medium-14 md:p-medium-16 text-grey-600">{flexpoolTitle}</p>
+          }{/* //<p className="p-medium-14 md:p-medium-16 text-grey-600">{flexpoolTitle}</p> */}
        <div className={`rounded-md px-4 py-2 ${getStatusColor(shift.status)}`}>
         {shift.status === 'voltooi checkout' || shift.status === 'Checkout geweigerd' ? 
         <Link href={`/dashboard/checkout/freelancer/${shift.shiftArrayId}`}>

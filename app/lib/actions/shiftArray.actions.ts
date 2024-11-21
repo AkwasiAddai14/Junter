@@ -124,9 +124,7 @@ export const haalOngepubliceerdeShifts = async ({ bedrijfId }: { bedrijfId: stri
       throw new Error(`Bedrijf with ID ${bedrijfId} not found or shifts not available`);
     }
 
-    const shiftArrays = await ShiftArray.find(
-      { _id: { $in: bedrijf.shifts }, beschikbaar: false, status: 'container' }, 
-      ).lean(); // Use lean to return plain JS objects
+    const shiftArrays = await ShiftArray.find({ _id: { $in: bedrijf.shifts }, status: 'container' }) // Use lean to return plain JS objects
     console.log("ShiftArrays: ", JSON.stringify(shiftArrays, null, 2)); // Pretty print the objects for better readability
     return shiftArrays;
   } catch (error) {
@@ -164,7 +162,7 @@ export const fetchBedrijfShiftsByClerkId = async (clerkId: string) => {
     const bedrijf = await Bedrijf.findOne({ clerkId }).exec();
     
     if (bedrijf) {
-      const shiftArrays = await ShiftArray.find({ _id: { $in: bedrijf.shifts } })
+      const shiftArrays = await ShiftArray.find({ _id: { $in: bedrijf.shifts }, status: 'beschikbaar', beschikbaar: true })
       .lean(); // Use lean to return plain JS objects
 
     console.log("ShiftArrays: ", JSON.stringify(shiftArrays, null, 2)); // Pretty print the objects for better readability
@@ -257,6 +255,7 @@ cron.schedule('0 * * * *', async () => {
     // Update shifts
     await Promise.all(shiftsToUpdate.map(async (shift) => {
       shift.beschikbaar = false;
+      shift.status = "verlopen"
       await shift.save();
     }));
 
@@ -285,6 +284,7 @@ cron.schedule('0 * * * *', async () => {
     // Update shifts
     await Promise.all(shiftsToUpdate.map(async (shift) => {
       shift.beschikbaar = false;
+      shift.status = "verlopen"
       await shift.save();
     }));
 
@@ -312,6 +312,7 @@ export const cloudShifts = async () => {
     // Update shifts
     await Promise.all(shiftsToUpdate.map(async (shift) => {
       shift.beschikbaar = false;
+      shift.status = "verlopen"
       await shift.save();
     }));
 

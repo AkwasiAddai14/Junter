@@ -61,7 +61,7 @@ const bedrijfSchema: Schema<IBedrijf> = new mongoose.Schema({
   }],
   checkouts: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'ShiftArray'
+    ref: 'Shift'
   }]
 });
 

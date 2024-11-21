@@ -23,6 +23,9 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import 'dayjs/locale/nl';
 import { toast } from '@/app/components/ui/use-toast';
 import logo from '@/app/assets/images/178884748_padded_logo.png'
+import { useUser } from "@clerk/nextjs";
+import { AuthorisatieCheck } from '@/app/dashboard/AuthorisatieCheck';
+
 
 
 export type SearchParamProps = {
@@ -36,6 +39,38 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
     const [begintijd, setBegintijd] = useState<Dayjs | null>(dayjs('2022-04-17T08:00'));
     const [eindtijd, setEindtijd] = useState<Dayjs | null>(dayjs('2022-04-17T16:30'));
     const [checkout, setCheckout] = useState<any>(null);
+    const [isBedrijf, setIsBedrijf] = useState(false);
+    const { isLoaded, isSignedIn, user } = useUser();
+    const [geauthoriseerd, setGeauthoriseerd] = useState<Boolean>(false);
+
+    const isGeAuthorizeerd = async (id:string) => {
+      const toegang = await AuthorisatieCheck(id, 3);
+      setGeauthoriseerd(toegang);
+    }
+  
+    isGeAuthorizeerd(id);
+  
+    if(!geauthoriseerd){
+      return <h1>403 - Forbidden</h1>
+    }
+
+    useEffect(() => {
+      if (!isLoaded) return;
+  
+      if (!isSignedIn) {
+        router.push("./sign-in");
+        console.log("Niet ingelogd");
+        alert("Niet ingelogd!");
+        return;
+      }
+  
+      const userType = user?.organizationMemberships.length ?? 0;
+      setIsBedrijf(userType >= 1);
+    }, [isLoaded, isSignedIn, router, user]);
+  
+    if(isBedrijf){
+      router.push('/dashboard');
+    }
 
     useEffect(() => {
         const fetchCheckout = async () => {
@@ -54,9 +89,9 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
       begintijd: checkout?.begintijd || "",
       eindtijd: checkout?.eindtijd || "",
       pauze: checkout?.pauze || "30",
-     rating: 5,
-     opmerking: " ",
-     feedback: " ",
+      rating: 5,
+      opmerking: " ",
+      feedback: " ",
     };
   
       const form = useForm<z.infer<typeof CheckoutValidation>>({
@@ -101,6 +136,7 @@ export default function CheckoutCard({ params: { id }, searchParams }: SearchPar
             description: `
               \n
               ${response.message}
+              Checkout verstuurd! 👍
               `
           });
           router.back()

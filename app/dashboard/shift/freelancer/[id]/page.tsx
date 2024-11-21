@@ -1,4 +1,5 @@
 
+
 import AanmeldButton from '@/app/components/shared/AanmeldButton';
 import Collection from '@/app/components/shared/Collection';
 import { haalShiftMetId, haalGerelateerdShiftsMetCategorie } from '@/app/lib/actions/shift.actions'
@@ -7,9 +8,10 @@ import calendar from '@/app/assets/images/logos/calendar.svg';
 import location from '@/app/assets/images/logos/location-grey.svg'
 import { UserIcon } from '@heroicons/react/20/solid';
 import DashNav from '@/app/components/shared/DashNav';
-import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal, AwaitedReactNode, Key } from 'react';
-import { ShiftType } from '@/app/lib/models/shift.model';
 import { IShiftArray } from '@/app/lib/models/shiftArray.model';
+import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal, AwaitedReactNode, Key, useState } from 'react';
+import { AuthorisatieCheck } from '@/app/dashboard/AuthorisatieCheck';
+
 
 
 
@@ -19,15 +21,26 @@ export type SearchParamProps = {
 }
 
 const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) => {
+ 
   const shift: IShiftArray = await haalShiftMetId(id);
-  console.log(shift)
+ 
+  const isGeAuthorizeerd = async (id:string) => {
+    const toegang = await AuthorisatieCheck(id, 1);
+    if(!toegang){
+      return <h1>403 - Forbidden</h1>
+    }
+  }
+
+  isGeAuthorizeerd(id);
+
+    
   const relatedEvents = await haalGerelateerdShiftsMetCategorie({
     categoryId: shift.functie,
     shiftId: shift.id,
     page: searchParams.page as string,
   })
   
-  console.log(shift.status)
+ 
   return (
     <>
     <DashNav/>
