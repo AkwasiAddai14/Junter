@@ -57,7 +57,7 @@ export const maakFreelancer = async (user:Freelancer) => {
     try {
         const newFreelancer = await Freelancer.create(user);
         await Freelancer.findOneAndUpdate({clerkId: user.clerkId}, {
-            onboarded:true
+            onboarded:false
         },
         {
             upsert:true, new: true 

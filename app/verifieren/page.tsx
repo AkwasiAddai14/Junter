@@ -142,6 +142,7 @@ export default function Example() {
                   <li>Voor- en achternaam</li>
                   <li>Geboortedatum</li>
                   <li>Postcode en huisnummer</li>
+                  <li>Kleineondernemersregeling (KOR)</li>
                 </ul>
                 <div className="mt-10">
                 Wij nemen zo snel mogelijk contact met u op na ontvangst van de documenten.

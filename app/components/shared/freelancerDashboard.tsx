@@ -122,6 +122,7 @@ export default function Example() {
   const [aangemeld, setAangemeld] = useState<any[]>([]);
   const [geaccepteerd, setGeaccepteerd] = useState<any[]>([]);
   const [adres, setAdres] = useState<any>(null);
+  const [freelancer, setFreelancer] = useState<any>(null);
   const [euroVal, setEuroVal] = React.useState<number>(MIN);
   const handleUurtariefChange = (_: Event, newValue: number | number[]) => {
     setEuroVal(newValue as number);
@@ -150,6 +151,7 @@ export default function Example() {
           setFreelancerId(opdrachtnemer._id.toString());
           const freelancerAdres = await getCoordinatesFromAddress(`${opdrachtnemer.huisnummer}+${opdrachtnemer.straat}+${opdrachtnemer.stad}+the+netherlands`);
           setAdres(freelancerAdres)
+          setFreelancer(freelancer);
         } else{
           console.log("geen freelancerId gevonden.")
         }
@@ -214,7 +216,7 @@ export default function Example() {
   useEffect(() => {
     const fetchFactuur = async () => {
       try {
-        const response = await haalFacturenFreelancer(freelancerId || user!.id);
+        const response = await haalFacturenFreelancer(freelancerId);
         setFactuur(response || []);
       } catch (error) {
         console.error('Error fetching factuur:', error);
@@ -473,7 +475,7 @@ const MenuSluiten = (value: string) => {
                     <span className="sr-only">Open user menu</span>
                     <img
                       alt=""
-                      src={profilePhoto}
+                      src={freelancer?.profielfoto || profilePhoto}
                       className="h-8 w-8 rounded-full bg-gray-50"
                       />
                     <span className="hidden lg:flex lg:items-center">

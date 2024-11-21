@@ -4,7 +4,7 @@ import { useId, useRef, useState } from 'react'
 import clsx from 'clsx'
 import { motion, useInView, useMotionValue } from 'framer-motion'
 import Image from 'next/image'
-import explorePagePhone from '@/app/assets/images/IMG_8403.jpg';
+import explorePagePhone from '@/app/assets/images/logos/Simulator Screenshot - iPhone 16 Pro Max - 2024-11-21 at 14.49.12.png';
 import { AppScreen } from '@/app/components/shared/AppScreen.tsx'
 
 const prices = [
