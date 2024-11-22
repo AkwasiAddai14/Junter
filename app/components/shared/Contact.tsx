@@ -9,7 +9,7 @@ function classNames(...classes: string[]) {
 }
 
 export default function Contact() {
-  const [agreed, setAgreed] = useState(false);
+  const [agreed, setAgreed] = useState(true);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',

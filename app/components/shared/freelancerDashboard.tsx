@@ -137,7 +137,7 @@ export default function Example() {
   
   useEffect(() => {
     if (isLoaded && user) {
-      setProfilePhoto(user.imageUrl);
+      setProfilePhoto(freelancer.profielfoto ?? user.imageUrl);
       setFullName(user.fullName);
     }
   }, [isLoaded, user]);

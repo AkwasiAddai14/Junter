@@ -34,7 +34,7 @@ const features = [
   ]
 
   const stats = [
-      { label: 'verschillende opdrachtgevers', value: 'Honderden' },
+      { label: 'verschillende opdrachtgevers', value: 'Meer dan \n 100' },
       { label: 'verschillende diensten', value: 'Wekelijks 2000' },
     { label: 'kun je ook kiezen voor wekelijkse betalingen', value: 'Vanaf November' },
   ]
