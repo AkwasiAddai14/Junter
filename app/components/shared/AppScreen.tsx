@@ -1,7 +1,7 @@
 import { forwardRef } from 'react'
 import clsx from 'clsx'
 import Image from 'next/image'
-import explorePagePhone from '@/app/assets/images/logos/Simulator Screenshot - iPhone 16 Pro Max - 2024-11-21 at 14.49.12.jpg';
+import explorePagePhone from '@/app/assets/images/logos/Simulator Screenshot - iPhone 16 Pro Max - 2024-11-22 at 15.59.11 2.jpg';
 
 
 function MenuIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
