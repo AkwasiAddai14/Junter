@@ -706,7 +706,7 @@ function generateEmailContent(shiftDetails: any, status: string): EmailContent {
                 Eindtijd: ${shiftDetails.eindtijd}
                 Adres: ${shiftDetails.adres}
 
-                Neem contact op met ons als je vragen hebt.
+                Neem contact op als je vragen hebt.
                 `,
             };
         case 'voltooi checkout':
@@ -787,7 +787,7 @@ function generateEmailContent(shiftDetails: any, status: string): EmailContent {
       if (!shiftArray.aanmeldingen.includes(freelancerObjectId)) {
         return {
           success: false,
-          message: "Freelancer is not applied for this ShiftsArray",
+          message: "Freelancer has not applied for this ShiftsArray",
         };
       }
   

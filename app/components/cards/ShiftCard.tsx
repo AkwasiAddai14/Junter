@@ -8,7 +8,7 @@ import { isBedrijf } from '@/app/lib/actions/bedrijven.actions';
 import { ShiftType } from '@/app/lib/models/shift.model';
 import { useToast } from '@/app/components/ui/use-toast';
 import { annuleerAanmeldingen } from '@/app/lib/actions/shift.actions';
-
+import { useRouter } from 'next/navigation';
 
 type CardProps = {
   shift: ShiftType;
@@ -17,6 +17,7 @@ type CardProps = {
 const Card = ({ shift }: CardProps) => {
   const { toast } = useToast();
   const [isEenBedrijf, setIsEenBedrijf] = useState<boolean | null>(null);
+  const router = useRouter();
 
 
   const bedrijfCheck = async () => {
@@ -68,11 +69,17 @@ bedrijfCheck();
           variant: 'succes',
           description: "afgemeld voor de shift! "
         });
+      } else {
+        // Handle non-success response
+        toast({
+          variant: 'destructive',
+          description: `Actie is niet toegestaan! ${response.message}`
+        });
       }
     } catch (error: any) {
       toast({
         variant: 'destructive',
-        description: "Actie is niet toegestaan! "
+        description: `Actie is niet toegestaan! ${error.message} `
       });
     }
   };

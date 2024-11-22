@@ -12,10 +12,10 @@ const BedrijvenDashboard = dynamic(() => import('@/app/components/shared/bedrijv
 
 const DashboardPage = () => {
   const { isLoaded, isSignedIn, user } = useUser();
-  const router = useRouter();
   const [isOnboarded, setIsOnboarded] = useState<boolean | null>(null);
   const [isBedrijf, setIsBedrijf] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     if (!isLoaded) return; // Wait until user data is fully loaded
@@ -71,7 +71,7 @@ const DashboardPage = () => {
   }
 
   if (!isOnboarded) {
-    return null; // Redirect happens if not onboarded
+    router.push('/verifieren'); // Redirect happens if not onboarded
   }
 
   return (
