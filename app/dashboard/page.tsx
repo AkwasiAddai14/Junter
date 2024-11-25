@@ -18,53 +18,43 @@ const DashboardPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoaded) return; // Wait until user data is fully loaded
-
+    if (!isLoaded) return;
     if (!isSignedIn) {
-      router.push('./sign-in');
+      router.push('/sign-in');
       return;
     }
-
-    if (user) {
-      const userType = user.organizationMemberships?.length >= 1;
-      setIsBedrijf(userType);
-    }
+    setIsBedrijf(user?.organizationMemberships?.length > 0);
   }, [isLoaded, isSignedIn, user, router]);
 
   useEffect(() => {
     const fetchOnboardingStatus = async () => {
-      if (isBedrijf === null) return; // Wait until we know the user type
-
+      if (isBedrijf === null) return;
       try {
-        const userId = user?.id; // Extract user ID safely
-        if (!userId) {
-          console.error('User ID is undefined.');
-          router.push('/sign-in'); // Redirect if user ID is invalid
-          return;
-        }
-        let response: boolean | null = null;
+        const userId = user?.id;
+        if (!userId) throw new Error('User ID missing');
 
-        if (isBedrijf) {
-          response = await checkOnboardingStatusBedrijf(userId);
-        } else {
-          response = await checkOnboardingStatusFreelancer(userId);
-        }
+        const response = isBedrijf
+          ? await checkOnboardingStatusBedrijf(userId)
+          : await checkOnboardingStatusFreelancer(userId);
 
         setIsOnboarded(response ?? false);
-
-        if (!response) {
-          router.push('/verifieren');
-        }
-      } catch (error: any) {
-        console.error('Error checking onboarding status:', error);
+      } catch (error) {
+        console.error('Error:', error);
         router.push('/sign-in');
-      } finally {
-        setIsLoading(false);
       }
     };
-
     fetchOnboardingStatus();
   }, [isBedrijf, user, router]);
+
+  // Redirect based on state
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (!isSignedIn) {
+      router.push('/sign-in');
+    } else if (isOnboarded === false) {
+      router.push('/verifieren');
+    }
+  }, [isLoaded, isSignedIn, isOnboarded, router]);
 
   if (!isLoaded || isLoading) {
     return <div>Loading...</div>;
@@ -76,7 +66,7 @@ const DashboardPage = () => {
 
   return (
     <div>
-      {isBedrijf ? <BedrijvenDashboard /> : <FreelanceDashboard />}
+      {isBedrijf ? <BedrijvenDashboard /> : <FreelanceDashboard /> }
     </div>
   );
 };

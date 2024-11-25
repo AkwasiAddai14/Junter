@@ -152,7 +152,7 @@ export default function Example() {
           const freelancerAdres = await getCoordinatesFromAddress(`${opdrachtnemer.huisnummer}+${opdrachtnemer.straat}+${opdrachtnemer.stad}+the+netherlands`);
           setAdres(freelancerAdres)
           setFreelancer(freelancer);
-          setProfilePhoto(opdrachtnemer.profielfoto)
+          setProfilePhoto(opdrachtnemer.profielfoto ?? user?.imageUrl)
         } else{
           console.log("geen freelancerId gevonden.")
         }
