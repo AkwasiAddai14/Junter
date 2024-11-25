@@ -137,8 +137,8 @@ export default function Example() {
   
   useEffect(() => {
     if (isLoaded && user) {
-      setProfilePhoto(freelancer.profielfoto ?? user.imageUrl);
       setFullName(user.fullName);
+      setProfilePhoto(freelancer.profielfoto ?? user.imageUrl);
     }
   }, [isLoaded, user]);
 
@@ -152,6 +152,7 @@ export default function Example() {
           const freelancerAdres = await getCoordinatesFromAddress(`${opdrachtnemer.huisnummer}+${opdrachtnemer.straat}+${opdrachtnemer.stad}+the+netherlands`);
           setAdres(freelancerAdres)
           setFreelancer(freelancer);
+          setProfilePhoto(opdrachtnemer.profielfoto)
         } else{
           console.log("geen freelancerId gevonden.")
         }
