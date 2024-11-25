@@ -36,8 +36,8 @@ const DashboardPage = () => {
         const response = isBedrijf
           ? await checkOnboardingStatusBedrijf(userId)
           : await checkOnboardingStatusFreelancer(userId);
-
         setIsOnboarded(response ?? false);
+        setIsLoading(false)
       } catch (error) {
         console.error('Error:', error);
         router.push('/sign-in');
