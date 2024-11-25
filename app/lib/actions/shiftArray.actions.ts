@@ -235,6 +235,28 @@ export const haalReserves = async (shiftId: any) => {
     throw new Error(`Failed to fetch reserves: ${error.message}`);
   }
 };
+
+export const deleteShifts = async (shiftsToDelete: any[]) => {
+  try {
+    // Extract all the _id values from the shiftsToDelete array
+    const shiftIds = shiftsToDelete.map((shift: { _id: any; }) => shift._id);
+
+    if (shiftIds.length === 0) {
+      console.log('No shifts to delete.');
+      return { success: true, message: 'No shifts to delete.' };
+    }
+
+    // Perform batch deletion
+    const result = await Shift.deleteMany({ _id: { $in: shiftIds } });
+
+    console.log(`${result.deletedCount} shifts deleted successfully.`);
+    return { success: true, message: `${result.deletedCount} shifts deleted.` };
+  } catch (error) {
+    console.error('Error deleting shifts:', error);
+    return { success: false, message: 'Error deleting shifts.', error };
+  }
+};
+
 export const cloudShift = async () => {
 
 cron.schedule('0 * * * *', async () => {
@@ -309,11 +331,20 @@ export const cloudShifts = async () => {
       beschikbaar: true // only update if still available
     });
 
+    const shiftsToDelete = await Shift.find({
+      shiftArrayId: { $in: shiftsToUpdate.map((shift) => shift._id) }, status: "beschikbaar",
+    });
+
+    await deleteShifts(shiftsToDelete)
     // Update shifts
     await Promise.all(shiftsToUpdate.map(async (shift) => {
       shift.beschikbaar = false;
       shift.status = "verlopen"
-      await shift.save();
+      try {
+        await shift.save();
+      } catch (error) {
+        console.error(`Error updating shift ${shift._id}:`, error);
+      }
     }));
 
     console.log(`${shiftsToUpdate.length} shifts updated to beschikbaar: false.`);

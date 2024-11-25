@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import { EnvelopeIcon } from "@heroicons/react/24/outline";
 import { useUser } from "@clerk/nextjs";
@@ -79,7 +79,8 @@ export default function Example() {
   }
 
   return (
-    <div className="relative isolate bg-white">
+
+<div className="relative isolate bg-white">
       <div className="mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-2">
         {/* Content Section */}
         <div className="relative px-6 pb-20 pt-24 sm:pt-32 lg:static lg:px-8 lg:py-48">
@@ -88,7 +89,7 @@ export default function Example() {
               Identiteit verifiëren
             </h2>
             {isBedrijf ? (
-              <p className="mt-10 gap-y-4 text-lg/8 text-gray-600">
+              <div className="mt-10 gap-y-4 text-lg/8 text-gray-600">
                 Bedankt voor het invullen van het registratieformulier. Om uw bedrijf te verifiëren, hebben we de
                 volgende documenten nodig:
                 <ul className="list-disc pl-6 mt-10">
@@ -113,12 +114,12 @@ export default function Example() {
                   <li>Bedrijfsnaam</li>
                   <li>KVK-nummer</li>
                 </ul>
-                <div className="mt-10">
+                <p className="mt-10">
                 Wij nemen zo snel mogelijk contact met u op na ontvangst van de documenten.
-                </div>
-              </p>
+                </p>
+              </div>
             ) : (
-              <p className="mt-10 text-lg/8 text-gray-600">
+              <div className="mt-10 text-lg/8 text-gray-600">
                 Bedankt voor het invullen van het registratieformulier. Om jouw profiel als freelancer te verifiëren,
                 hebben we de volgende documenten nodig:
                 <ul className="list-disc pl-6 mt-4">
@@ -144,10 +145,10 @@ export default function Example() {
                   <li>Postcode en huisnummer</li>
                   <li>Kleineondernemersregeling (KOR)</li>
                 </ul>
-                <div className="mt-10">
+                <p className="mt-10">
                 Wij nemen zo snel mogelijk contact met u op na ontvangst van de documenten.
-                </div>
-              </p>
+                </p>
+              </div>
             )}
           </div>
         </div>
@@ -232,7 +233,6 @@ export default function Example() {
                     className="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-600 sm:text-sm/6"
                     value={formData.message}
                     onChange={handleChange}
-                    defaultValue={''}
                   />
                 </div>
               </div>
@@ -251,4 +251,3 @@ export default function Example() {
     </div>
   );
 }
-
