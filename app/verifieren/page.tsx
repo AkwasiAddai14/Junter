@@ -4,10 +4,12 @@ import { EnvelopeIcon } from "@heroicons/react/24/outline";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useClerk } from '@clerk/nextjs';
 
 export default function Example() {
   const { isLoaded, isSignedIn, user } = useUser();
   const router = useRouter();
+  const { signOut } = useClerk();
 
   const [agreed, setAgreed] = useState(true);
   const [isBedrijf, setIsBedrijf] = useState(false);
@@ -77,6 +79,23 @@ export default function Example() {
   if (!isLoaded) {
     return <div>Loading...</div>;
   }
+  
+  let timer: string | number | NodeJS.Timeout | undefined;
+
+  const resetTimer = () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      alert("Je wordt binnen enkele seconden uitgelogd wegens inactiviteit.");
+      signOut({ redirectUrl: '/' });
+    }, 300000); // 5 minuten
+  };
+  
+  // Event listeners voor gebruikersactiviteit
+  window.addEventListener('mousemove', resetTimer);
+  window.addEventListener('keydown', resetTimer);
+  
+  // Start timer bij het laden van de pagina
+  resetTimer();
 
   return (
 
@@ -93,11 +112,12 @@ export default function Example() {
                 Bedankt voor het invullen van het registratieformulier. Om uw bedrijf te verifiëren, hebben we de
                 volgende documenten nodig:
                 <ul className="list-disc pl-6 mt-10">
+                  
                   <li>
-                    Een geldig legitimatiebewijs (paspoort, ID-kaart of rijbewijs) van de contactpersoon.
+                   - Een document dat het opgegeven adres bevestigt, zoals een officiële brief met adres en KVK-nummer.
                   </li>
                   <li>
-                    Een document dat het opgegeven adres bevestigt, zoals een officiële brief met adres en KVK-nummer.
+                   - Eventueel een ingevuld en ondertekend incasso machtingsformulier.
                   </li>
                 </ul>
                  <div className="mt-10">
@@ -110,9 +130,9 @@ export default function Example() {
                 </strong>{" "}
                 met de volgende informatie:
                 <ul className="list-disc pl-6 mt-7">
-                  <li>Voor- en achternaam van de contactpersoon</li>
-                  <li>Bedrijfsnaam</li>
-                  <li>KVK-nummer</li>
+                  <li> - Voor- en achternaam van de contactpersoon</li>
+                  <li> - Bedrijfsnaam</li>
+                  <li> - KVK-nummer</li>
                 </ul>
                 <p className="mt-10">
                 Wij nemen zo snel mogelijk contact met u op na ontvangst van de documenten.
@@ -140,10 +160,10 @@ export default function Example() {
                 {" "}
                 met de volgende informatie:
                 <ul className="list-disc pl-6 mt-7">
-                  <li>Voor- en achternaam</li>
-                  <li>Geboortedatum</li>
-                  <li>Postcode en huisnummer</li>
-                  <li>Kleineondernemersregeling (KOR)</li>
+                  <li> - Voor- en achternaam</li>
+                  <li> - Geboortedatum</li>
+                  <li> - Postcode en huisnummer</li>
+                  <li> - Kleineondernemersregeling (KOR)</li>
                 </ul>
                 <p className="mt-10">
                 Wij nemen zo snel mogelijk contact met u op na ontvangst van de documenten.

@@ -1467,9 +1467,31 @@ export async function updateShiftAndReassign({
   }
 }
 
+
 interface FreelancerAfzeggenParams {
   freelancerObjectId: string;
   shiftArrayObjectId: string;
+}
+
+export const checkAlreadyApplied = async ({freelancerObjectId, shiftArrayObjectId}: FreelancerAfzeggenParams): Promise<boolean>  => {
+  try {
+
+    await connectToDB();
+
+    const shiftArray = await mongoose.model<IShiftArray>('ShiftArray').findOne({
+      _id: shiftArrayObjectId,
+      $or: [
+        { aanmeldingen: freelancerObjectId },
+        { aangenomen: freelancerObjectId },
+        { reserves: freelancerObjectId },
+      ],
+    });
+
+    // If the shiftArray is found, the freelancer is already present
+    return !!shiftArray;
+  } catch (error: any) {
+    throw new Error(`Failed to find shift: ${error.message}`);
+  }
 }
 
 export async function freelancerAfzeggen({

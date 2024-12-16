@@ -11,7 +11,7 @@ const navigation = {
   Opdrachtgevers: [
     { name: 'Kosten', href: '../bedrijven' },
     { name: 'Vind werkers', href: '../sign-up' },
-    { name: 'API integratie', href: '../bedrijven' },
+    { name: 'Wet DBA', href: '../dba' },
   ],
   Junter: [
     { name: 'Over ons', href: '../junter' },

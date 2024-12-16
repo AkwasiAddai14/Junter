@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Dialog } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import Image from "next/image";
+import  delivery  from "@/app/assets/images/iStock-1824077027.jpg";
 
 
 
@@ -155,9 +156,9 @@ export default function Example() {
           </div>
         </div>
         <div className="bg-gray-50 lg:absolute lg:inset-y-0 lg:right-0 lg:w-1/2">
-          <img
+          <Image
             className="aspect-[3/2] object-cover lg:aspect-auto lg:h-full lg:w-full"
-            src="https://images.unsplash.com/photo-1568992687947-868a62a9f521?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1152&h=842&q=80"
+            src={delivery}
             alt=""
           />
         </div>

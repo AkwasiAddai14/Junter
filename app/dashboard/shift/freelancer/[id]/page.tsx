@@ -1,16 +1,18 @@
-
+"use client"
 
 import AanmeldButton from '@/app/components/shared/AanmeldButton';
 import Collection from '@/app/components/shared/Collection';
-import { haalShiftMetId, haalGerelateerdShiftsMetCategorie } from '@/app/lib/actions/shift.actions'
+import { haalShiftMetId, haalGerelateerdShiftsMetCategorie, checkAlreadyApplied } from '@/app/lib/actions/shift.actions'
 import Image from 'next/image';
 import calendar from '@/app/assets/images/logos/calendar.svg';
 import location from '@/app/assets/images/logos/location-grey.svg'
 import { UserIcon } from '@heroicons/react/20/solid';
 import DashNav from '@/app/components/shared/DashNav';
 import { IShiftArray } from '@/app/lib/models/shiftArray.model';
-import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal, AwaitedReactNode, Key, useState } from 'react';
+import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal, AwaitedReactNode, Key, useState, useEffect } from 'react';
 import { AuthorisatieCheck } from '@/app/dashboard/AuthorisatieCheck';
+import { useUser } from "@clerk/nextjs"
+import { haalFreelancer, haalFreelancerVoorAdres } from '@/app/lib/actions/freelancer.actions';
 
 
 
@@ -20,25 +22,85 @@ export type SearchParamProps = {
   searchParams: { [key: string]: string | string[] | undefined }
 }
 
-const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) => {
- 
-  const shift: IShiftArray = await haalShiftMetId(id);
- 
+const shiftDetails = ({ params: { id }, searchParams }: SearchParamProps) => {
+  const [hasApplied, setHasApplied] = useState(false);
+  const { isLoaded, user } = useUser();
+  const [freelancerId, setFreelancerId] = useState<string>("");
+  const [profielfoto, setProfilePhoto] = useState<string>("");
+  const [shift, setShift] = useState<any>(null);
+  const [relatedEvents, setRelatedEvents] = useState<any>(null);
+
+  useEffect(() => {
+    if (isLoaded && user) {
+      setProfilePhoto(user?.imageUrl)
+    }
+  }, [isLoaded, user]);
+
+  useEffect(() => {
+    const getFreelancerId = async () => {
+      try {
+        const opdrachtnemer = await haalFreelancerVoorAdres(user!.id);
+        if (opdrachtnemer) {
+          setFreelancerId(opdrachtnemer._id.toString());
+        } else{
+          console.log("geen freelancerId gevonden.")
+        }
+      } catch (error) {
+        console.error("Error fetching freelancer by Clerk ID:", error);
+      }
+    };
+  
+    if (user && !freelancerId) {  // Only fetch if user exists and freelancerId is not already set
+      getFreelancerId();
+    }
+  })
+
+  useEffect(()=>{
+    const fetchApplied = async () => {
+      const applied = await checkAlreadyApplied({ freelancerObjectId: freelancerId,
+        shiftArrayObjectId: id,})
+      setHasApplied(applied);
+    }
+    fetchApplied();
+  }, [freelancerId])
+  
+  
   const isGeAuthorizeerd = async (id:string) => {
     const toegang = await AuthorisatieCheck(id, 1);
     if(!toegang){
       return <h1>403 - Forbidden</h1>
     }
   }
-
+  
   isGeAuthorizeerd(id);
+  
+  useEffect(() => {
+    const fetchShiftDetails = async () => {
+      try {
+        const shiftData = await haalShiftMetId(id);
+        setShift(shiftData);
 
-    
-  const relatedEvents = await haalGerelateerdShiftsMetCategorie({
-    categoryId: shift.functie,
-    shiftId: shift.id,
-    page: searchParams.page as string,
-  })
+        const relatedData = await haalGerelateerdShiftsMetCategorie({
+          categoryId: shiftData.functie,
+          shiftId: shiftData.id,
+          page: searchParams.page as string,
+        });
+        setRelatedEvents(relatedData);
+
+        if (freelancerId) {
+          const applied = await checkAlreadyApplied({
+            freelancerObjectId: freelancerId,
+            shiftArrayObjectId: id,
+          });
+          setHasApplied(applied);
+        }
+      } catch (error) {
+        console.error("Error fetching shift details:", error);
+      }
+    };
+
+    fetchShiftDetails();
+  }, [id, freelancerId, searchParams.page]);
   
  
   return (
@@ -104,7 +166,7 @@ const shiftDetails = async ({ params: { id }, searchParams }: SearchParamProps) 
             <p className="p-medium-16 lg:p-regular-18 truncate text-primary-500">{shift.inFlexpool ? '✅ Flexpool' : 'niet in flexpool'}</p>
             </div>
            
-            {shift.status === "beschikbaar" && shift.beschikbaar && (
+            {shift.status === "beschikbaar" && shift.beschikbaar && !hasApplied && (
               <AanmeldButton shift={shift} />
               )}
               
