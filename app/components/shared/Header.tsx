@@ -24,7 +24,7 @@ export default function Example() {
     <div className="bg-white">
       <header className="absolute inset-x-0 top-0 z-50">
         <div className="mx-auto max-w-7xl">
-            <nav className="flex-grow items-align place-items-center justify-evenly lg:justify-end" aria-label="Global"> <a href="/" className="-m-1.5 p-1.5">
+            <nav className="flex items-center justify-start lg:justify-start" aria-label="Global"> <a href="/" className="-m-1.5 p-1.5">
                 <span className="sr-only">Junter</span>
                 <Image
                   alt="Junter Logo"
