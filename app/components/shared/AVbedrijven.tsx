@@ -6,7 +6,7 @@ const AVbedrijven = () => {
     <div className="bg-white px-6 py-32 lg:px-8">
         <div className="mx-auto items-center justify-center max-w-3xl text-base leading-7 text-gray-700">
           <p className="text-base font-semibold leading-7 text-sky-600">Algemene voorwaarden</p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">voor Bedrijven</h1>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Voor bedrijven</h1>
           <h2 className="mt-10 text-2xl font-bold tracking-tight text-gray-900"> 1. Inleiding </h2>
           <p className="mt-6 text-xl leading-8">
           

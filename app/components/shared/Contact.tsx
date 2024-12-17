@@ -31,6 +31,11 @@ export default function Contact() {
       return;
     }
 
+    if(formData.firstName === '' || formData.message === ''){
+      alert('you must atleast fill in your firstname and a message.');
+      return;
+    }
+
     try {
       const response = await fetch('/api/sendEmail', {
         method: 'POST',

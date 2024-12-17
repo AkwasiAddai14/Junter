@@ -66,7 +66,7 @@ Laat de freelancer zelf bepalen wanneer hij werkt (binnen redelijke grenzen).
       
           <p className="mt-10">
           De regelgeving rondom de Wet DBA is nog steeds in ontwikkeling, houdt dus de website in de gaten en blijf op de hoogte van wijzigingen. 
-          Voor meer vragen kun je emailen naar <a className="font-semibold text-sky-600" href="mailto:support@junter.works">
+          Voor meer vragen kun je contact opnemen via <a className="font-semibold text-sky-600" href="mailto:support@junter.works">
                           support@junter.works
                         </a> of <a className="font-semibold text-sky-600" href="https://wa.me/message/O7L3TX3O4MNGF1">
                           WhatsApp Support

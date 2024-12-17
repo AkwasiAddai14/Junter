@@ -43,10 +43,17 @@ export default function Example() {
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
+
     if (!agreed) {
       alert("You must agree to the privacy policy before submitting.");
       return;
     }
+
+    if(formData.firstName === '' || formData.message === ''){
+      alert('You must atleast fill in your firstname and a message.');
+      return;
+    }
+
     try {
       const response = await fetch("/api/sendEmail", {
         method: "POST",
@@ -183,8 +190,8 @@ export default function Example() {
                 </label>
                 <div className="mt-2.5">
                   <input
-                    id="first-name"
-                    name="first-name"
+                    id="first-name "
+                    name="firstName"
                     type="text"
                     autoComplete="given-name"
                     value={formData.firstName}
@@ -200,7 +207,7 @@ export default function Example() {
                 <div className="mt-2.5">
                   <input
                     id="last-name"
-                    name="last-name"
+                    name="lastName"
                     type="text"
                     autoComplete="family-name"
                     value={formData.lastName}
@@ -232,7 +239,7 @@ export default function Example() {
                 <div className="mt-2.5">
                   <input
                     id="phone-number"
-                    name="phone-number"
+                    name="phoneNumber"
                     type="tel"
                     autoComplete="tel"
                     value={formData.phoneNumber}
