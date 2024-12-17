@@ -41,7 +41,7 @@ export default function Example() {
           </h2>
           <ul role="list" className="mt-8 max-w-xl space-y-8 text-gray-600">
             <li className="flex gap-x-3">
-              <CheckCircleIcon aria-hidden="true" className="mt-1 size-5 flex-none text-sky-600" />
+              <InformationCircleIcon aria-hidden="true" className="mt-1 size-5 flex-none text-sky-600" />
               <span>
                 <strong className="font-semibold text-gray-900"> Vermijd gezagsverhoudingen - </strong> Geef de freelancer de vrijheid om het werk naar eigen inzicht uit te voeren.
 Beperk je tot het vaststellen van het gewenste resultaat, niet hoe het werk wordt gedaan.
@@ -49,13 +49,13 @@ Laat de freelancer zelf bepalen wanneer hij werkt (binnen redelijke grenzen).
               </span>
             </li>
             <li className="flex gap-x-3">
-              <CheckCircleIcon aria-hidden="true" className="mt-1 size-5 flex-none text-sky-600" />
+              <InformationCircleIcon aria-hidden="true" className="mt-1 size-5 flex-none text-sky-600" />
               <span>
                 <strong className="font-semibold text-gray-900"> Werk met een tussenschakel - </strong> Als je onzeker bent over de relatie, kun je kiezen voor payrolling of uitzendkrachten. In dat geval dragen wij de verantwoordelijkheid voor de arbeidsrelatie en loonadministratie.
               </span>
             </li>
             <li className="flex gap-x-3">
-              <CheckCircleIcon aria-hidden="true" className="mt-1 size-5 flex-none  text-sky-600" />
+              <InformationCircleIcon aria-hidden="true" className="mt-1 size-5 flex-none  text-sky-600" />
               <span>
                 <strong className="font-semibold text-gray-900"> Evalueer langdurige samenwerkingen - </strong> Werk je voor langere tijd samen met een freelancer? Zorg dat de samenwerking geen kenmerken van loondienst krijgt, zoals een vast maandloon of verplichte werktijden.
               </span>

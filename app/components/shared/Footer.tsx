@@ -9,7 +9,7 @@ const navigation = {
     { name: 'Contact', href: '../contact' },
   ],
   Opdrachtgevers: [
-    { name: 'Kosten', href: '../bedrijven' },
+    { name: 'Kosten', href: '../kosten' },
     { name: 'Vind werkers', href: '../sign-up' },
     { name: 'Wet DBA', href: '../dba' },
   ],
