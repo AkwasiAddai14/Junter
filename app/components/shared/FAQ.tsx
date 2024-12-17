@@ -75,7 +75,7 @@ export function Faqs() {
               href="mailto:info@example.com"
               className="text-gray-900 underline"
             >
-              neem gerust contact op
+              Neem gerust contact op
             </a>
             .
           </p>
