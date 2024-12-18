@@ -187,14 +187,14 @@ const updateInformatie = await updateFreelancer({
               <dt className="text-sm font-semibold leading-6 text-gray-900">{freelancer.stad}, {calculateAge(freelancer.geboortedatum)}</dt>
             </div>
             <div className="flex-none justify-center items-center self-end px-6 pt-4">
-                  <Image
+                 {!open &&  <Image
                     className="h-16 w-16 mb-4 rounded-full"
                     src={freelancer?.profielfoto || user?.imageUrl}
                     alt="profielfoto"
                     width={32}
                     height={32}
                     onClick={() => setOpen(true)}
-                  />
+                  /> }
 {open && (
   <FormField
     control={form.control}

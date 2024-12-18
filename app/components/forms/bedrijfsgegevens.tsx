@@ -524,7 +524,7 @@ if (files.length > 0) {
                                               </label>
                                               <div className="mt-2 sm:col-span-2 sm:mt-0">
                                               <FileUploader
-                                                  onFieldChange={(files) => setValue('profielfoto', files, { shouldValidate: true })}
+                                                  onFieldChange={(uploadedUrl: string) => setValue('profielfoto', uploadedUrl, { shouldValidate: true })}
                                                   imageUrl={watch('profielfoto') || ''}
                                                   setFiles={setFiles}
                                                 />
