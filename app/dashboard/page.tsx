@@ -60,10 +60,6 @@ const DashboardPage = () => {
     return <div>Loading...</div>;
   }
 
-  if (!isOnboarded) {
-    router.push('/verifieren'); // Redirect happens if not onboarded
-  }
-
   return (
     <div>
       {isBedrijf ? <BedrijvenDashboard /> : <FreelanceDashboard /> }

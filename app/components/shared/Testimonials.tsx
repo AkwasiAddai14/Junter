@@ -1,7 +1,7 @@
 
 
 import Image from 'next/image';
-import george from '@/app/assets/images/cc66434b-da39-4066-8f3a-035ae5a804fb.jpg';
+import george from '@/app/assets/images/IMG_0512.jpg';
 import lisa from '@/app/assets/images/IMG_8347.jpg';
 import ahmed from '@/app/assets/images/IMG_8348.jpg';
 import sarah from '@/app/assets/images/IMG_8349.jpg';
@@ -13,7 +13,7 @@ const testimonials = [
     {
       body: 'Geweldige app voor horecawerk! Ik vind snel shifts bij toffe restuarants die bij mijn schema passen. Superhandig!',
       author: {
-        name: 'Lisa D',
+        name: 'Lisa',
         handle: 'Horeca',
         imageUrl:
           ahmed,
@@ -22,7 +22,7 @@ const testimonials = [
     {
       body: 'Dit platform heeft mijn zoektocht naar transportwerk vereenvoudigd. Betrouwbaar en efficiënt!',
       author: {
-        name: 'George A',
+        name: 'Delkhas',
         handle: 'Logistiek & Transport',
         imageUrl:
           george,
@@ -31,7 +31,7 @@ const testimonials = [
     {
       body: 'Als beveiligingsprofessional waardeer ik de snelle toegang tot relevante opdrachten. Topapp!',
       author: {
-        name: 'Ahmed S',
+        name: 'Ahmed',
         handle: 'Beveiliging',
         imageUrl:
           lisa,
@@ -40,7 +40,7 @@ const testimonials = [
     {
       body: 'Als zorgverlener waardeer ik de flexibiliteit van deze app. Het helpt me om passende zorgopdrachten te vinden.',
       author: {
-        name: 'Sarah H',
+        name: 'Eva',
         handle: 'Zorg',
         imageUrl:
           sarah,
@@ -49,7 +49,7 @@ const testimonials = [
     {
       body: 'Ik hou van de eenvoud van deze app! Het heeft mijn zoektocht naar schoonmaakklussen zo veel gemakkelijker gemaakt.',
       author: {
-        name: 'Maria P',
+        name: 'Maria',
         handle: 'Schoonmaak',
         imageUrl:
            mariah,
@@ -58,7 +58,7 @@ const testimonials = [
     {
       body: 'Deze app heeft mijn freelance-administratiewerk naar een hoger niveau getild. Efficiënt en gebruiksvriendelijk!',
       author: {
-        name: 'Solomon B',
+        name: 'Solomon ',
         handle: 'Administratie',
         imageUrl:
           emma,

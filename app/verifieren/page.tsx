@@ -73,6 +73,7 @@ export default function Example() {
           phoneNumber: "",
           message: "",
         });
+        signOut({ redirectUrl: '/' });
       } else {
         const errorData = await response.json();
         alert(`Failed to send email: ${errorData.message}`);
@@ -150,8 +151,7 @@ export default function Example() {
                 Bedankt voor het invullen van het registratieformulier. Om jouw profiel als freelancer te verifiëren,
                 hebben we de volgende documenten nodig:
                 <ul className="list-disc pl-6 mt-4">
-                  <li>Een geldig legitimatiebewijs (paspoort, ID-kaart of rijbewijs).</li>
-                  <li>Een foto van uw bankpas met het bijbehorende IBAN.</li>
+                  <li>Een geldig legitimatiebewijs (paspoort, ID-kaart of rijbewijs, het documentnummer en foto op legitimatiebewijs mag onherkenbaar gemaakt worden.).</li>
                   <li>
                     Een document dat uw opgegeven adres bevestigt, zoals een bewijs van inschrijving op dat adres.
                   </li>
@@ -178,6 +178,15 @@ export default function Example() {
               </div>
             )}
           </div>
+          <div className="mt-8 flex justify-end">
+              <button
+                type="button"
+                onClick={() => signOut({ redirectUrl: '/' })}
+                className="rounded-md bg-orange-600 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-orange-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
+              >
+                Begrepen!
+              </button>
+            </div>
         </div>
 
         {/* Form Section */}
