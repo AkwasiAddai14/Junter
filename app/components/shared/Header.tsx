@@ -124,8 +124,7 @@ export default function Example() {
               <div className="mx-auto max-w-2xl lg:mx-0 lg:max-w-xl">
                 <div className="hidden sm:mb-10 sm:flex">
                   <div className="relative rounded-full px-4 py-2 text-sm leading-6 text-gray-500 ring-1 ring-gray-900/10 hover:ring-gray-900/20">
-                  Ontdek waarom freelancers ons platform verkiezen!
-                   Bekijk onze geweldige testimonials en vind je volgende klus vandaag nog!{' '}
+                  Ontdek waarom freelancers ons platform verkiezen en vind je volgende klus vandaag nog!{' '}
                     <a href="../freelancers" className="whitespace-nowrap font-semibold text-sky-600">
                       <span className="absolute inset-0 justify-end" aria-hidden="true" />
                       Lees Meer <span aria-hidden="true">&rarr;</span>
@@ -138,7 +137,7 @@ export default function Example() {
                 <p className="mt-6 text-lg leading-8 text-gray-600">
                 Ontdek een wereld van mogelijkheden als freelancer op ons platform.
                  Van creatieve projecten tot zakelijke taken, hier vind je jouw volgende succesverhaal. 
-                 Word lid en maak je dromen werkelijkheid!"
+                 Word lid en maak je dromen werkelijkheid!
                 </p>
                 <div className="mt-10 rounded-lg flex items-center gap-x-6">
                   <a

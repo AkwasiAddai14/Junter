@@ -34,7 +34,7 @@ const features = [
     {
       name: 'Kosten',
       description:
-        'Door te kiezen voor ons platform, profiteer je van een transparant en eenvoudig kostenmodel, waarbij je alleen betaalt voor de daadwerkelijk gewerkte uren van de freelancers die je uitnodigt. Nodig onbeperkt freelancers uit voor een vast tarief van €16,50 per gewerkt uur.',
+        'Door te kiezen voor ons platform, profiteer je van een transparant en eenvoudig kostenmodel, waarbij je alleen betaalt voor de daadwerkelijk gewerkte uren van de flexwerkers die je uitnodigt. Nodig onbeperkt flexwerkers uit voor een vast tarief van €16,50 per gewerkt uur.',
       imageSrc: euroBillsLogo,
       imageAlt: 'Bills flying around.',
     },
