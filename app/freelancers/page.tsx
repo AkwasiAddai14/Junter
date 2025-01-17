@@ -19,12 +19,12 @@ const features = [
       {
         name: 'Gemakkelijke communicatie',
         description:
-          'Communiceer direct met opdrachtgevers via de app, waardoor je snel vragen kunt stellen, feedback kunt geven en opdrachten kunt afronden.',
+          'Communiceer direct met ons via de app of WhatsApp, waardoor je snel vragen kunt stellen, feedback kunt geven en opdrachten kunt afronden.',
       },
       {
-        name: 'Veilige betalingen',
+        name: 'Snelle betalingen',
         description:
-          'Ontvang gegarandeerde betalingen voor jouw werk via veilige en betrouwbare betaalmethoden, zonder gedoe of vertragingen.',
+          'Ontvang gegarandeerde betalingen voor jouw werk zonder gedoe of vertragingen.',
       },
       {
         name: 'Waardering en feedback',
@@ -81,7 +81,7 @@ const page = () => {
             <div className="mx-auto max-w-2xl lg:mx-0">
                 <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">All-in-one platform</h2>
                 <p className="mt-6 text-lg leading-8 text-gray-600">
-                Ontdek een wereld van mogelijkheden als freelancer op ons platform. Van creatieve projecten tot zakelijke taken, 
+                Ontdek een wereld van mogelijkheden als werkzoekensde op ons platform. Van creatieve projecten tot zakelijke taken, 
                 hier vind je jouw volgende succesverhaal. Word lid en maak je dromen werkelijkheid!
                 </p>
             </div>

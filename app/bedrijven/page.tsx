@@ -4,7 +4,34 @@ import dashboardLogo from '@/app/assets/images/logos/A sleek modern dashboard di
 import officeLogo from '@/app/assets/images/logos/A smaller office with people working very fast.jpg'
 import euroBillsLogo from '@/app/assets/images/logos/Euro bills flying around in the air.jpg'
 import Image from 'next/image'
+import { SparklesIcon, BanknotesIcon, MagnifyingGlassCircleIcon, PlusCircleIcon } from '@heroicons/react/24/outline'
 
+const Oplossingen = [
+  {
+    name: 'Uitzenden of Detacheren',
+    description:
+    'Vind snel en flexibel de juiste professionals voor tijdelijke of langdurige opdrachten, zonder administratieve rompslomp.',
+    icon: PlusCircleIcon,
+  },
+  {
+    name: 'Freelancers',
+    description:
+    'Ervaren freelancers die klaarstaan om uw projecten naar een hoger niveau te tillen. Flexibel, specialistisch en inzetbaar wanneer u dat nodig heeft.',
+    icon: SparklesIcon,
+  },
+  {
+    name: 'Werving en Selectie',
+    description:
+    'Bespaar tijd en laat ons de perfecte kandidaat vinden voor uw organisatie. Met ons uitgebreide netwerk en expertise brengen we talent en uw bedrijf samen.',
+    icon: MagnifyingGlassCircleIcon,
+  },
+  {
+    name: 'Payrolling',
+    description:
+    'Concentreer u op uw zaak terwijl wij de werkgeverschap overnemen. Met payrolling haalt u eenvoudig personeel in huis.',
+    icon: BanknotesIcon,
+  },
+]
 
 const features = [
   {
@@ -17,7 +44,7 @@ const features = [
   {
     name: 'Flexpool',
     description:
-    'Freelancers in de flexpool worden automatisch geaccepteerd voor de klussen waar zij op reageren. Dit betekent dat u freelancers waarmee u graag werkt vaker en sneller kunt oproepen.',
+    'Als u met freelancers werkt worden freelancers in de flexpool automatisch geaccepteerd voor de klussen waar zij op reageren. Dit betekent dat u freelancers waarmee u graag werkt vaker en sneller kunt oproepen.',
     href: '#',
     icon: UserGroupIcon,
   },
@@ -59,14 +86,28 @@ const page = () => {
     <><div className="bg-white">
           <div className="mx-auto max-w-7xl py-24 sm:px-2 sm:py-32 lg:px-4">
               <div className="mx-auto max-w-2xl px-4 lg:max-w-none">
-                  <div className="max-w-3xl">
+                  <div className="border-b border-gray-200 pb-10 sm:mt-16 sm:pt-16 ">
                       <h2 className="font-semibold text-gray-500">Junter voor bedrijven</h2>
                       <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Use it your way</p>
                       <p className="mt-4 text-gray-500">
                           Vind snel en gemakkelijk freelancers of uitzendkrachten voor een vast en vrijblijvend tarief
                       </p>
                   </div>
-
+                  <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
+          <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none lg:grid-cols-2 lg:gap-y-16">
+            {Oplossingen.map((feature) => (
+              <div key={feature.name} className="relative pl-16">
+                <dt className="text-base/7 font-semibold text-gray-900">
+                  <div className="absolute left-0 top-0 flex size-10 items-center justify-center rounded-lg bg-sky-600">
+                  <feature.icon aria-hidden="true" className="size-6 text-white" />
+                  </div>
+                  {feature.name}
+                </dt>
+                <dd className="mt-2 text-base/7 text-gray-600">{feature.description}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
                   <div className="mt-10 space-y-16 border-t border-gray-200 pt-10 sm:mt-16 sm:pt-16">
                       {bigfeatures.map((feature) => (
                           <div

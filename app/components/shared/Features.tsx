@@ -24,13 +24,13 @@ const features = [
   {
     name: 'Gemakkelijke communicatie',
     description:
-      'Communiceer direct met opdrachtgevers via de app, waardoor je snel vragen kunt stellen, feedback kunt geven en opdrachten kunt afronden.',
+      'Wij staan dagelijks van 09:00 tot 17:00 klaar voor jou in de chat of via WhatsApp voor vragen, maar je kunt ook 24/7 terecht met vragen of opmerkingen in de verschillende WhatsApp communities.',
     icon: DeviceListIcon,
   },
   {
-    name: 'Veilige betalingen',
+    name: 'Snelle betalingen',
     description:
-      'Ontvang gegarandeerde betalingen voor jouw werk via veilige en betrouwbare betaalmethoden, zonder gedoe of vertragingen.',
+      'Ontvang gegarandeerde betalingen voor jouw werk zonder gedoe of vertragingen.',
     icon: DeviceLockIcon,
   },
   {
@@ -196,12 +196,11 @@ export function SecondaryFeatures() {
       <Container>
         <div className="mx-auto max-w-2xl sm:text-center">
           <h2 className="text-3xl font-medium tracking-tight text-gray-900">
-          Ontdek de kracht van onze app voor freelancers - jouw springplank naar grenzeloze mogelijkheden.
+          Ontdek de kracht van onze app voor werknemers - jouw springplank naar grenzeloze mogelijkheden.
           </h2>
-          <p className="mt-2 text-lg text-gray-600">
-          Vind snel en gemakkelijk opdrachten die perfect bij jou passen. 
+          <p className="mt-2 text-lg text-gray-600"> 
           Met onze app heb je direct toegang tot een divers scala aan klussen, 
-          eenvoudige betalingen en volledige vrijheid in jouw planning. 
+          snelle betalingen en volledige vrijheid in jouw planning. 
           Ontdek jouw volgende uitdaging vandaag nog!
           </p>
         </div>

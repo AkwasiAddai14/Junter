@@ -5,7 +5,7 @@ const faqs = [
     {
       question: 'Hoe kan ik me registreren als freelancer op het platform?',
       answer:
-        'Download eenvoudigweg de app, doorloop het registratieproces en vul je profiel in met relevante informatie.',
+        'Gewoon via de website of download eenvoudigweg de app, doorloop het registratieproces en vul je profiel in met relevante informatie.',
     },
     {
       question: 'Welke soorten opdrachten zijn beschikbaar op het platform?',
@@ -22,12 +22,12 @@ const faqs = [
     {
       question: 'Hoe worden betalingen verwerkt voor de voltooide opdrachten?',
       answer:
-        'Je ontvangt veilige en directe betalingen via de app zodra de opdracht is voltooid, zonder gedoe of vertraging.',
+        'Na voltooiing van een opdracht ontvang je voorlopig de laatste vrijdag van de maand jouw betaling, vanaf Februari elke vrijdag.',
     },
     {
       question: 'Is er ondersteuning beschikbaar als ik hulp nodig heb tijdens het gebruik van de app?',
       answer:
-        'Ons team staat 24/7 voor je klaar via de app om eventuele vragen of problemen op te lossen.',
+        'Ons team staat elke dag van 09:00 tot 17:00 voor je klaar via de app of WhatsApp om eventuele vragen of problemen op te lossen.',
     },
     {
       question: 'Zijn er beoordelingen of beoordelingen van opdrachtgevers beschikbaar voor de opdrachten?',

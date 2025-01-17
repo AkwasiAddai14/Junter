@@ -3,12 +3,12 @@
 import { JSX, SVGProps, useState } from "react"
 
 const navigation = {
-  Opdrachtnemers: [
+  Werknemers: [
     { name: 'Hoe werkt het', href: '../freelancers' },
-    { name: 'Vind klussen', href: '../sign-up' },
+    { name: 'Vind werk', href: '../sign-up' },
     { name: 'Contact', href: '../contact' },
   ],
-  Opdrachtgevers: [
+  Werkgevers: [
     { name: 'Kosten', href: '../kosten' },
     { name: 'Vind werkers', href: '../sign-up' },
     { name: 'Wet DBA', href: '../dba' },
@@ -121,9 +121,9 @@ export default function Footer() {
           <div className="grid grid-cols-2 gap-8 xl:col-span-2">
             <div className="md:grid md:grid-cols-2 md:gap-8">
               <div>
-                <h3 className="text-sm font-semibold leading-6 text-gray-900">Opdrachtnemers</h3>
+                <h3 className="text-sm font-semibold leading-6 text-gray-900">Werknemers</h3>
                 <ul role="list" className="mt-6 space-y-4">
-                  {navigation.Opdrachtnemers.map((item) => (
+                  {navigation.Werknemers.map((item) => (
                     <li key={item.name}>
                       <a href={item.href} className="text-sm leading-6 text-gray-600 hover:text-gray-900">
                         {item.name}
@@ -133,9 +133,9 @@ export default function Footer() {
                 </ul>
               </div>
               <div className="mt-10 md:mt-0">
-                <h3 className="text-sm font-semibold leading-6 text-gray-900">Opdrachtgevers</h3>
+                <h3 className="text-sm font-semibold leading-6 text-gray-900">Werkgevers</h3>
                 <ul role="list" className="mt-6 space-y-4">
-                  {navigation.Opdrachtgevers.map((item) => (
+                  {navigation.Werkgevers.map((item) => (
                     <li key={item.name}>
                       <a href={item.href} className="text-sm leading-6 text-gray-600 hover:text-gray-900">
                         {item.name}

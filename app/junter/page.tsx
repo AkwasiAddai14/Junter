@@ -8,7 +8,7 @@ import Image from "next/image";
 import logo from '@/app/assets/images/178884748_padded_logo.png'; 
 
 const navigation = [
-  { name: 'Freelancers', href: '../freelancers' },
+  { name: 'Werknemers', href: '../freelancers' },
   { name: 'Bedrijven', href: '../bedrijven' },
   { name: 'Contact', href: '../contact' },
 ]
@@ -16,7 +16,7 @@ const timeline = [
   {
     name: 'Oprichting Junter',
     description:
-      'De oprichting van Junter markeert het begin van een innovatieve reis. Ons doel is om freelancers en bedrijven op een nieuwe manier met elkaar te verbinden.',
+      'De oprichting van Junter markeert het begin van een innovatieve reis. Ons doel is om werkzoekende en bedrijven op een nieuwe manier met elkaar te verbinden.',
     date: 'Juli 2024',
     dateTime: '2024-07',
   },
@@ -30,7 +30,7 @@ const timeline = [
   {
     name: 'Lancering Europese landen',
     description:
-      'Junter breidt uit naar verschillende Europese markten, waardoor nog meer freelancers en bedrijven gebruik kunnen maken van ons platform.',
+      'Junter breidt uit naar verschillende Europese markten, waardoor nog meer werkzoekende en bedrijven gebruik kunnen maken van ons platform.',
     date: 'Mei 2025',
     dateTime: '2025-05',
   },

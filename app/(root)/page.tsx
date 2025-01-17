@@ -32,7 +32,7 @@ export default function Home() {
       {/* <Hero/> */}
       <SecondaryFeatures/>
       <Branches/>
-      {/* <Testimonials/> */}
+       <Testimonials/> 
       <Faqs/>
       <Footer/>
     </main>

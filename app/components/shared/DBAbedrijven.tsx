@@ -101,12 +101,12 @@ Laat de freelancer zelf bepalen wanneer hij werkt (binnen redelijke grenzen).
               <CheckCircleIcon aria-hidden="true" className="mt-1 size-5 flex-none  text-sky-600" />
               <span>
                 De
-                <strong className="font-semibold text-gray-900"> flexibiliteit </strong> De  om tijdelijke krachten snel en probleemloos in te zetten.
+                <strong className="font-semibold text-gray-900"> flexibiliteit </strong> om tijdelijke krachten snel en probleemloos in te zetten.
               </span>
             </li>
           </ul>
           <p className="mt-8">
-          Wil je meer weten over de voordelen van payrolling en uitzendkrachten voor jouw organisatie? Neem contact op met ons en ontdek hoe wij je kunnen helpen met flexibele, betrouwbare arbeidsoplossingen.
+          Wil je meer weten over de voordelen van payrolling en uitzendkrachten voor jouw organisatie? Neem <a className="font-semibold text-sky-600" href="https://junter.eu/contact">contact</a> met ons op en ontdek hoe wij je kunnen helpen met flexibele, betrouwbare arbeidsoplossingen.
           </p>
         </div>
       </div>

@@ -1,7 +1,7 @@
 
 
 import Image from 'next/image';
-import george from '@/app/assets/images/IMG_0512.jpg';
+import george from '@/app/assets/images/cc66434b-da39-4066-8f3a-035ae5a804fb.jpg';
 import lisa from '@/app/assets/images/IMG_8347.jpg';
 import ahmed from '@/app/assets/images/IMG_8348.jpg';
 import sarah from '@/app/assets/images/IMG_8349.jpg';
@@ -22,7 +22,7 @@ const testimonials = [
     {
       body: 'Dit platform heeft mijn zoektocht naar transportwerk vereenvoudigd. Betrouwbaar en efficiënt!',
       author: {
-        name: 'Delkhas',
+        name: 'George',
         handle: 'Logistiek & Transport',
         imageUrl:
           george,

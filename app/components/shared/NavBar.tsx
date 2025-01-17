@@ -7,7 +7,7 @@ import Image from 'next/image';
 import logo from '@/app/assets/images/178884748_padded_logo.png'; 
 
 const navigation = [
-  { name: 'Freelancers', href: '../freelancers' },
+  { name: 'Werknemers', href: '../freelancers' },
   { name: 'Bedrijven', href: '../bedrijven' },
   { name: 'Contact', href: '../contact' },
 ];

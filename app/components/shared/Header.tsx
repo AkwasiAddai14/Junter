@@ -10,7 +10,7 @@ import  delivery  from "@/app/assets/images/iStock-1824077027.jpg";
 
 
 const navigation = [
-  { name: 'Freelancers', href: '../freelancers' },
+  { name: 'Werknemers', href: '../freelancers' },
   { name: 'Bedrijven', href: '../bedrijven' },
   { name: 'Contact', href: '../contact' },
   { name: 'Aanmelden', href: '../sign-up'},
@@ -124,7 +124,7 @@ export default function Example() {
               <div className="mx-auto max-w-2xl lg:mx-0 lg:max-w-xl">
                 <div className="hidden sm:mb-10 sm:flex">
                   <div className="relative rounded-full px-4 py-2 text-sm leading-6 text-gray-500 ring-1 ring-gray-900/10 hover:ring-gray-900/20">
-                  Ontdek waarom freelancers ons platform verkiezen en vind je volgende klus vandaag nog!{' '}
+                  Ontdek waarom werkzoekende ons platform verkiezen en vind je volgende klus vandaag nog!{' '}
                     <a href="../freelancers" className="whitespace-nowrap font-semibold text-sky-600">
                       <span className="absolute inset-0 justify-end" aria-hidden="true" />
                       Lees Meer <span aria-hidden="true">&rarr;</span>
@@ -135,7 +135,7 @@ export default function Example() {
                 Ontketen je potentieel, vind je volgende opdracht!
                 </h1>
                 <p className="mt-6 text-lg leading-8 text-gray-600">
-                Ontdek een wereld van mogelijkheden als freelancer op ons platform.
+                Ontdek een wereld van mogelijkheden als werknemer op ons platform.
                  Van creatieve projecten tot zakelijke taken, hier vind je jouw volgende succesverhaal. 
                  Word lid en maak je dromen werkelijkheid!
                 </p>

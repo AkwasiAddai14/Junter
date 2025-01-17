@@ -7,7 +7,7 @@ const tiers = [
     href: '../sign-up',
     priceMonthly: '€16,50',
     description: '€14 + €2,50 (fee)',
-    features: ['minder administratieve lasten', 'Geen werkgeverslasten', 'projectmatige inzet met een specifieke oplevering'],
+    features: ['Minder administratieve lasten', 'Geen werkgeverslasten', 'Projectmatige inzet met een specifieke oplevering'],
   },
   {
     name: 'Uitzendkrachten',
@@ -16,10 +16,10 @@ const tiers = [
     priceMonthly: '€19,20',
     description: '€12 x 1.6 (omrekenfactor)',
     features: [
-        'minder administratieve lasten',
-      'directe inzetbaarheid',
-      'geschikt voor structurele samenwerking',
-      'potentie voor continuïteit.',
+        'Minder administratieve lasten',
+      'Directe inzetbaarheid',
+      'Geschikt voor structurele samenwerking',
+      'Potentie voor continuïteit.',
     
     ],
   },
