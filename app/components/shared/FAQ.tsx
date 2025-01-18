@@ -27,7 +27,7 @@ const faqs = [
     {
       question: 'Is er ondersteuning beschikbaar als ik hulp nodig heb tijdens het gebruik van de app?',
       answer:
-        'Ons team staat elke dag van 09:00 tot 17:00 voor je klaar via de app of WhatsApp om eventuele vragen of problemen op te lossen.',
+        'Ons team staat elke dag van 09:00 tot 17:00 voor je klaar via de app of WhatsApp om eventuele vragen te beantwoorden.',
     },
     {
       question: 'Zijn er beoordelingen of beoordelingen van opdrachtgevers beschikbaar voor de opdrachten?',

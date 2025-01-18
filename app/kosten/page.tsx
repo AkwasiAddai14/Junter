@@ -69,7 +69,7 @@ export default function Example() {
                     </h3>
                     <div className="mt-4 flex items-baseline gap-x-2">
                       <span className="text-5xl font-semibold tracking-tight text-gray-900">{tier.priceMonthly}</span>
-                      <span className="text-base/7 font-semibold text-gray-600">/ uur</span>
+                      <span className="text-base/7 font-semibold text-gray-600">/ gewerkt uur</span>
                     </div>
                     <p className="mt-6 text-base/7 text-gray-600">{tier.description}</p>
                     <ul role="list" className="mt-10 space-y-4 text-sm/6 text-gray-600">
